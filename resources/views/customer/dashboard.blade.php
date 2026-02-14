@@ -11,7 +11,11 @@
 @section('content')
     <div class="page-header">
         <h1>Welcome, {{ auth()->user()->name }}</h1>
-        <p class="text-muted">Account type: <span class="badge badge-{{ $customer->isCod() ? 'warning' : 'info' }}">{{ $customer->type }}</span></p>
+        <p class="text-muted">
+            <span class="type-badge {{ $customer->isCod() ? 'type-badge--cod' : 'type-badge--account' }}">
+                {{ $customer->type }}
+            </span>
+        </p>
     </div>
 
     <div class="stats-grid">
@@ -25,10 +29,23 @@
         </div>
     </div>
 
-    <div class="d-flex gap-1 mb-3 flex-wrap">
-        <a href="{{ route('customer.orders.create') }}" class="btn btn-primary">Place New Order</a>
-        <a href="{{ route('customer.quotes.index') }}" class="btn btn-outline">My Quotes</a>
-        <a href="{{ route('customer.addresses.index') }}" class="btn btn-outline">My Addresses</a>
+    <div class="quick-actions">
+        <a href="{{ route('customer.orders.create') }}" class="quick-action">
+            <span class="icon">&#10010;</span>
+            Place New Order
+        </a>
+        <a href="{{ route('customer.orders.index') }}" class="quick-action">
+            <span class="icon">&#9744;</span>
+            View Orders
+        </a>
+        <a href="{{ route('customer.quotes.index') }}" class="quick-action">
+            <span class="icon">&#9997;</span>
+            My Quotes
+        </a>
+        <a href="{{ route('customer.addresses.index') }}" class="quick-action">
+            <span class="icon">&#9873;</span>
+            My Addresses
+        </a>
     </div>
 
     <div class="card">
@@ -37,12 +54,27 @@
             @if($recentOrders->count())
             <div class="table-responsive">
                 <table>
-                    <thead><tr><th>Order #</th><th>Status</th><th>Total</th><th>Date</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Status</th>
+                            <th>Total</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
                     <tbody>
                     @foreach($recentOrders as $order)
                         <tr>
-                            <td><a href="{{ route('customer.orders.show', $order) }}">{{ $order->order_number }}</a></td>
-                            <td><span class="badge badge-primary status-{{ $order->status }}">{{ str_replace('_', ' ', $order->status) }}</span></td>
+                            <td>
+                                <a href="{{ route('customer.orders.show', $order) }}">
+                                    <strong>{{ $order->order_number }}</strong>
+                                </a>
+                            </td>
+                            <td>
+                                <span class="badge badge-primary status-{{ $order->status }}">
+                                    {{ str_replace('_', ' ', $order->status) }}
+                                </span>
+                            </td>
                             <td>R{{ number_format($order->total, 2) }}</td>
                             <td>{{ $order->created_at->format('d M Y') }}</td>
                         </tr>
@@ -51,7 +83,11 @@
                 </table>
             </div>
             @else
-                <div class="empty-state"><p>No orders yet. <a href="{{ route('customer.orders.create') }}">Place your first order</a></p></div>
+                <div class="empty-state">
+                    <div class="icon">&#9744;</div>
+                    <p>No orders yet.</p>
+                    <a href="{{ route('customer.orders.create') }}" class="btn btn-primary">Place your first order</a>
+                </div>
             @endif
         </div>
     </div>
@@ -59,10 +95,9 @@
 
 @section('bottom-nav')
 <nav class="bottom-nav">
-    <a href="{{ route('customer.dashboard') }}" class="active"><span class="nav-icon">&#9632;</span>Home</a>
+    <a href="{{ route('customer.dashboard') }}" class="active"><span class="nav-icon">&#9632;</span>Dashboard</a>
     <a href="{{ route('customer.orders.index') }}"><span class="nav-icon">&#9744;</span>Orders</a>
-    <a href="{{ route('customer.orders.create') }}"><span class="nav-icon">&#10010;</span>New Order</a>
     <a href="{{ route('customer.invoices.index') }}"><span class="nav-icon">&#9993;</span>Invoices</a>
-    <a href="{{ route('customer.addresses.index') }}"><span class="nav-icon">&#9873;</span>Addresses</a>
+    <a href="{{ route('customer.addresses.index') }}"><span class="nav-icon">&#9786;</span>Account</a>
 </nav>
 @endsection
