@@ -28,6 +28,34 @@
     </section>
     @endif
 
+    <section style="padding: 3rem 0; background: #fff;">
+        <div class="container">
+            <h2 class="section-title">Why Choose Concreto?</h2>
+            <div class="feature-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">&#128666;</div>
+                    <h3>Fast Delivery</h3>
+                    <p>Reliable delivery directly to your construction site, on time every time.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">&#9989;</div>
+                    <h3>Quality Materials</h3>
+                    <p>Premium sand, stone, and building supplies sourced from trusted suppliers.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">&#128178;</div>
+                    <h3>Competitive Prices</h3>
+                    <p>Fair pricing with no hidden costs. Get a quote today.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">&#127942;</div>
+                    <h3>15 Years of Experience</h3>
+                    <p>Over 15 years in the building materials industry, serving thousands of satisfied customers.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <section style="padding: 3rem 0;">
         <div class="container">
             <h2 class="text-center mb-3">Our Products</h2>
