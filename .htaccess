@@ -1,4 +1,9 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
+
+    # Route storage requests directly to Laravel (skip broken symlink)
+    RewriteRule ^storage/(.*)$ public/index.php [L]
+
+    # Everything else goes to public/
     RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>
