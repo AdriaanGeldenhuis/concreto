@@ -7,8 +7,7 @@
     <meta name="theme-color" content="{{ $siteSettings['primary_color'] ?? '#e67e22' }}">
     <title>@yield('title', 'Portal') - {{ $siteSettings['company_name'] ?? 'Concreto' }}</title>
     <link rel="stylesheet" href="/css/app.css">
-    <link rel="manifest" href="/manifest.json">
-    <link rel="apple-touch-icon" href="/assets/logo/concreto.webp">
+    <link rel="icon" type="image/png" href="/assets/logo/concreto.webp">
     @if(isset($siteSettings))
     <style>
         :root {

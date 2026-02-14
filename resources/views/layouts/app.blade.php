@@ -8,9 +8,7 @@
     <meta name="description" content="{{ $siteSettings['hero_subtitle'] ?? 'Quality building materials delivered to your site.' }}">
     <title>@yield('title', 'Concreto') - {{ $siteSettings['company_name'] ?? 'Concreto' }}</title>
     <link rel="stylesheet" href="/css/app.css">
-    <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/png" href="/assets/logo/concreto.webp">
-    <link rel="apple-touch-icon" href="/assets/logo/concreto.webp">
     @if(isset($siteSettings))
     <style>
         :root {
