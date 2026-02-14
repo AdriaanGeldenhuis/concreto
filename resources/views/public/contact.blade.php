@@ -43,38 +43,43 @@
         <p class="section-subtitle">Fill out the form below and we will get back to you as soon as possible.</p>
 
         <div class="auth-card" style="max-width: 100%;">
-            <form method="POST" action="{{ route('contact') }}">
+            <form method="POST" action="{{ route('contact.submit') }}">
                 @csrf
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Full Name</label>
-                        <input type="text" name="name" class="form-control" placeholder="Your full name" required>
+                        <input type="text" name="name" class="form-control" placeholder="Your full name" value="{{ old('name') }}" required>
+                        @error('name')<div class="form-error">{{ $message }}</div>@enderror
                     </div>
                     <div class="form-group">
                         <label class="form-label">Email Address</label>
-                        <input type="email" name="email" class="form-control" placeholder="you@example.com" required>
+                        <input type="email" name="email" class="form-control" placeholder="you@example.com" value="{{ old('email') }}" required>
+                        @error('email')<div class="form-error">{{ $message }}</div>@enderror
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Phone Number</label>
-                        <input type="tel" name="phone" class="form-control" placeholder="Your phone number">
+                        <input type="tel" name="phone" class="form-control" placeholder="Your phone number" value="{{ old('phone') }}">
+                        @error('phone')<div class="form-error">{{ $message }}</div>@enderror
                     </div>
                     <div class="form-group">
                         <label class="form-label">Subject</label>
                         <select name="subject" class="form-control">
-                            <option value="general">General Enquiry</option>
-                            <option value="products">Product Information</option>
-                            <option value="orders">Order Enquiry</option>
-                            <option value="delivery">Delivery Enquiry</option>
-                            <option value="account">Account Support</option>
-                            <option value="other">Other</option>
+                            <option value="general" {{ old('subject') == 'general' ? 'selected' : '' }}>General Enquiry</option>
+                            <option value="products" {{ old('subject') == 'products' ? 'selected' : '' }}>Product Information</option>
+                            <option value="orders" {{ old('subject') == 'orders' ? 'selected' : '' }}>Order Enquiry</option>
+                            <option value="delivery" {{ old('subject') == 'delivery' ? 'selected' : '' }}>Delivery Enquiry</option>
+                            <option value="account" {{ old('subject') == 'account' ? 'selected' : '' }}>Account Support</option>
+                            <option value="other" {{ old('subject') == 'other' ? 'selected' : '' }}>Other</option>
                         </select>
+                        @error('subject')<div class="form-error">{{ $message }}</div>@enderror
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Message</label>
-                    <textarea name="message" class="form-control" rows="5" placeholder="How can we help you?" required></textarea>
+                    <textarea name="message" class="form-control" rows="5" placeholder="How can we help you?" required>{{ old('message') }}</textarea>
+                    @error('message')<div class="form-error">{{ $message }}</div>@enderror
                 </div>
                 <button type="submit" class="btn btn-primary btn-lg btn-block">Send Message</button>
             </form>

@@ -31,7 +31,7 @@
                 <div class="alert alert-danger">{{ $errors->first() }}</div>
             @endif
 
-            <form method="POST" action="{{ route('login') }}">
+            <form method="POST" action="{{ route('login') }}{{ request('redirect') ? '?redirect=' . urlencode(request('redirect')) : '' }}">
                 @csrf
                 <div class="form-group">
                     <label class="form-label">Email Address</label>

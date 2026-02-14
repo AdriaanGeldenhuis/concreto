@@ -36,25 +36,32 @@
                     @endif
                     <div class="product-grid">
                         @foreach($category->products as $product)
-                            <a href="{{ route('products.show', $product) }}" class="product-card">
-                                <div class="product-card-img">
-                                    @if($product->image_path)
-                                        <img src="/storage/{{ $product->image_path }}" alt="{{ $product->name }}">
+                            <div class="product-card">
+                                <a href="{{ route('products.show', $product) }}" style="color:inherit;text-decoration:none;">
+                                    <div class="product-card-img">
+                                        @if($product->image_path)
+                                            <img src="/media/{{ $product->image_path }}" alt="{{ $product->name }}">
+                                        @else
+                                            <span>&#9881;</span>
+                                        @endif
+                                    </div>
+                                    <div class="product-card-body">
+                                        <h3>{{ $product->name }}</h3>
+                                        <div class="price">R{{ number_format($product->price, 2) }}</div>
+                                        <div class="unit">per {{ $product->unit }}</div>
+                                    </div>
+                                </a>
+                                <div class="product-card-actions">
+                                    @if($product->in_stock)
+                                    <form class="add-to-cart-form" data-product-id="{{ $product->id }}">
+                                        <input type="number" name="qty" value="1" min="0.01" step="0.01" class="form-control cart-qty-sm">
+                                        <button type="submit" class="btn btn-primary btn-sm btn-add-cart">Add to Cart</button>
+                                    </form>
                                     @else
-                                        <span>&#9881;</span>
+                                        <span class="badge badge-danger">Out of stock</span>
                                     @endif
                                 </div>
-                                <div class="product-card-body">
-                                    <h3>{{ $product->name }}</h3>
-                                    <div class="price">R{{ number_format($product->price, 2) }}</div>
-                                    <div class="unit">per {{ $product->unit }}</div>
-                                    @if(!$product->in_stock)
-                                        <span class="badge badge-danger mt-1">Out of Stock</span>
-                                    @else
-                                        <span class="badge badge-success mt-1">In Stock</span>
-                                    @endif
-                                </div>
-                            </a>
+                            </div>
                         @endforeach
                     </div>
                 </div>

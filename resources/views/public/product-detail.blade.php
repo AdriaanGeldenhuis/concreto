@@ -18,7 +18,7 @@
         <div class="card">
             @if($product->image_path)
                 <div class="product-detail-img overflow-hidden" style="max-height: 400px;">
-                    <img src="/storage/{{ $product->image_path }}" alt="{{ $product->name }}" style="width:100%;height:100%;object-fit:cover;">
+                    <img src="/media/{{ $product->image_path }}" alt="{{ $product->name }}" style="width:100%;height:100%;object-fit:cover;">
                 </div>
             @endif
             <div class="card-body p-3">
@@ -69,15 +69,25 @@
                     @endif
                 </div>
 
-                <div class="d-flex gap-1 flex-wrap">
-                    @auth
-                        <a href="{{ route('customer.orders.create') }}" class="btn btn-primary btn-lg">Order Now</a>
-                    @else
-                        <a href="{{ route('register') }}" class="btn btn-primary btn-lg">Register to Order</a>
-                    @endauth
-                    <a href="{{ route('request-quote') }}" class="btn btn-outline btn-lg">Request Quote</a>
-                    <a href="{{ route('products') }}" class="btn btn-ghost btn-lg">Back to Products</a>
+                @if($product->in_stock)
+                <div class="mt-3">
+                    <form class="add-to-cart-form" data-product-id="{{ $product->id }}" style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+                        <input type="number" name="qty" value="1" min="0.01" step="0.01" class="form-control" style="width:100px;text-align:center;">
+                        <span class="text-muted">{{ $product->unit }}</span>
+                        <button type="submit" class="btn btn-primary btn-lg btn-add-cart">Add to Cart</button>
+                    </form>
                 </div>
+                <div class="mt-2">
+                    <a href="{{ route('cart.index') }}" class="btn btn-outline btn-sm">View Cart</a>
+                    <a href="{{ route('request-quote') }}" class="btn btn-outline btn-sm">Request Quote</a>
+                    <a href="{{ route('products') }}" class="btn btn-ghost btn-sm">Back to Products</a>
+                </div>
+                @else
+                <div class="mt-3">
+                    <span class="badge badge-danger" style="font-size:1rem;padding:0.5rem 1rem;">Out of Stock</span>
+                    <a href="{{ route('request-quote') }}" class="btn btn-outline mt-1">Request Quote</a>
+                </div>
+                @endif
             </div>
         </div>
     </div>

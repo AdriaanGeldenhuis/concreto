@@ -2,12 +2,24 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\Customer;
 use App\Http\Controllers\Driver;
 use App\Http\Controllers\Admin;
 use App\Http\Controllers\Webhook\YocoWebhookController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
+
+// Serve uploaded files via /media/ to bypass server blocking /storage/
+Route::get('/media/{path}', function (string $path) {
+    if (!Storage::disk('public')->exists($path)) {
+        abort(404);
+    }
+    $file = Storage::disk('public')->path($path);
+    $mime = mime_content_type($file) ?: 'application/octet-stream';
+    return response()->file($file, ['Content-Type' => $mime]);
+})->where('path', '.*')->name('media.serve');
 
 // Public pages
 Route::get('/', [PublicController::class, 'home'])->name('home');
@@ -18,6 +30,20 @@ Route::post('/contact', [PublicController::class, 'submitContact'])->name('conta
 Route::get('/terms', [PublicController::class, 'terms'])->name('terms');
 Route::get('/privacy', [PublicController::class, 'privacy'])->name('privacy');
 Route::get('/request-quote', [PublicController::class, 'requestQuote'])->name('request-quote');
+Route::post('/request-quote', [PublicController::class, 'submitQuoteRequest'])->name('request-quote.submit');
+
+// Cart (session-based, no auth needed to browse)
+Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
+Route::post('/cart/update', [CartController::class, 'update'])->name('cart.update');
+Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
+Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
+
+// Checkout (auth required, any role)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/checkout', [CartController::class, 'checkout'])->name('checkout');
+    Route::post('/checkout', [CartController::class, 'placeOrder'])->name('checkout.place');
+});
 
 // Auth
 Route::middleware('guest')->group(function () {
@@ -96,6 +122,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff'])
     Route::post('/settings', [Admin\SettingsController::class, 'update'])->name('settings.update');
 
     Route::resource('users', Admin\UserController::class)->except(['show', 'destroy']);
+
+    Route::get('/messages', [Admin\MessageController::class, 'index'])->name('messages.index');
+    Route::get('/messages/{contactMessage}', [Admin\MessageController::class, 'show'])->name('messages.show');
+    Route::post('/messages/{contactMessage}/reply', [Admin\MessageController::class, 'reply'])->name('messages.reply');
+    Route::delete('/messages/{contactMessage}', [Admin\MessageController::class, 'destroy'])->name('messages.destroy');
 
     Route::get('/audit-logs', [Admin\AuditLogController::class, 'index'])->name('audit-logs.index');
 });

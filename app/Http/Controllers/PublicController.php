@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
 use App\Models\Category;
+use App\Models\ContactMessage;
 use App\Models\EmailLog;
 use App\Models\Product;
 use App\Models\Setting;
@@ -44,11 +45,21 @@ class PublicController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'phone' => 'nullable|string|max:50',
+            'subject' => 'nullable|string|max:255',
             'message' => 'required|string|max:5000',
         ]);
 
-        $adminEmail = Setting::get('contact_email', 'orders@concreto.co.za');
+        // Save to database
+        ContactMessage::create([
+            'type' => 'contact',
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'message' => ($request->subject ? '[' . $request->subject . '] ' : '') . $request->message,
+        ]);
 
+        // Also try to send email
+        $adminEmail = Setting::get('contact_email', 'orders@concreto.co.za');
         try {
             Mail::raw(
                 "New contact form submission:\n\nName: {$request->name}\nEmail: {$request->email}\nPhone: {$request->phone}\n\nMessage:\n{$request->message}",
@@ -92,5 +103,42 @@ class PublicController extends Controller
     {
         $products = Product::where('is_active', true)->where('in_stock', true)->orderBy('name')->get();
         return view('public.request-quote', compact('products'));
+    }
+
+    public function submitQuoteRequest(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'required|string|max:50',
+            'products_needed' => 'required|string|max:5000',
+            'delivery_address' => 'required|string|max:500',
+        ]);
+
+        ContactMessage::create([
+            'type' => 'quote_request',
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'products_needed' => $request->products_needed,
+            'delivery_address' => $request->delivery_address,
+        ]);
+
+        // Also try to send email notification
+        $adminEmail = Setting::get('contact_email', 'orders@concreto.co.za');
+        try {
+            Mail::raw(
+                "New quote request:\n\nName: {$request->name}\nEmail: {$request->email}\nPhone: {$request->phone}\n\nProducts needed:\n{$request->products_needed}\n\nDelivery address: {$request->delivery_address}",
+                function ($mail) use ($adminEmail, $request) {
+                    $mail->to($adminEmail)
+                        ->subject('Quote Request: ' . $request->name)
+                        ->replyTo($request->email, $request->name);
+                }
+            );
+        } catch (\Exception $e) {
+            // Silently fail - the message is saved in DB
+        }
+
+        return redirect()->route('request-quote')->with('success', 'Thank you! Your quote request has been submitted. We\'ll get back to you within 24 hours.');
     }
 }
