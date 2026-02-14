@@ -9,6 +9,12 @@
     RewriteCond %{HTTP:x-xsrf-token} .
     RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
 
+    # Serve static assets from public/ directory
+    RewriteRule ^(css|js|assets|storage|build)(/.*)?$ public/$1$2 [L]
+
+    # Serve favicon and robots from public/
+    RewriteRule ^(favicon\.ico|favicon\.png|robots\.txt)$ public/$1 [L]
+
     # Redirect Trailing Slashes If Not A Folder...
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} (.+)/$

@@ -14,6 +14,7 @@ Route::get('/', [PublicController::class, 'home'])->name('home');
 Route::get('/products', [PublicController::class, 'products'])->name('products');
 Route::get('/products/{product}', [PublicController::class, 'productDetail'])->name('products.show');
 Route::get('/contact', [PublicController::class, 'contact'])->name('contact');
+Route::post('/contact', [PublicController::class, 'submitContact'])->name('contact.submit');
 Route::get('/terms', [PublicController::class, 'terms'])->name('terms');
 Route::get('/privacy', [PublicController::class, 'privacy'])->name('privacy');
 Route::get('/request-quote', [PublicController::class, 'requestQuote'])->name('request-quote');
@@ -38,6 +39,8 @@ Route::prefix('customer')->name('customer.')->middleware(['auth', 'role:customer
     Route::get('/orders/{order}/pay', [Customer\OrderController::class, 'pay'])->name('orders.pay');
     Route::post('/orders/{order}/pay', [Customer\OrderController::class, 'createPaymentSession'])->name('orders.pay.create');
     Route::get('/orders/{order}/payment-success', [Customer\OrderController::class, 'paymentSuccess'])->name('orders.payment-success');
+    Route::get('/orders/{order}/reorder', [Customer\OrderController::class, 'reorder'])->name('orders.reorder');
+    Route::post('/orders/{order}/dispute', [Customer\OrderController::class, 'dispute'])->name('orders.dispute');
 
     Route::get('/invoices', [Customer\InvoiceController::class, 'index'])->name('invoices.index');
     Route::get('/invoices/{invoice}/download', [Customer\InvoiceController::class, 'download'])->name('invoices.download');

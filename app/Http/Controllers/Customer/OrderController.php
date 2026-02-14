@@ -112,6 +112,65 @@ class OrderController extends Controller
         return view('customer.orders.payment-success', compact('order'));
     }
 
+    public function reorder(Request $request, Order $order)
+    {
+        $this->authorizeCustomerOrder($request, $order);
+
+        $customer = $request->user()->customer;
+        $products = Product::where('is_active', true)->where('in_stock', true)->orderBy('name')->get();
+        $addresses = $customer->addresses;
+
+        // Pre-fill from previous order
+        $prefill = [
+            'address_id' => $order->delivery_address_id,
+            'items' => $order->items->map(fn($item) => [
+                'product_id' => $item->product_id,
+                'qty' => $item->qty,
+            ])->toArray(),
+            'notes' => $order->notes,
+        ];
+
+        return view('customer.orders.create', compact('products', 'addresses', 'customer', 'prefill'));
+    }
+
+    public function dispute(Request $request, Order $order)
+    {
+        $this->authorizeCustomerOrder($request, $order);
+
+        // Only allow dispute within 24 hours of delivery
+        if ($order->status !== 'DELIVERED') {
+            return back()->with('error', 'You can only dispute delivered orders.');
+        }
+
+        $deliveredAt = $order->proofOfDelivery?->signed_at ?? $order->updated_at;
+        if ($deliveredAt->diffInHours(now()) > 24) {
+            return back()->with('error', 'Disputes must be raised within 24 hours of delivery.');
+        }
+
+        $request->validate([
+            'reason' => 'required|string|max:2000',
+        ]);
+
+        // Log the dispute as an audit entry
+        \App\Models\AuditLog::log(
+            'dispute_raised',
+            'Order',
+            $order->id,
+            [
+                'reason' => $request->input('reason'),
+                'customer' => $request->user()->name,
+                'order_number' => $order->order_number,
+            ]
+        );
+
+        // Update order notes
+        $order->update([
+            'notes' => ($order->notes ? $order->notes . "\n\n" : '') . "[DISPUTE " . now()->format('d/m/Y H:i') . "] " . $request->input('reason'),
+        ]);
+
+        return back()->with('success', 'Your dispute has been submitted. Our team will review it shortly.');
+    }
+
     private function authorizeCustomerOrder(Request $request, Order $order): void
     {
         if ($order->customer_id !== $request->user()->customer->id) {

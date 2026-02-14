@@ -1,0 +1,22 @@
+{
+    "name": "Concreto",
+    "short_name": "Concreto",
+    "description": "Quality building materials, delivered",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#f5f6fa",
+    "theme_color": "#e67e22",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "/assets/logo/concreto.webp",
+            "sizes": "192x192",
+            "type": "image/webp"
+        },
+        {
+            "src": "/assets/logo/concreto.webp",
+            "sizes": "512x512",
+            "type": "image/webp"
+        }
+    ]
+}
