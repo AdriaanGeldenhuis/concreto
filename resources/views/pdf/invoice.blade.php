@@ -12,7 +12,7 @@
         .info-grid { width: 100%; margin-bottom: 20px; }
         .info-grid td { vertical-align: top; padding: 3px 0; }
         .info-grid .label { font-weight: bold; color: #666; width: 120px; }
-        .section-title { font-size: 14px; font-weight: bold; color: {{ $settings['primary_color'] ?? '#e67e22' }}; margin: 20px 0 10px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+        .section-title { font-size: 14px; font-weight: bold; color: {{ $settings['primary_color'] ?? '#e67e22' }}; margin: 20px 0 10px; border-bottom: 1px solid #ddd; padding-bottom: 5px; text-align: center; }
         table.items { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
         table.items th { background: #f5f5f5; padding: 8px 10px; text-align: left; font-size: 11px; text-transform: uppercase; color: #666; border-bottom: 2px solid #ddd; }
         table.items td { padding: 8px 10px; border-bottom: 1px solid #eee; }
