@@ -12,7 +12,11 @@ class InjectSettings
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $settings = Setting::getAll();
+        try {
+            $settings = Setting::getAll();
+        } catch (\Exception $e) {
+            $settings = [];
+        }
         View::share('siteSettings', $settings);
         return $next($request);
     }
