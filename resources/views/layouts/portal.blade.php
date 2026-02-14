@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="theme-color" content="{{ $siteSettings['primary_color'] ?? '#e67e22' }}">
     <title>@yield('title', 'Portal') - {{ $siteSettings['company_name'] ?? 'Concreto' }}</title>
     @if(!empty($siteSettings['site_favicon']))
         <link rel="icon" href="{{ url('media/' . $siteSettings['site_favicon']) }}">
@@ -14,6 +15,7 @@
         <link href="{{ $siteSettings['google_font_url'] }}" rel="stylesheet">
     @endif
     <link rel="stylesheet" href="/css/app.css">
+    <link rel="icon" type="image/png" href="/assets/logo/concreto.webp">
     @if(isset($siteSettings))
     <style>
         :root {
@@ -81,6 +83,11 @@
     @if(session('error'))
         <div class="container mt-1">
             <div class="alert alert-danger" data-dismiss>{{ session('error') }}</div>
+        </div>
+    @endif
+    @if(session('info'))
+        <div class="container mt-1">
+            <div class="alert alert-info" data-dismiss>{{ session('info') }}</div>
         </div>
     @endif
 

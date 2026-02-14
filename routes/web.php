@@ -65,6 +65,8 @@ Route::prefix('customer')->name('customer.')->middleware(['auth', 'role:customer
     Route::get('/orders/{order}/pay', [Customer\OrderController::class, 'pay'])->name('orders.pay');
     Route::post('/orders/{order}/pay', [Customer\OrderController::class, 'createPaymentSession'])->name('orders.pay.create');
     Route::get('/orders/{order}/payment-success', [Customer\OrderController::class, 'paymentSuccess'])->name('orders.payment-success');
+    Route::get('/orders/{order}/reorder', [Customer\OrderController::class, 'reorder'])->name('orders.reorder');
+    Route::post('/orders/{order}/dispute', [Customer\OrderController::class, 'dispute'])->name('orders.dispute');
 
     Route::get('/invoices', [Customer\InvoiceController::class, 'index'])->name('invoices.index');
     Route::get('/invoices/{invoice}/download', [Customer\InvoiceController::class, 'download'])->name('invoices.download');

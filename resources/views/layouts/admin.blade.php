@@ -76,10 +76,11 @@
             <div class="sidebar-section">System</div>
             <a href="{{ route('admin.settings.index') }}" class="{{ request()->routeIs('admin.settings*') ? 'active' : '' }}">&#9881; Settings</a>
             <a href="{{ route('admin.audit-logs.index') }}" class="{{ request()->routeIs('admin.audit-logs*') ? 'active' : '' }}">&#9201; Audit Log</a>
-            <div style="padding: 1rem 1.25rem; margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1);">
+            <div style="padding: 1rem 1.25rem; margin-top: auto; border-top: 1px solid rgba(255,255,255,0.08);">
+                <a href="{{ route('home') }}" style="margin-bottom: 0.25rem;">&#8592; View Site</a>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button type="submit" style="background:none;border:none;color:rgba(255,255,255,0.6);cursor:pointer;font-size:0.875rem;">&#8592; Logout</button>
+                    <button type="submit" style="background:none;border:none;color:rgba(255,255,255,0.5);cursor:pointer;font-size:0.875rem;padding:0.5rem 0;">&#10005; Logout</button>
                 </form>
             </div>
         </aside>
@@ -92,6 +93,9 @@
             @endif
             @if(session('error'))
                 <div class="alert alert-danger" data-dismiss>{{ session('error') }}</div>
+            @endif
+            @if(session('info'))
+                <div class="alert alert-info" data-dismiss>{{ session('info') }}</div>
             @endif
 
             @yield('content')

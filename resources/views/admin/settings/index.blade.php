@@ -1,7 +1,9 @@
 @extends('layouts.admin')
 @section('title', 'Settings')
 @section('content')
-    <div class="page-header"><h1>Site Settings</h1></div>
+    <div class="page-header">
+        <h1>Site Settings</h1>
+    </div>
 
     <form method="POST" action="{{ route('admin.settings.update') }}" enctype="multipart/form-data">
         @csrf
@@ -416,12 +418,32 @@
         {{-- COMPANY INFO --}}
         {{-- ============================================================ --}}
         <div class="card">
-            <div class="card-header">Company Info</div>
+            <div class="card-header">Company Information</div>
             <div class="card-body">
-                <div class="form-group"><label class="form-label">Company Name</label><input type="text" name="settings[company_name]" class="form-control" value="{{ $siteSettings['company_name'] ?? 'Concreto' }}"><input type="hidden" name="groups[company_name]" value="general"></div>
-                <div class="form-group"><label class="form-label">Contact Email</label><input type="email" name="settings[contact_email]" class="form-control" value="{{ $siteSettings['contact_email'] ?? 'orders@concreto.co.za' }}"><input type="hidden" name="groups[contact_email]" value="general"></div>
-                <div class="form-group"><label class="form-label">Contact Phone</label><input type="text" name="settings[contact_phone]" class="form-control" value="{{ $siteSettings['contact_phone'] ?? '' }}"><input type="hidden" name="groups[contact_phone]" value="general"></div>
-                <div class="form-group"><label class="form-label">Contact Address</label><input type="text" name="settings[contact_address]" class="form-control" value="{{ $siteSettings['contact_address'] ?? '' }}"><input type="hidden" name="groups[contact_address]" value="general"></div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Company Name</label>
+                        <input type="text" name="settings[company_name]" class="form-control" value="{{ $siteSettings['company_name'] ?? 'Concreto' }}">
+                        <input type="hidden" name="groups[company_name]" value="general">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Contact Email</label>
+                        <input type="email" name="settings[contact_email]" class="form-control" value="{{ $siteSettings['contact_email'] ?? 'orders@concreto.co.za' }}">
+                        <input type="hidden" name="groups[contact_email]" value="general">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Contact Phone</label>
+                        <input type="text" name="settings[contact_phone]" class="form-control" value="{{ $siteSettings['contact_phone'] ?? '' }}" placeholder="e.g. 012 345 6789">
+                        <input type="hidden" name="groups[contact_phone]" value="general">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Contact Address</label>
+                        <input type="text" name="settings[contact_address]" class="form-control" value="{{ $siteSettings['contact_address'] ?? '' }}" placeholder="Physical address">
+                        <input type="hidden" name="groups[contact_address]" value="general">
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -429,12 +451,30 @@
         {{-- HOMEPAGE --}}
         {{-- ============================================================ --}}
         <div class="card">
-            <div class="card-header">Homepage</div>
+            <div class="card-header">Homepage Content</div>
             <div class="card-body">
-                <div class="form-group"><label class="form-label">Hero Title</label><input type="text" name="settings[hero_title]" class="form-control" value="{{ $siteSettings['hero_title'] ?? 'Quality Building Materials, Delivered' }}"><input type="hidden" name="groups[hero_title]" value="homepage"></div>
-                <div class="form-group"><label class="form-label">Hero Subtitle</label><textarea name="settings[hero_subtitle]" class="form-control">{{ $siteSettings['hero_subtitle'] ?? '' }}</textarea><input type="hidden" name="groups[hero_subtitle]" value="homepage"></div>
-                <div class="form-group"><label class="form-label">Delivery Info Banner</label><input type="text" name="settings[delivery_info]" class="form-control" value="{{ $siteSettings['delivery_info'] ?? '' }}"><input type="hidden" name="groups[delivery_info]" value="homepage"></div>
-                <div class="form-group"><label class="form-label">Promo Banner</label><input type="text" name="settings[homepage_promo]" class="form-control" value="{{ $siteSettings['homepage_promo'] ?? '' }}"><input type="hidden" name="groups[homepage_promo]" value="homepage"></div>
+                <div class="form-group">
+                    <label class="form-label">Hero Title</label>
+                    <input type="text" name="settings[hero_title]" class="form-control" value="{{ $siteSettings['hero_title'] ?? 'Quality Building Materials, Delivered' }}">
+                    <input type="hidden" name="groups[hero_title]" value="homepage">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Hero Subtitle</label>
+                    <textarea name="settings[hero_subtitle]" class="form-control" rows="3">{{ $siteSettings['hero_subtitle'] ?? '' }}</textarea>
+                    <input type="hidden" name="groups[hero_subtitle]" value="homepage">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Delivery Info Banner</label>
+                        <input type="text" name="settings[delivery_info]" class="form-control" value="{{ $siteSettings['delivery_info'] ?? '' }}" placeholder="e.g. Free delivery on orders over R5,000">
+                        <input type="hidden" name="groups[delivery_info]" value="homepage">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Promo Banner</label>
+                        <input type="text" name="settings[homepage_promo]" class="form-control" value="{{ $siteSettings['homepage_promo'] ?? '' }}" placeholder="e.g. 10% off first orders">
+                        <input type="hidden" name="groups[homepage_promo]" value="homepage">
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -459,8 +499,18 @@
         <div class="card">
             <div class="card-header">Legal Pages</div>
             <div class="card-body">
-                <div class="form-group"><label class="form-label">Terms & Conditions</label><textarea name="settings[terms_content]" class="form-control" rows="6">{{ $siteSettings['terms_content'] ?? '' }}</textarea><input type="hidden" name="groups[terms_content]" value="legal"></div>
-                <div class="form-group"><label class="form-label">Privacy Policy</label><textarea name="settings[privacy_content]" class="form-control" rows="6">{{ $siteSettings['privacy_content'] ?? '' }}</textarea><input type="hidden" name="groups[privacy_content]" value="legal"></div>
+                <div class="form-group">
+                    <label class="form-label">Terms & Conditions</label>
+                    <textarea name="settings[terms_content]" class="form-control" rows="8">{{ $siteSettings['terms_content'] ?? '' }}</textarea>
+                    <div class="form-hint">Plain text or HTML. Displayed on the /terms page.</div>
+                    <input type="hidden" name="groups[terms_content]" value="legal">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Privacy Policy</label>
+                    <textarea name="settings[privacy_content]" class="form-control" rows="8">{{ $siteSettings['privacy_content'] ?? '' }}</textarea>
+                    <div class="form-hint">Plain text or HTML. Displayed on the /privacy page.</div>
+                    <input type="hidden" name="groups[privacy_content]" value="legal">
+                </div>
             </div>
         </div>
 
@@ -470,8 +520,40 @@
         <div class="card">
             <div class="card-header">Business Rules</div>
             <div class="card-body">
-                <div class="form-group"><label class="form-label">Minimum Order Value (R)</label><input type="number" name="settings[min_order_value]" class="form-control" step="0.01" value="{{ $siteSettings['min_order_value'] ?? '0' }}"><input type="hidden" name="groups[min_order_value]" value="business"></div>
-                <div class="form-group"><label class="form-label">Business Hours</label><input type="text" name="settings[business_hours]" class="form-control" value="{{ $siteSettings['business_hours'] ?? 'Mon-Fri 07:00-17:00, Sat 07:00-12:00' }}"><input type="hidden" name="groups[business_hours]" value="business"></div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Minimum Order Value (R)</label>
+                        <input type="number" name="settings[min_order_value]" class="form-control" step="0.01" value="{{ $siteSettings['min_order_value'] ?? '0' }}">
+                        <div class="form-hint">Set to 0 for no minimum.</div>
+                        <input type="hidden" name="groups[min_order_value]" value="business">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Business Hours</label>
+                        <input type="text" name="settings[business_hours]" class="form-control" value="{{ $siteSettings['business_hours'] ?? 'Mon-Fri 07:00-17:00, Sat 07:00-12:00' }}">
+                        <div class="form-hint">Displayed to customers on the website.</div>
+                        <input type="hidden" name="groups[business_hours]" value="business">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Default Delivery Fee (R)</label>
+                        <input type="number" name="settings[default_delivery_fee]" class="form-control" step="0.01" value="{{ $siteSettings['default_delivery_fee'] ?? '0' }}">
+                        <div class="form-hint">Added to every order unless overridden.</div>
+                        <input type="hidden" name="groups[default_delivery_fee]" value="business">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Free Delivery Threshold (R)</label>
+                        <input type="number" name="settings[free_delivery_threshold]" class="form-control" step="0.01" value="{{ $siteSettings['free_delivery_threshold'] ?? '0' }}">
+                        <div class="form-hint">Orders above this value get free delivery. 0 = disabled.</div>
+                        <input type="hidden" name="groups[free_delivery_threshold]" value="business">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">VAT Rate (%)</label>
+                    <input type="number" name="settings[vat_rate]" class="form-control" step="0.01" value="{{ $siteSettings['vat_rate'] ?? '15' }}" style="max-width:200px;">
+                    <div class="form-hint">South African standard is 15%.</div>
+                    <input type="hidden" name="groups[vat_rate]" value="business">
+                </div>
             </div>
         </div>
 

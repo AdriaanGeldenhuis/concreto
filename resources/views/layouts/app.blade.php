@@ -2,8 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="theme-color" content="{{ $siteSettings['primary_color'] ?? '#e67e22' }}">
+    <meta name="description" content="{{ $siteSettings['hero_subtitle'] ?? 'Quality building materials delivered to your site.' }}">
     <title>@yield('title', 'Concreto') - {{ $siteSettings['company_name'] ?? 'Concreto' }}</title>
     @if(!empty($siteSettings['site_favicon']))
         <link rel="icon" href="{{ url('media/' . $siteSettings['site_favicon']) }}">
@@ -14,6 +16,7 @@
         <link href="{{ $siteSettings['google_font_url'] }}" rel="stylesheet">
     @endif
     <link rel="stylesheet" href="/css/app.css">
+    <link rel="icon" type="image/png" href="/assets/logo/concreto.webp">
     @if(isset($siteSettings))
     <style>
         :root {
@@ -97,7 +100,7 @@
                     &#128722; Cart <span class="cart-badge" id="cart-badge" style="display:none;">0</span>
                 </a>
                 @guest
-                    <a href="{{ route('login') }}" class="btn btn-outline btn-sm">Login</a>
+                    <a href="{{ route('login') }}" class="btn btn-outline btn-sm" style="border-color:rgba(255,255,255,0.4);color:#fff;">Login</a>
                     <a href="{{ route('register') }}" class="btn btn-primary btn-sm">Register</a>
                 @else
                     @if(auth()->user()->isAdmin() || auth()->user()->isStaff())
@@ -146,15 +149,16 @@
                 <div>
                     <h4>Quick Links</h4>
                     <p><a href="{{ route('products') }}">Products</a></p>
+                    <p><a href="{{ route('request-quote') }}">Request Quote</a></p>
                     <p><a href="{{ route('contact') }}">Contact Us</a></p>
                     <p><a href="{{ route('terms') }}">Terms & Conditions</a></p>
                     <p><a href="{{ route('privacy') }}">Privacy Policy</a></p>
                 </div>
                 <div>
                     <h4>Contact</h4>
-                    <p>{{ $siteSettings['contact_email'] ?? 'orders@concreto.co.za' }}</p>
-                    <p>{{ $siteSettings['contact_phone'] ?? '' }}</p>
-                    <p>{{ $siteSettings['contact_address'] ?? '' }}</p>
+                    @if(!empty($siteSettings['contact_email']))<p>{{ $siteSettings['contact_email'] }}</p>@endif
+                    @if(!empty($siteSettings['contact_phone']))<p>{{ $siteSettings['contact_phone'] }}</p>@endif
+                    @if(!empty($siteSettings['contact_address']))<p>{{ $siteSettings['contact_address'] }}</p>@endif
                     @if(!empty($siteSettings['social_facebook']))<p><a href="{{ $siteSettings['social_facebook'] }}">Facebook</a></p>@endif
                     @if(!empty($siteSettings['social_instagram']))<p><a href="{{ $siteSettings['social_instagram'] }}">Instagram</a></p>@endif
                     @if(!empty($siteSettings['social_twitter']))<p><a href="{{ $siteSettings['social_twitter'] }}">Twitter / X</a></p>@endif
@@ -162,7 +166,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>{{ $siteSettings['footer_text'] ?? '&copy; ' . date('Y') . ' Concreto. All rights reserved.' }}</p>
+                <p>{!! $siteSettings['footer_text'] ?? '&copy; ' . date('Y') . ' Concreto. All rights reserved.' !!}</p>
             </div>
         </div>
     </footer>
