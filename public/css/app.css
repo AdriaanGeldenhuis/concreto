@@ -383,6 +383,9 @@ tr:hover { background: rgba(230,126,34,0.03); }
     .bottom-nav.admin-only { display: none; }
 }
 
+/* Section titles */
+.section-title { text-align: center; }
+
 /* Mobile nav toggle */
 @media (max-width: 767px) {
     .navbar-toggle { display: block; }
