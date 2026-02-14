@@ -2,14 +2,33 @@
 @section('title', 'Home')
 @section('content')
     <section class="hero">
-        <div class="container">
-            <h1>{{ $siteSettings['hero_title'] ?? 'Quality Building Materials, Delivered' }}</h1>
-            <p>{{ $siteSettings['hero_subtitle'] ?? 'Sand, stone, and construction supplies delivered directly to your site. Order online and track your delivery in real-time.' }}</p>
-            <div class="d-flex gap-1 justify-between" style="justify-content:center;">
-                <a href="{{ route('products') }}" class="btn btn-primary btn-lg">View Products</a>
-                <a href="{{ route('request-quote') }}" class="btn btn-outline btn-lg" style="border-color:#fff;color:#fff;">Get a Quote</a>
+        @if(!empty($siteSettings['bg_image_desktop']))
+            <img src="{{ url('media/' . $siteSettings['bg_image_desktop']) }}" alt="" class="hero-bg hero-bg--desktop">
+            @if(!empty($siteSettings['bg_image_tablet']))
+                <img src="{{ url('media/' . $siteSettings['bg_image_tablet']) }}" alt="" class="hero-bg hero-bg--tablet">
+            @endif
+            @if(!empty($siteSettings['bg_image_mobile']))
+                <img src="{{ url('media/' . $siteSettings['bg_image_mobile']) }}" alt="" class="hero-bg hero-bg--mobile">
+            @endif
+            <div class="hero-overlay"></div>
+            <div class="hero-content">
+                <h1>{{ $siteSettings['hero_title'] ?? 'Quality Building Materials, Delivered' }}</h1>
+                <p>{{ $siteSettings['hero_subtitle'] ?? 'Sand, stone, and construction supplies delivered directly to your site. Order online and track your delivery in real-time.' }}</p>
+                <div class="d-flex gap-1 justify-between" style="justify-content:center;">
+                    <a href="{{ route('products') }}" class="btn btn-primary btn-lg">View Products</a>
+                    <a href="{{ route('request-quote') }}" class="btn btn-outline btn-lg" style="border-color:#fff;color:#fff;">Get a Quote</a>
+                </div>
             </div>
-        </div>
+        @else
+            <div class="container">
+                <h1>{{ $siteSettings['hero_title'] ?? 'Quality Building Materials, Delivered' }}</h1>
+                <p>{{ $siteSettings['hero_subtitle'] ?? 'Sand, stone, and construction supplies delivered directly to your site. Order online and track your delivery in real-time.' }}</p>
+                <div class="d-flex gap-1 justify-between" style="justify-content:center;">
+                    <a href="{{ route('products') }}" class="btn btn-primary btn-lg">View Products</a>
+                    <a href="{{ route('request-quote') }}" class="btn btn-outline btn-lg" style="border-color:#fff;color:#fff;">Get a Quote</a>
+                </div>
+            </div>
+        @endif
     </section>
 
     @if(!empty($siteSettings['delivery_info']))

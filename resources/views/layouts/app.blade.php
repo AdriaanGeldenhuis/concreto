@@ -53,20 +53,23 @@
         :root { --shadow: {{ $shadowMap[$siteSettings['card_shadow']] ?? '0 2px 8px rgba(0,0,0,0.08)' }}; }
         @endif
         @if(!empty($siteSettings['bg_image_desktop']))
-        .hero { background-image: url('{{ url('media/' . $siteSettings['bg_image_desktop']) }}'); background-size: cover; background-position: {{ $siteSettings['bg_position'] ?? 'center center' }}; background-repeat: no-repeat; }
-        .hero::before { content:''; position:absolute; inset:0; background: {{ $siteSettings['bg_overlay_color'] ?? '#000000' }}; opacity: {{ ($siteSettings['bg_overlay_opacity'] ?? 70) / 100 }}; }
-        .hero { position:relative; }
-        .hero > * { position:relative; z-index:1; }
-        @endif
+        .hero { position:relative; padding:0; overflow:hidden; }
+        .hero-bg { display:block; width:100%; height:auto; }
+        .hero-bg--tablet, .hero-bg--mobile { display:none; }
+        .hero-overlay { position:absolute; inset:0; background: {{ $siteSettings['bg_overlay_color'] ?? '#000000' }}; opacity: {{ ($siteSettings['bg_overlay_opacity'] ?? 70) / 100 }}; }
+        .hero-content { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:1; padding:2rem; }
         @if(!empty($siteSettings['bg_image_tablet']))
         @media (max-width: 991px) {
-            .hero { background-image: url('{{ url('media/' . $siteSettings['bg_image_tablet']) }}'); }
+            .hero-bg--desktop { display:none; }
+            .hero-bg--tablet { display:block; }
         }
         @endif
         @if(!empty($siteSettings['bg_image_mobile']))
         @media (max-width: 767px) {
-            .hero { background-image: url('{{ url('media/' . $siteSettings['bg_image_mobile']) }}'); }
+            .hero-bg--desktop, .hero-bg--tablet { display:none; }
+            .hero-bg--mobile { display:block; }
         }
+        @endif
         @endif
     </style>
     @endif
