@@ -35,6 +35,11 @@ class LoginController extends Controller
             RateLimiter::clear($key);
             $request->session()->regenerate();
 
+            // Redirect to intended URL if set (e.g. from cart checkout)
+            if ($request->has('redirect')) {
+                return redirect($request->input('redirect'));
+            }
+
             $user = Auth::user();
             return match ($user->role) {
                 'admin', 'staff' => redirect()->route('admin.dashboard'),

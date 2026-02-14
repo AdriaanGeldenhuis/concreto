@@ -5,7 +5,7 @@
     <div class="card">
         <div class="card-header">Login to your account</div>
         <div class="card-body">
-            <form method="POST" action="{{ route('login') }}">
+            <form method="POST" action="{{ route('login') }}{{ request('redirect') ? '?redirect=' . urlencode(request('redirect')) : '' }}">
                 @csrf
                 <div class="form-group">
                     <label class="form-label">Email</label>

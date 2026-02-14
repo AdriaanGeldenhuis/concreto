@@ -27,14 +27,24 @@
             @else
                 <span class="badge badge-danger">Out of Stock</span>
             @endif
+            @if($product->in_stock)
             <div class="mt-3">
-                @auth
-                    <a href="{{ route('customer.orders.create') }}" class="btn btn-primary">Order Now</a>
-                @else
-                    <a href="{{ route('register') }}" class="btn btn-primary">Register to Order</a>
-                @endauth
-                <a href="{{ route('request-quote') }}" class="btn btn-outline">Request Quote</a>
+                <form class="add-to-cart-form" data-product-id="{{ $product->id }}" style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+                    <input type="number" name="qty" value="1" min="0.01" step="0.01" class="form-control" style="width:100px;text-align:center;">
+                    <span class="text-muted">{{ $product->unit }}</span>
+                    <button type="submit" class="btn btn-primary btn-lg btn-add-cart">Add to Cart</button>
+                </form>
             </div>
+            <div class="mt-2">
+                <a href="{{ route('cart.index') }}" class="btn btn-outline btn-sm">View Cart</a>
+                <a href="{{ route('request-quote') }}" class="btn btn-outline btn-sm">Request Quote</a>
+            </div>
+            @else
+            <div class="mt-3">
+                <span class="badge badge-danger" style="font-size:1rem;padding:0.5rem 1rem;">Out of Stock</span>
+                <a href="{{ route('request-quote') }}" class="btn btn-outline mt-1">Request Quote</a>
+            </div>
+            @endif
         </div>
     </div>
 </div>

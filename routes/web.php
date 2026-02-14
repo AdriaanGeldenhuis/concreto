@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\Customer;
 use App\Http\Controllers\Driver;
@@ -28,6 +29,19 @@ Route::get('/contact', [PublicController::class, 'contact'])->name('contact');
 Route::get('/terms', [PublicController::class, 'terms'])->name('terms');
 Route::get('/privacy', [PublicController::class, 'privacy'])->name('privacy');
 Route::get('/request-quote', [PublicController::class, 'requestQuote'])->name('request-quote');
+
+// Cart (session-based, no auth needed to browse)
+Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
+Route::post('/cart/update', [CartController::class, 'update'])->name('cart.update');
+Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
+Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
+
+// Checkout (auth required)
+Route::middleware(['auth', 'role:customer'])->group(function () {
+    Route::get('/checkout', [CartController::class, 'checkout'])->name('checkout');
+    Route::post('/checkout', [CartController::class, 'placeOrder'])->name('checkout.place');
+});
 
 // Auth
 Route::middleware('guest')->group(function () {
