@@ -53,8 +53,8 @@
         :root { --shadow: {{ $shadowMap[$siteSettings['card_shadow']] ?? '0 2px 8px rgba(0,0,0,0.08)' }}; }
         @endif
         @if(!empty($siteSettings['bg_image_desktop']))
-        .hero { background-image: url('{{ url('media/' . $siteSettings['bg_image_desktop']) }}'); background-size: {{ $siteSettings['bg_size'] ?? 'cover' }}; background-position: {{ $siteSettings['bg_position'] ?? 'center center' }}; background-repeat: no-repeat; }
-        .hero::before { content:''; position:absolute; inset:0; background: {{ $siteSettings['bg_overlay_color'] ?? '#000000' }}; opacity: {{ ($siteSettings['bg_overlay_opacity'] ?? 40) / 100 }}; }
+        .hero { background-image: url('{{ url('media/' . $siteSettings['bg_image_desktop']) }}'); background-size: 100% 100%; background-position: center center; background-repeat: no-repeat; }
+        .hero::before { content:''; position:absolute; inset:0; background: #000000; opacity: 0.5; }
         .hero { position:relative; }
         .hero > * { position:relative; z-index:1; }
         @endif
@@ -84,7 +84,6 @@
                 @else
                     <img src="/assets/logo/concreto.webp" alt="Concreto">
                 @endif
-                <span>{{ $siteSettings['company_name'] ?? 'Concreto' }}</span>
             </a>
             <button class="navbar-toggle" aria-label="Toggle menu">&#9776;</button>
             <div class="navbar-links">
