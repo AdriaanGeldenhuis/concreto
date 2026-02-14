@@ -39,8 +39,8 @@ Route::post('/cart/update', [CartController::class, 'update'])->name('cart.updat
 Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
 Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
 
-// Checkout (auth required)
-Route::middleware(['auth', 'role:customer'])->group(function () {
+// Checkout (auth required, any role)
+Route::middleware(['auth'])->group(function () {
     Route::get('/checkout', [CartController::class, 'checkout'])->name('checkout');
     Route::post('/checkout', [CartController::class, 'placeOrder'])->name('checkout.place');
 });

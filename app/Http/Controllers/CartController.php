@@ -2,11 +2,31 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Customer;
 use App\Models\Product;
 use Illuminate\Http\Request;
 
 class CartController extends Controller
 {
+    /**
+     * Get or create a customer profile for the current user.
+     */
+    private function getOrCreateCustomer(Request $request): Customer
+    {
+        $user = $request->user();
+        $customer = $user->customer;
+
+        if (!$customer) {
+            $customer = Customer::create([
+                'user_id' => $user->id,
+                'type' => 'COD',
+            ]);
+            // Refresh the relationship
+            $user->load('customer');
+        }
+
+        return $customer;
+    }
     public function index()
     {
         $cart = session('cart', []);
@@ -110,7 +130,7 @@ class CartController extends Controller
             return redirect()->route('cart.index')->with('error', 'Your cart is empty.');
         }
 
-        $customer = $request->user()->customer;
+        $customer = $this->getOrCreateCustomer($request);
         $addresses = $customer->addresses;
 
         $productIds = array_keys($cart);
@@ -150,7 +170,7 @@ class CartController extends Controller
             'notes' => 'nullable|string|max:1000',
         ]);
 
-        $customer = $request->user()->customer;
+        $customer = $this->getOrCreateCustomer($request);
 
         // Build items array from cart session
         $items = [];
