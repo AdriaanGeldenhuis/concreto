@@ -1,0 +1,121 @@
+<?php
+
+namespace App\Http\Controllers\Customer;
+
+use App\Http\Controllers\Controller;
+use App\Models\Order;
+use App\Models\Product;
+use App\Services\OrderService;
+use App\Services\YocoService;
+use Illuminate\Http\Request;
+
+class OrderController extends Controller
+{
+    public function __construct(
+        private OrderService $orderService,
+        private YocoService $yocoService,
+    ) {}
+
+    public function index(Request $request)
+    {
+        $customer = $request->user()->customer;
+        $orders = Order::where('customer_id', $customer->id)
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
+
+        return view('customer.orders.index', compact('orders'));
+    }
+
+    public function create(Request $request)
+    {
+        $customer = $request->user()->customer;
+        $products = Product::where('is_active', true)->where('in_stock', true)->orderBy('name')->get();
+        $addresses = $customer->addresses;
+
+        return view('customer.orders.create', compact('products', 'addresses', 'customer'));
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'delivery_address_id' => 'required|exists:addresses,id',
+            'scheduled_date' => 'nullable|date|after:today',
+            'scheduled_time_window' => 'nullable|string',
+            'notes' => 'nullable|string|max:1000',
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.qty' => 'required|numeric|min:0.01',
+        ]);
+
+        $customer = $request->user()->customer;
+        $order = $this->orderService->createOrder($customer, $request->all());
+
+        if ($order->status === 'PENDING_PAYMENT') {
+            return redirect()->route('customer.orders.pay', $order);
+        }
+
+        return redirect()->route('customer.orders.show', $order)
+            ->with('success', 'Order placed successfully!');
+    }
+
+    public function show(Request $request, Order $order)
+    {
+        $this->authorizeCustomerOrder($request, $order);
+        $order->load(['items.product', 'deliveryAddress', 'driver', 'proofOfDelivery', 'invoice']);
+        return view('customer.orders.show', compact('order'));
+    }
+
+    public function pay(Request $request, Order $order)
+    {
+        $this->authorizeCustomerOrder($request, $order);
+
+        if ($order->status !== 'PENDING_PAYMENT') {
+            return redirect()->route('customer.orders.show', $order)
+                ->with('info', 'This order does not require payment.');
+        }
+
+        return view('customer.orders.pay', compact('order'));
+    }
+
+    public function createPaymentSession(Request $request, Order $order)
+    {
+        $this->authorizeCustomerOrder($request, $order);
+
+        $checkout = $this->yocoService->createCheckout([
+            'amount' => $order->total,
+            'success_url' => route('customer.orders.payment-success', $order),
+            'cancel_url' => route('customer.orders.pay', $order),
+            'metadata' => [
+                'order_id' => $order->id,
+                'order_number' => $order->order_number,
+            ],
+        ]);
+
+        // Store payment record
+        $order->payments()->create([
+            'customer_id' => $order->customer_id,
+            'provider' => 'yoco',
+            'checkout_id' => $checkout['id'] ?? null,
+            'amount' => $order->total,
+            'status' => 'pending',
+            'metadata' => $checkout,
+        ]);
+
+        return redirect($checkout['redirectUrl']);
+    }
+
+    public function paymentSuccess(Request $request, Order $order)
+    {
+        $this->authorizeCustomerOrder($request, $order);
+
+        // Webhook will confirm the payment, but show success page
+        return view('customer.orders.payment-success', compact('order'));
+    }
+
+    private function authorizeCustomerOrder(Request $request, Order $order): void
+    {
+        if ($order->customer_id !== $request->user()->customer->id) {
+            abort(403);
+        }
+    }
+}
