@@ -8,7 +8,7 @@
     <div class="card">
         @if($product->image_path)
         <div style="height:250px;overflow:hidden;">
-            <img src="/storage/{{ $product->image_path }}" alt="{{ $product->name }}" style="width:100%;height:100%;object-fit:cover;">
+            <img src="/media/{{ $product->image_path }}" alt="{{ $product->name }}" style="width:100%;height:100%;object-fit:cover;">
         </div>
         @endif
         <div class="card-body">

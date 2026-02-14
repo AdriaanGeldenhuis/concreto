@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Portal') - {{ $siteSettings['company_name'] ?? 'Concreto' }}</title>
     @if(!empty($siteSettings['site_favicon']))
-        <link rel="icon" href="{{ asset('storage/' . $siteSettings['site_favicon']) }}">
+        <link rel="icon" href="{{ url('media/' . $siteSettings['site_favicon']) }}">
     @endif
     @if(!empty($siteSettings['google_font_url']))
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -57,7 +57,7 @@
         <div class="container">
             <a href="@yield('home-url', '/')" class="navbar-brand">
                 @if(!empty($siteSettings['site_logo']))
-                    <img src="{{ asset('storage/' . $siteSettings['site_logo']) }}" alt="{{ $siteSettings['company_name'] ?? 'Concreto' }}">
+                    <img src="{{ url('media/' . $siteSettings['site_logo']) }}" alt="{{ $siteSettings['company_name'] ?? 'Concreto' }}">
                 @else
                     <img src="/assets/logo/concreto.webp" alt="Concreto">
                 @endif

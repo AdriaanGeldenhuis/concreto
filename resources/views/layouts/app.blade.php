@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Concreto') - {{ $siteSettings['company_name'] ?? 'Concreto' }}</title>
     @if(!empty($siteSettings['site_favicon']))
-        <link rel="icon" href="{{ asset('storage/' . $siteSettings['site_favicon']) }}">
+        <link rel="icon" href="{{ url('media/' . $siteSettings['site_favicon']) }}">
     @endif
     @if(!empty($siteSettings['google_font_url']))
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -53,19 +53,19 @@
         :root { --shadow: {{ $shadowMap[$siteSettings['card_shadow']] ?? '0 2px 8px rgba(0,0,0,0.08)' }}; }
         @endif
         @if(!empty($siteSettings['bg_image_desktop']))
-        .hero { background-image: url('{{ asset('storage/' . $siteSettings['bg_image_desktop']) }}'); background-size: {{ $siteSettings['bg_size'] ?? 'cover' }}; background-position: {{ $siteSettings['bg_position'] ?? 'center center' }}; background-repeat: no-repeat; }
+        .hero { background-image: url('{{ url('media/' . $siteSettings['bg_image_desktop']) }}'); background-size: {{ $siteSettings['bg_size'] ?? 'cover' }}; background-position: {{ $siteSettings['bg_position'] ?? 'center center' }}; background-repeat: no-repeat; }
         .hero::before { content:''; position:absolute; inset:0; background: {{ $siteSettings['bg_overlay_color'] ?? '#000000' }}; opacity: {{ ($siteSettings['bg_overlay_opacity'] ?? 40) / 100 }}; }
         .hero { position:relative; }
         .hero > * { position:relative; z-index:1; }
         @endif
         @if(!empty($siteSettings['bg_image_tablet']))
         @media (max-width: 991px) {
-            .hero { background-image: url('{{ asset('storage/' . $siteSettings['bg_image_tablet']) }}'); }
+            .hero { background-image: url('{{ url('media/' . $siteSettings['bg_image_tablet']) }}'); }
         }
         @endif
         @if(!empty($siteSettings['bg_image_mobile']))
         @media (max-width: 767px) {
-            .hero { background-image: url('{{ asset('storage/' . $siteSettings['bg_image_mobile']) }}'); }
+            .hero { background-image: url('{{ url('media/' . $siteSettings['bg_image_mobile']) }}'); }
         }
         @endif
     </style>
@@ -80,7 +80,7 @@
         <div class="container">
             <a href="{{ route('home') }}" class="navbar-brand">
                 @if(!empty($siteSettings['site_logo']))
-                    <img src="{{ asset('storage/' . $siteSettings['site_logo']) }}" alt="{{ $siteSettings['company_name'] ?? 'Concreto' }}">
+                    <img src="{{ url('media/' . $siteSettings['site_logo']) }}" alt="{{ $siteSettings['company_name'] ?? 'Concreto' }}">
                 @else
                     <img src="/assets/logo/concreto.webp" alt="Concreto">
                 @endif

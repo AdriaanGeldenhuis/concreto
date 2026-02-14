@@ -10,13 +10,15 @@ use App\Http\Controllers\Webhook\YocoWebhookController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
-// Serve storage files when symlink is unavailable
-Route::get('/storage/{path}', function (string $path) {
+// Serve uploaded files via /media/ to bypass server blocking /storage/
+Route::get('/media/{path}', function (string $path) {
     if (!Storage::disk('public')->exists($path)) {
         abort(404);
     }
-    return response()->file(Storage::disk('public')->path($path));
-})->where('path', '.*')->name('storage.serve');
+    $file = Storage::disk('public')->path($path);
+    $mime = mime_content_type($file) ?: 'application/octet-stream';
+    return response()->file($file, ['Content-Type' => $mime]);
+})->where('path', '.*')->name('media.serve');
 
 // Public pages
 Route::get('/', [PublicController::class, 'home'])->name('home');

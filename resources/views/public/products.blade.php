@@ -18,7 +18,7 @@
             <a href="{{ route('products.show', $product) }}" class="product-card" style="color:inherit;">
                 <div class="product-card-img">
                     @if($product->image_path)
-                        <img src="/storage/{{ $product->image_path }}" alt="{{ $product->name }}">
+                        <img src="/media/{{ $product->image_path }}" alt="{{ $product->name }}">
                     @else
                         &#9881;
                     @endif

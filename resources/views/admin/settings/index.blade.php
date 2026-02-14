@@ -17,7 +17,7 @@
                         <label class="form-label">Site Logo</label>
                         @if(!empty($siteSettings['site_logo']))
                             <div class="settings-preview mb-1">
-                                <img src="{{ asset('storage/' . $siteSettings['site_logo']) }}" alt="Logo" style="max-height:80px; border-radius:var(--radius); border:1px solid var(--border); padding:0.5rem; background:#fff;">
+                                <img src="{{ url('media/' . $siteSettings['site_logo']) }}" alt="Logo" style="max-height:80px; border-radius:var(--radius); border:1px solid var(--border); padding:0.5rem; background:#fff;">
                                 <label class="form-check mt-1" style="font-weight:400; font-size:0.8125rem;">
                                     <input type="checkbox" name="remove_files[site_logo]" value="1"> Remove logo
                                 </label>
@@ -31,7 +31,7 @@
                         <label class="form-label">Favicon</label>
                         @if(!empty($siteSettings['site_favicon']))
                             <div class="settings-preview mb-1">
-                                <img src="{{ asset('storage/' . $siteSettings['site_favicon']) }}" alt="Favicon" style="max-height:48px; border-radius:var(--radius); border:1px solid var(--border); padding:0.25rem; background:#fff;">
+                                <img src="{{ url('media/' . $siteSettings['site_favicon']) }}" alt="Favicon" style="max-height:48px; border-radius:var(--radius); border:1px solid var(--border); padding:0.25rem; background:#fff;">
                                 <label class="form-check mt-1" style="font-weight:400; font-size:0.8125rem;">
                                     <input type="checkbox" name="remove_files[site_favicon]" value="1"> Remove favicon
                                 </label>
@@ -57,7 +57,7 @@
                     <label class="form-label">Desktop Background (1920x1080+)</label>
                     @if(!empty($siteSettings['bg_image_desktop']))
                         <div class="settings-preview mb-1">
-                            <img src="{{ asset('storage/' . $siteSettings['bg_image_desktop']) }}" alt="Desktop BG" style="max-height:120px; width:100%; object-fit:cover; border-radius:var(--radius); border:1px solid var(--border);">
+                            <img src="{{ url('media/' . $siteSettings['bg_image_desktop']) }}" alt="Desktop BG" style="max-height:120px; width:100%; object-fit:cover; border-radius:var(--radius); border:1px solid var(--border);">
                             <label class="form-check mt-1" style="font-weight:400; font-size:0.8125rem;">
                                 <input type="checkbox" name="remove_files[bg_image_desktop]" value="1"> Remove
                             </label>
@@ -72,7 +72,7 @@
                     <label class="form-label">Tablet Background (768x1024)</label>
                     @if(!empty($siteSettings['bg_image_tablet']))
                         <div class="settings-preview mb-1">
-                            <img src="{{ asset('storage/' . $siteSettings['bg_image_tablet']) }}" alt="Tablet BG" style="max-height:120px; width:100%; object-fit:cover; border-radius:var(--radius); border:1px solid var(--border);">
+                            <img src="{{ url('media/' . $siteSettings['bg_image_tablet']) }}" alt="Tablet BG" style="max-height:120px; width:100%; object-fit:cover; border-radius:var(--radius); border:1px solid var(--border);">
                             <label class="form-check mt-1" style="font-weight:400; font-size:0.8125rem;">
                                 <input type="checkbox" name="remove_files[bg_image_tablet]" value="1"> Remove
                             </label>
@@ -87,7 +87,7 @@
                     <label class="form-label">Mobile Background (375x812)</label>
                     @if(!empty($siteSettings['bg_image_mobile']))
                         <div class="settings-preview mb-1">
-                            <img src="{{ asset('storage/' . $siteSettings['bg_image_mobile']) }}" alt="Mobile BG" style="max-height:120px; width:100%; object-fit:cover; border-radius:var(--radius); border:1px solid var(--border);">
+                            <img src="{{ url('media/' . $siteSettings['bg_image_mobile']) }}" alt="Mobile BG" style="max-height:120px; width:100%; object-fit:cover; border-radius:var(--radius); border:1px solid var(--border);">
                             <label class="form-check mt-1" style="font-weight:400; font-size:0.8125rem;">
                                 <input type="checkbox" name="remove_files[bg_image_mobile]" value="1"> Remove
                             </label>
