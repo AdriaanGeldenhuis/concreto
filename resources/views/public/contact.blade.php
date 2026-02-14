@@ -19,24 +19,28 @@
     <div class="card">
         <div class="card-header">Send us a message</div>
         <div class="card-body">
-            <form>
+            <form method="POST" action="{{ route('contact.submit') }}">
+                @csrf
                 <div class="form-group">
                     <label class="form-label">Name</label>
-                    <input type="text" class="form-control" required>
+                    <input type="text" name="name" class="form-control" value="{{ old('name') }}" required>
+                    @error('name')<div class="form-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label">Email</label>
-                    <input type="email" class="form-control" required>
+                    <input type="email" name="email" class="form-control" value="{{ old('email') }}" required>
+                    @error('email')<div class="form-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label">Phone</label>
-                    <input type="tel" class="form-control">
+                    <input type="tel" name="phone" class="form-control" value="{{ old('phone') }}">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Message</label>
-                    <textarea class="form-control" rows="4" required></textarea>
+                    <textarea name="message" class="form-control" rows="4" required>{{ old('message') }}</textarea>
+                    @error('message')<div class="form-error">{{ $message }}</div>@enderror
                 </div>
-                <button type="submit" class="btn btn-primary">Send Message</button>
+                <button type="submit" class="btn btn-primary btn-block">Send Message</button>
             </form>
         </div>
     </div>

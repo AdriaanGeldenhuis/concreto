@@ -26,9 +26,11 @@ Route::get('/', [PublicController::class, 'home'])->name('home');
 Route::get('/products', [PublicController::class, 'products'])->name('products');
 Route::get('/products/{product}', [PublicController::class, 'productDetail'])->name('products.show');
 Route::get('/contact', [PublicController::class, 'contact'])->name('contact');
+Route::post('/contact', [PublicController::class, 'submitContact'])->name('contact.submit');
 Route::get('/terms', [PublicController::class, 'terms'])->name('terms');
 Route::get('/privacy', [PublicController::class, 'privacy'])->name('privacy');
 Route::get('/request-quote', [PublicController::class, 'requestQuote'])->name('request-quote');
+Route::post('/request-quote', [PublicController::class, 'submitQuoteRequest'])->name('request-quote.submit');
 
 // Cart (session-based, no auth needed to browse)
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
@@ -118,6 +120,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff'])
     Route::post('/settings', [Admin\SettingsController::class, 'update'])->name('settings.update');
 
     Route::resource('users', Admin\UserController::class)->except(['show', 'destroy']);
+
+    Route::get('/messages', [Admin\MessageController::class, 'index'])->name('messages.index');
+    Route::get('/messages/{contactMessage}', [Admin\MessageController::class, 'show'])->name('messages.show');
+    Route::post('/messages/{contactMessage}/reply', [Admin\MessageController::class, 'reply'])->name('messages.reply');
+    Route::delete('/messages/{contactMessage}', [Admin\MessageController::class, 'destroy'])->name('messages.destroy');
 
     Route::get('/audit-logs', [Admin\AuditLogController::class, 'index'])->name('audit-logs.index');
 });

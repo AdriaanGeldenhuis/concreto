@@ -448,6 +448,13 @@ tr:hover { background: rgba(230,126,34,0.03); }
 }
 .cart-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+/* Quote product selector */
+.quote-product-list { display: flex; flex-direction: column; gap: 0.375rem; max-height: 250px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius); padding: 0.5rem; }
+.quote-product-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.5rem; border-radius: 4px; cursor: pointer; font-size: 0.875rem; }
+.quote-product-item:hover { background: var(--bg); }
+.quote-product-item input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--primary); flex-shrink: 0; }
+.quote-product-name { flex: 1; font-weight: 500; }
+
 /* Mobile nav toggle */
 @media (max-width: 767px) {
     .navbar-toggle { display: block; }
