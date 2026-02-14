@@ -106,8 +106,8 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Background Overlay Opacity</label>
-                        <input type="range" name="settings[bg_overlay_opacity]" class="form-control" min="0" max="100" step="5" value="{{ $siteSettings['bg_overlay_opacity'] ?? '40' }}" style="height:45px;" oninput="this.nextElementSibling.textContent = this.value + '%'">
-                        <small class="text-muted">{{ ($siteSettings['bg_overlay_opacity'] ?? '40') }}%</small>
+                        <input type="range" name="settings[bg_overlay_opacity]" class="form-control" min="0" max="100" step="5" value="{{ $siteSettings['bg_overlay_opacity'] ?? '70' }}" style="height:45px;" oninput="this.nextElementSibling.textContent = this.value + '%'">
+                        <small class="text-muted">{{ ($siteSettings['bg_overlay_opacity'] ?? '70') }}%</small>
                         <input type="hidden" name="groups[bg_overlay_opacity]" value="branding">
                     </div>
                 </div>
