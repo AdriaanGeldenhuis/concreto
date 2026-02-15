@@ -34,7 +34,7 @@
             @if(!empty($siteSettings['info_color']))--info: {{ $siteSettings['info_color'] }};@endif
             @if(!empty($siteSettings['border_radius']))--radius: {{ $siteSettings['border_radius'] }}px;@endif
             @if(!empty($siteSettings['container_max_width']))--container-max-width: {{ $siteSettings['container_max_width'] }}px;@endif
-            @if(!empty($siteSettings['font_family']) && $siteSettings['font_family'] !== 'system')--font-family: {{ $siteSettings['font_family'] }};@endif
+            @if(!empty($siteSettings['font_family']) && $siteSettings['font_family'] !== 'system')--font-body: {{ $siteSettings['font_family'] }};@endif
             @if(!empty($siteSettings['heading_font_family']) && $siteSettings['heading_font_family'] !== 'inherit')--heading-font-family: {{ $siteSettings['heading_font_family'] }};@endif
             @if(!empty($siteSettings['font_size_base']))--font-size-base: {{ $siteSettings['font_size_base'] }}px;@endif
             @if(!empty($siteSettings['font_size_h1']))--font-size-h1: {{ $siteSettings['font_size_h1'] }}rem;@endif
@@ -46,14 +46,20 @@
             @if(!empty($siteSettings['letter_spacing']))--letter-spacing: {{ $siteSettings['letter_spacing'] }}px;@endif
             @if(!empty($siteSettings['btn_border_radius']))--btn-radius: {{ $siteSettings['btn_border_radius'] }}px;@endif
             @if(!empty($siteSettings['btn_text_transform']))--btn-text-transform: {{ $siteSettings['btn_text_transform'] }};@endif
-            @if(!empty($siteSettings['navbar_bg_color']))--navbar-bg: {{ $siteSettings['navbar_bg_color'] }};@endif
-            @if(!empty($siteSettings['navbar_text_color']))--navbar-text: {{ $siteSettings['navbar_text_color'] }};@endif
-            @if(!empty($siteSettings['footer_bg_color']))--footer-bg: {{ $siteSettings['footer_bg_color'] }};@endif
-            @if(!empty($siteSettings['footer_text_color']))--footer-text: {{ $siteSettings['footer_text_color'] }};@endif
+            @if(!empty($siteSettings['primary_color']))
+            @php
+                $pc = $siteSettings['primary_color'];
+                $r = hexdec(substr($pc,1,2)); $g = hexdec(substr($pc,3,2)); $b = hexdec(substr($pc,5,2));
+            @endphp
+            --primary-glow: rgba({{ $r }},{{ $g }},{{ $b }},0.25);
+            --primary-subtle: rgba({{ $r }},{{ $g }},{{ $b }},0.10);
+            --gradient-primary: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            --shadow-glow: 0 0 30px rgba({{ $r }},{{ $g }},{{ $b }},0.25);
+            @endif
         }
         @if(!empty($siteSettings['card_shadow']))
-        @php $shadowMap = ['none'=>'none','light'=>'0 1px 4px rgba(0,0,0,0.04)','medium'=>'0 2px 8px rgba(0,0,0,0.08)','heavy'=>'0 4px 20px rgba(0,0,0,0.15)']; @endphp
-        :root { --shadow: {{ $shadowMap[$siteSettings['card_shadow']] ?? '0 2px 8px rgba(0,0,0,0.08)' }}; }
+        @php $shadowMap = ['none'=>'none','light'=>'0 2px 8px rgba(0,0,0,0.3)','medium'=>'0 4px 20px rgba(0,0,0,0.4)','heavy'=>'0 8px 32px rgba(0,0,0,0.5)']; @endphp
+        :root { --shadow: {{ $shadowMap[$siteSettings['card_shadow']] ?? '0 4px 20px rgba(0,0,0,0.4)' }}; }
         @endif
         @if(!empty($siteSettings['bg_image_desktop']))
         .hero { position:relative; padding:0; overflow:hidden; }
