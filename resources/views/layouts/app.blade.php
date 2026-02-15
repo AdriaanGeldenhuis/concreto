@@ -106,13 +106,13 @@
         .hero-content { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:1; padding:2rem; text-align:center; color:#fff; }
         .hero-content h1, .hero-content p { text-shadow:0 2px 8px rgba(0,0,0,0.5); }
         @if(!empty($siteSettings['bg_image_tablet']))
-        @media (max-width: 991px) {
+        @@media (max-width: 991px) {
             .hero-bg--desktop { display:none; }
             .hero-bg--tablet { display:block; }
         }
         @endif
         @if(!empty($siteSettings['bg_image_mobile']))
-        @media (max-width: 767px) {
+        @@media (max-width: 767px) {
             .hero-bg--desktop, .hero-bg--tablet { display:none; }
             .hero-bg--mobile { display:block; }
         }
@@ -391,7 +391,7 @@
             border-top-color: #3a3a3a;
         }
 
-        @media (max-width: 768px) {
+        @@media (max-width: 768px) {
             .cookie-content {
                 flex-direction: column;
                 align-items: flex-start;

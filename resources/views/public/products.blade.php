@@ -127,13 +127,13 @@
 
 @push('styles')
 <style>
-@media (min-width: 768px) {
+@@media (min-width: 768px) {
     .section .container > div { grid-template-columns: 280px 1fr; }
 }
-@media (min-width: 992px) {
+@@media (min-width: 992px) {
     .product-grid { grid-template-columns: repeat(2, 1fr); }
 }
-@media (min-width: 1200px) {
+@@media (min-width: 1200px) {
     .product-grid { grid-template-columns: repeat(3, 1fr); }
 }
 .empty-state { text-align:center; padding:3rem 1rem; }

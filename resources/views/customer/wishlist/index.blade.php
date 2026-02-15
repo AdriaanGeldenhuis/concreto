@@ -109,13 +109,13 @@
 
 @push('styles')
 <style>
-@media (min-width: 768px) {
+@@media (min-width: 768px) {
     .product-grid { grid-template-columns: repeat(2, 1fr); }
 }
-@media (min-width: 992px) {
+@@media (min-width: 992px) {
     .product-grid { grid-template-columns: repeat(3, 1fr); }
 }
-@media (min-width: 1200px) {
+@@media (min-width: 1200px) {
     .product-grid { grid-template-columns: repeat(4, 1fr); }
 }
 .empty-state {

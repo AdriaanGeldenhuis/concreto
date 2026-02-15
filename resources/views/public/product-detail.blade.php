@@ -268,7 +268,7 @@
 
 @push('styles')
 <style>
-@media (min-width: 992px) {
+@@media (min-width: 992px) {
     .product-detail { grid-template-columns: 1fr 1fr; }
     .product-grid { grid-template-columns: repeat(3, 1fr); }
 }

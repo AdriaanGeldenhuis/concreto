@@ -200,14 +200,14 @@
 
 @push('styles')
 <style>
-@media (min-width: 768px) {
+@@media (min-width: 768px) {
     .card-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
     }
 }
-@media (max-width: 767px) {
+@@media (max-width: 767px) {
     .card-header {
         flex-direction: column;
         align-items: flex-start;
