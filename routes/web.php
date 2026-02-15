@@ -46,6 +46,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/checkout', [CartController::class, 'placeOrder'])->name('checkout.place');
     Route::post('/checkout/apply-promo', [CartController::class, 'applyPromo'])->name('checkout.apply-promo');
     Route::post('/checkout/remove-promo', [CartController::class, 'removePromo'])->name('checkout.remove-promo');
+    Route::post('/checkout/add-address', [CartController::class, 'storeAddress'])->name('checkout.add-address');
 });
 
 // Auth (rate limited)

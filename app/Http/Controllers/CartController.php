@@ -190,6 +190,27 @@ class CartController extends Controller
         return redirect()->route('checkout');
     }
 
+    public function storeAddress(Request $request)
+    {
+        $request->validate([
+            'label' => 'nullable|string|max:50',
+            'line1' => 'required|string|max:255',
+            'line2' => 'nullable|string|max:255',
+            'city' => 'required|string|max:100',
+            'province' => 'required|string|max:100',
+            'postal_code' => 'required|string|max:10',
+        ]);
+
+        $customer = $this->getOrCreateCustomer($request);
+        $address = $customer->addresses()->create($request->only(['label', 'line1', 'line2', 'city', 'province', 'postal_code']));
+
+        if (!$customer->default_address_id) {
+            $customer->update(['default_address_id' => $address->id]);
+        }
+
+        return redirect()->route('checkout')->with('success', 'Address added.');
+    }
+
     public function placeOrder(Request $request)
     {
         $cart = session('cart', []);
@@ -206,18 +227,27 @@ class CartController extends Controller
 
         $customer = $this->getOrCreateCustomer($request);
 
-        // Build items array from cart session
+        // Verify address belongs to this customer
+        $address = \App\Models\Address::find($request->delivery_address_id);
+        if (!$address || $address->customer_id !== $customer->id) {
+            return redirect()->route('checkout')->with('error', 'Invalid delivery address. Please select one of your addresses.');
+        }
+
+        // Build items array from cart session (skip invalid products)
         $items = [];
         $subtotal = 0;
         foreach ($cart as $productId => $qty) {
             $product = Product::find($productId);
-            if ($product) {
-                $subtotal += round($product->price * $qty, 2);
-            }
+            if (!$product) continue;
+            $subtotal += round($product->price * $qty, 2);
             $items[] = [
                 'product_id' => $productId,
                 'qty' => $qty,
             ];
+        }
+
+        if (empty($items)) {
+            return redirect()->route('cart.index')->with('error', 'No valid products in your order.');
         }
 
         $data = $request->all();
@@ -233,8 +263,16 @@ class CartController extends Controller
             }
         }
 
-        $orderService = app(\App\Services\OrderService::class);
-        $order = $orderService->createOrder($customer, $data);
+        try {
+            $orderService = app(\App\Services\OrderService::class);
+            $order = $orderService->createOrder($customer, $data);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Order creation failed', [
+                'customer_id' => $customer->id,
+                'error' => $e->getMessage(),
+            ]);
+            return redirect()->route('checkout')->with('error', 'Something went wrong placing your order. Please try again.');
+        }
 
         // Record promo code usage
         if (!empty($data['promo_code_id'])) {
@@ -244,7 +282,7 @@ class CartController extends Controller
                     'promo_code_id' => $promo->id,
                     'customer_id' => $customer->id,
                     'order_id' => $order->id,
-                    'discount_amount' => $data['discount_amount'],
+                    'discount_applied' => $data['discount_amount'],
                 ]);
                 $promo->increment('times_used');
             }
@@ -253,12 +291,26 @@ class CartController extends Controller
         // Clear the cart and promo code
         session()->forget(['cart', 'promo_code']);
 
-        if ($order->status === 'PENDING_PAYMENT') {
-            return redirect()->route('customer.orders.pay', $order)
-                ->with('success', 'Order placed! Please complete payment.');
+        // Redirect based on user role
+        $user = $request->user();
+
+        if ($user->role === 'customer') {
+            if ($order->status === 'PENDING_PAYMENT') {
+                return redirect()->route('customer.orders.pay', $order)
+                    ->with('success', 'Order placed! Please complete payment.');
+            }
+            return redirect()->route('customer.orders.show', $order)
+                ->with('success', 'Order placed successfully!');
         }
 
-        return redirect()->route('customer.orders.show', $order)
-            ->with('success', 'Order placed successfully!');
+        // Admin/staff users → redirect to admin order view
+        if (in_array($user->role, ['admin', 'staff'])) {
+            return redirect()->route('admin.orders.show', $order)
+                ->with('success', 'Order #' . $order->order_number . ' placed successfully!');
+        }
+
+        // Fallback
+        return redirect()->route('cart.index')
+            ->with('success', 'Order #' . $order->order_number . ' placed successfully!');
     }
 }

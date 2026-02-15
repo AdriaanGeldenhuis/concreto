@@ -7,6 +7,9 @@
         <h1>Checkout</h1>
     </div>
 
+    {{-- Separate form for adding address (outside the main order form) --}}
+    <form id="address-form" method="POST" action="{{ route('checkout.add-address') }}" style="display:none;">@csrf</form>
+
     <form method="POST" action="{{ route('checkout.place') }}">
         @csrf
 
@@ -25,13 +28,57 @@
                         </select>
                         @error('delivery_address_id')<div class="form-error">{{ $message }}</div>@enderror
                     </div>
-                    <p class="text-small text-muted"><a href="{{ route('customer.addresses.index') }}">Manage addresses</a></p>
+                    <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('new-address-section').classList.toggle('d-none')">+ Add New Address</button>
                 @else
-                    <div class="alert alert-warning">
+                    <div class="alert alert-warning" style="margin-bottom:1rem;">
                         You need to add a delivery address before you can place an order.
-                        <a href="{{ route('customer.addresses.index') }}" class="font-bold">Add Address</a>
                     </div>
                 @endif
+
+                {{-- Inline address form --}}
+                <div id="new-address-section" class="{{ $addresses->count() ? 'd-none' : '' }}" style="margin-top:1rem;">
+                    <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:var(--radius, 8px); padding:1rem;">
+                        <h4 style="margin-bottom:0.75rem;">Add Delivery Address</h4>
+                        <div class="form-group">
+                            <label class="form-label">Label (optional)</label>
+                            <input type="text" form="address-form" name="label" class="form-control" placeholder="e.g. Site, Home, Office">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Street Address *</label>
+                            <input type="text" form="address-form" name="line1" class="form-control" placeholder="123 Main Road" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Address Line 2</label>
+                            <input type="text" form="address-form" name="line2" class="form-control" placeholder="Unit, Suite, etc.">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">City *</label>
+                                <input type="text" form="address-form" name="city" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Province *</label>
+                                <select form="address-form" name="province" class="form-control" required>
+                                    <option value="">Select</option>
+                                    <option value="Gauteng">Gauteng</option>
+                                    <option value="Western Cape">Western Cape</option>
+                                    <option value="KwaZulu-Natal">KwaZulu-Natal</option>
+                                    <option value="Eastern Cape">Eastern Cape</option>
+                                    <option value="Free State">Free State</option>
+                                    <option value="Limpopo">Limpopo</option>
+                                    <option value="Mpumalanga">Mpumalanga</option>
+                                    <option value="North West">North West</option>
+                                    <option value="Northern Cape">Northern Cape</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Postal Code *</label>
+                            <input type="text" form="address-form" name="postal_code" class="form-control" style="max-width:150px;" maxlength="10" required>
+                        </div>
+                        <button type="submit" form="address-form" class="btn btn-primary btn-sm">Save Address</button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -130,7 +177,7 @@
             </div>
         </div>
 
-        <button type="submit" class="btn btn-primary btn-lg btn-block" {{ $addresses->count() ? '' : 'disabled' }}>Place Order</button>
+        <button type="submit" class="btn btn-primary btn-lg btn-block" {{ $addresses->count() ? '' : 'disabled' }} id="place-order-btn">Place Order</button>
         <p class="text-center text-muted text-small mt-2">By placing your order you agree to our <a href="{{ route('terms') }}">Terms & Conditions</a></p>
     </form>
 </div>
@@ -155,6 +202,18 @@ document.addEventListener('DOMContentLoaded', function() {
     if (promoInput) {
         promoInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') { e.preventDefault(); applyPromo(); }
+        });
+    }
+
+    // Prevent double-submit on place order
+    var orderForm = document.querySelector('form[action="{{ route("checkout.place") }}"]');
+    if (orderForm) {
+        orderForm.addEventListener('submit', function() {
+            var btn = document.getElementById('place-order-btn');
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = 'Placing Order...';
+            }
         });
     }
 });
