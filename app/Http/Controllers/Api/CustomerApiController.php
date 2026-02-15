@@ -38,9 +38,17 @@ class CustomerApiController extends Controller
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.qty' => 'required|numeric|min:0.01',
+            'idempotency_key' => 'nullable|string|max:255',
         ]);
 
         $customer = $request->user()->customer;
+
+        // Verify address belongs to this customer
+        $address = \App\Models\Address::find($request->delivery_address_id);
+        if (!$address || $address->customer_id !== $customer->id) {
+            return response()->json(['error' => 'Invalid delivery address.'], 403);
+        }
+
         $order = $this->orderService->createOrder($customer, $request->all());
 
         return response()->json($order, 201);
@@ -62,10 +70,21 @@ class CustomerApiController extends Controller
             abort(403);
         }
 
+        if ($order->status !== 'PENDING_PAYMENT') {
+            return response()->json(['error' => 'Order does not require payment.'], 422);
+        }
+
+        // Reuse existing pending payment session
+        $existingPayment = $order->payments()->where('status', 'pending')->latest()->first();
+        if ($existingPayment && $existingPayment->metadata && isset($existingPayment->metadata['redirectUrl'])) {
+            return response()->json(['checkout_url' => $existingPayment->metadata['redirectUrl']]);
+        }
+
+        // Server-controlled redirect URLs - don't accept from client
         $checkout = $this->yocoService->createCheckout([
             'amount' => $order->total,
-            'success_url' => $request->input('success_url', url('/customer/orders/' . $order->id)),
-            'cancel_url' => $request->input('cancel_url', url('/customer/orders/' . $order->id)),
+            'success_url' => url('/customer/orders/' . $order->id . '/payment-success'),
+            'cancel_url' => url('/customer/orders/' . $order->id . '/pay'),
             'metadata' => [
                 'order_id' => $order->id,
                 'order_number' => $order->order_number,

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 
 class Invoice extends Model
 {
@@ -28,18 +29,24 @@ class Invoice extends Model
 
     public static function generateInvoiceNumber(): string
     {
-        $prefix = 'INV';
-        $date = now()->format('Ym');
-        $latest = static::where('invoice_no', 'like', "{$prefix}-{$date}-%")
-            ->orderBy('invoice_no', 'desc')
-            ->value('invoice_no');
+        return DB::transaction(function () {
+            $prefix = 'INV';
+            $date = now()->format('Ym');
+            $pattern = "{$prefix}-{$date}-%";
 
-        if ($latest) {
-            $seq = (int) substr($latest, -4) + 1;
-        } else {
-            $seq = 1;
-        }
+            // Lock the table row to prevent race conditions
+            $latest = static::where('invoice_no', 'like', $pattern)
+                ->lockForUpdate()
+                ->orderBy('invoice_no', 'desc')
+                ->value('invoice_no');
 
-        return sprintf('%s-%s-%04d', $prefix, $date, $seq);
+            if ($latest) {
+                $seq = (int) substr($latest, -6) + 1;
+            } else {
+                $seq = 1;
+            }
+
+            return sprintf('%s-%s-%06d', $prefix, $date, $seq);
+        });
     }
 }

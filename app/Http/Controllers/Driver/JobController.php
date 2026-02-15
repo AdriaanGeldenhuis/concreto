@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\ProofOfDelivery;
 use App\Services\InvoiceService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
@@ -37,39 +38,39 @@ class JobController extends Controller
     public function accept(Request $request, Order $order)
     {
         $this->authorizeDriver($request, $order);
-        $order->update(['status' => 'ACCEPTED']);
-        AuditLog::log('accepted', 'Order', $order->id);
+        $this->transitionStatus($order, 'ACCEPTED', 'accepted');
         return back()->with('success', 'Job accepted.');
     }
 
     public function loaded(Request $request, Order $order)
     {
         $this->authorizeDriver($request, $order);
-        $order->update(['status' => 'LOADED']);
-        AuditLog::log('loaded', 'Order', $order->id);
+        $this->transitionStatus($order, 'LOADED', 'loaded');
         return back()->with('success', 'Marked as loaded.');
     }
 
     public function transit(Request $request, Order $order)
     {
         $this->authorizeDriver($request, $order);
-        $order->update(['status' => 'IN_TRANSIT']);
-        AuditLog::log('in_transit', 'Order', $order->id);
+        $this->transitionStatus($order, 'IN_TRANSIT', 'in_transit');
         return back()->with('success', 'Delivery started.');
     }
 
     public function arrived(Request $request, Order $order)
     {
         $this->authorizeDriver($request, $order);
-        $order->update(['status' => 'ARRIVED']);
-        AuditLog::log('arrived', 'Order', $order->id);
+        $this->transitionStatus($order, 'ARRIVED', 'arrived');
         return back()->with('success', 'Marked as arrived.');
     }
 
     public function signatureForm(Request $request, Order $order)
     {
         $this->authorizeDriver($request, $order);
-        $order->update(['status' => 'DELIVERED_PENDING_SIGNATURE']);
+
+        if (!in_array($order->status, ['ARRIVED', 'IN_TRANSIT', 'DELIVERED_PENDING_SIGNATURE'])) {
+            return back()->with('error', 'Order must be arrived before capturing signature.');
+        }
+
         return view('driver.jobs.signature', compact('order'));
     }
 
@@ -77,55 +78,88 @@ class JobController extends Controller
     {
         $this->authorizeDriver($request, $order);
 
+        if (!in_array($order->status, ['ARRIVED', 'IN_TRANSIT', 'DELIVERED_PENDING_SIGNATURE'])) {
+            return back()->with('error', 'Order is not in a valid state for POD capture.');
+        }
+
         $request->validate([
             'signer_name' => 'required|string|max:255',
             'signature' => 'required|string', // base64
-            'photo' => 'nullable|image|max:5120',
+            'photo' => 'nullable|image|max:5120|mimes:jpg,jpeg,png',
         ]);
 
-        // Save signature image
-        $signatureData = $request->input('signature');
-        $signatureData = preg_replace('/^data:image\/\w+;base64,/', '', $signatureData);
-        $signatureData = base64_decode($signatureData);
-        $signaturePath = 'signatures/' . $order->id . '_' . time() . '.png';
-        Storage::disk('local')->put($signaturePath, $signatureData);
+        return DB::transaction(function () use ($request, $order) {
+            $order = Order::lockForUpdate()->find($order->id);
 
-        $photoPath = null;
-        if ($request->hasFile('photo')) {
-            $photoPath = $request->file('photo')->store('delivery-photos', 'local');
-        }
+            // Prevent duplicate POD
+            if ($order->proofOfDelivery) {
+                return redirect()->route('driver.jobs.show', $order)
+                    ->with('info', 'Proof of delivery already recorded.');
+            }
 
-        ProofOfDelivery::create([
-            'order_id' => $order->id,
-            'signer_name' => $request->input('signer_name'),
-            'signature_path' => $signaturePath,
-            'photo_path' => $photoPath,
-            'gps_lat' => $request->input('gps_lat'),
-            'gps_lng' => $request->input('gps_lng'),
-            'signed_at' => now(),
-        ]);
+            // Save signature image
+            $signatureData = $request->input('signature');
+            $signatureData = preg_replace('/^data:image\/\w+;base64,/', '', $signatureData);
+            $decoded = base64_decode($signatureData, true);
+            if ($decoded === false) {
+                return back()->with('error', 'Invalid signature data.');
+            }
 
-        $order->update(['status' => 'DELIVERED']);
-        AuditLog::log('delivered', 'Order', $order->id);
+            $signaturePath = 'signatures/' . $order->id . '_' . time() . '.png';
+            Storage::disk('local')->put($signaturePath, $decoded);
 
-        // Generate invoice and email
-        $invoice = $this->invoiceService->generate($order);
-        $this->emailInvoice($order, $invoice);
+            $photoPath = null;
+            if ($request->hasFile('photo')) {
+                $photoPath = $request->file('photo')->store('delivery-photos', 'local');
+            }
 
-        return redirect()->route('driver.jobs.show', $order)
-            ->with('success', 'Delivery completed and invoice sent!');
+            ProofOfDelivery::create([
+                'order_id' => $order->id,
+                'signer_name' => $request->input('signer_name'),
+                'signature_path' => $signaturePath,
+                'photo_path' => $photoPath,
+                'gps_lat' => $request->input('gps_lat'),
+                'gps_lng' => $request->input('gps_lng'),
+                'signed_at' => now(),
+            ]);
+
+            $order->update(['status' => 'DELIVERED']);
+            AuditLog::log('delivered', 'Order', $order->id);
+
+            // Generate invoice and email
+            $invoice = $this->invoiceService->generate($order);
+            $this->emailInvoice($order, $invoice);
+
+            return redirect()->route('driver.jobs.show', $order)
+                ->with('success', 'Delivery completed and invoice sent!');
+        });
     }
 
     public function updateLocation(Request $request, Order $order)
     {
         $this->authorizeDriver($request, $order);
 
+        // Only track when order is in active delivery statuses
+        if (!in_array($order->status, ['ACCEPTED', 'LOADED', 'IN_TRANSIT', 'ARRIVED'])) {
+            return response()->json(['error' => 'Tracking not active for this order status.'], 422);
+        }
+
         $request->validate([
-            'lat' => 'required|numeric',
-            'lng' => 'required|numeric',
-            'speed' => 'nullable|numeric',
-            'heading' => 'nullable|numeric',
+            'lat' => 'required|numeric|between:-90,90',
+            'lng' => 'required|numeric|between:-180,180',
+            'speed' => 'nullable|numeric|min:0',
+            'heading' => 'nullable|numeric|between:0,360',
         ]);
+
+        // Rate limit: 1 update per 10 seconds per order
+        $lastLocation = DriverLocation::where('order_id', $order->id)
+            ->where('driver_id', $request->user()->id)
+            ->orderBy('recorded_at', 'desc')
+            ->first();
+
+        if ($lastLocation && $lastLocation->recorded_at->diffInSeconds(now()) < 10) {
+            return response()->json(['status' => 'throttled'], 429);
+        }
 
         DriverLocation::create([
             'driver_id' => $request->user()->id,
@@ -135,9 +169,24 @@ class JobController extends Controller
             'speed' => $request->speed,
             'heading' => $request->heading,
             'recorded_at' => now(),
+            'created_at' => now(),
         ]);
 
         return response()->json(['status' => 'ok']);
+    }
+
+    private function transitionStatus(Order $order, string $newStatus, string $auditAction): void
+    {
+        DB::transaction(function () use ($order, $newStatus, $auditAction) {
+            $order = Order::lockForUpdate()->find($order->id);
+
+            if (!$order->canTransitionTo($newStatus)) {
+                abort(422, "Cannot transition from '{$order->status}' to '{$newStatus}'.");
+            }
+
+            $order->update(['status' => $newStatus]);
+            AuditLog::log($auditAction, 'Order', $order->id);
+        });
     }
 
     private function authorizeDriver(Request $request, Order $order): void

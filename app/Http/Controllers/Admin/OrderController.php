@@ -65,15 +65,38 @@ class OrderController extends Controller
 
     public function updateStatus(Request $request, Order $order)
     {
-        $request->validate(['status' => 'required|in:' . implode(',', Order::STATUSES)]);
-        $this->orderService->updateStatus($order, $request->status);
-        return back()->with('success', 'Status updated.');
+        $request->validate([
+            'status' => 'required|in:' . implode(',', Order::STATUSES),
+            'reason' => 'nullable|string|max:1000',
+        ]);
+
+        try {
+            $this->orderService->updateStatus($order, $request->status, $request->reason);
+            return back()->with('success', 'Status updated.');
+        } catch (\InvalidArgumentException $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 
-    public function cancel(Order $order)
+    public function forceStatus(Request $request, Order $order)
     {
-        $this->orderService->cancelOrder($order);
-        return back()->with('success', 'Order cancelled.');
+        $request->validate([
+            'status' => 'required|in:' . implode(',', Order::STATUSES),
+            'reason' => 'required|string|max:1000',
+        ]);
+
+        $this->orderService->forceStatus($order, $request->status, $request->reason);
+        return back()->with('success', 'Status force-updated with audit trail.');
+    }
+
+    public function cancel(Request $request, Order $order)
+    {
+        try {
+            $this->orderService->cancelOrder($order, $request->input('reason'));
+            return back()->with('success', 'Order cancelled.');
+        } catch (\InvalidArgumentException $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 
     public function resendInvoice(Order $order)

@@ -37,6 +37,8 @@ class OrderController extends Controller
 
     public function store(Request $request)
     {
+        $customer = $request->user()->customer;
+
         $request->validate([
             'delivery_address_id' => 'required|exists:addresses,id',
             'scheduled_date' => 'nullable|date|after:today',
@@ -47,7 +49,12 @@ class OrderController extends Controller
             'items.*.qty' => 'required|numeric|min:0.01',
         ]);
 
-        $customer = $request->user()->customer;
+        // Verify address belongs to this customer
+        $address = \App\Models\Address::find($request->delivery_address_id);
+        if (!$address || $address->customer_id !== $customer->id) {
+            abort(403, 'Invalid delivery address.');
+        }
+
         $order = $this->orderService->createOrder($customer, $request->all());
 
         if ($order->status === 'PENDING_PAYMENT') {
@@ -81,6 +88,17 @@ class OrderController extends Controller
     {
         $this->authorizeCustomerOrder($request, $order);
 
+        if ($order->status !== 'PENDING_PAYMENT') {
+            return redirect()->route('customer.orders.show', $order)
+                ->with('info', 'This order does not require payment.');
+        }
+
+        // Reuse existing pending payment session if available
+        $existingPayment = $order->payments()->where('status', 'pending')->latest()->first();
+        if ($existingPayment && $existingPayment->metadata && isset($existingPayment->metadata['redirectUrl'])) {
+            return redirect($existingPayment->metadata['redirectUrl']);
+        }
+
         $checkout = $this->yocoService->createCheckout([
             'amount' => $order->total,
             'success_url' => route('customer.orders.payment-success', $order),
@@ -91,7 +109,6 @@ class OrderController extends Controller
             ],
         ]);
 
-        // Store payment record
         $order->payments()->create([
             'customer_id' => $order->customer_id,
             'provider' => 'yoco',
