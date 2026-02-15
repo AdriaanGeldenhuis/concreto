@@ -91,7 +91,7 @@
                             <input type="number" name="qty" value="1" min="0.01" step="0.01" class="form-control">
                         </div>
                         <button type="submit" class="btn btn-primary btn-lg btn-block btn-add-cart">
-                            Add to Cart
+                            Add to Order
                         </button>
                     </form>
                 </div>
@@ -102,7 +102,7 @@
                 @endif
 
                 <div class="product-detail-links">
-                    <a href="{{ route('cart.index') }}" class="btn btn-outline btn-sm">View Cart</a>
+                    <a href="{{ route('cart.index') }}" class="btn btn-outline btn-sm">View Order</a>
                     <a href="{{ route('request-quote') }}" class="btn btn-outline btn-sm">Request Quote</a>
                     <a href="{{ route('products') }}" class="btn btn-ghost btn-sm">All Products</a>
                 </div>

@@ -98,10 +98,10 @@
                 <a href="{{ route('products') }}" class="{{ request()->routeIs('products*') ? 'active' : '' }}">Products</a>
                 <a href="{{ route('contact') }}" class="{{ request()->routeIs('contact') ? 'active' : '' }}">Contact</a>
                 <a href="{{ route('cart.index') }}" class="cart-link {{ request()->routeIs('cart*') ? 'active' : '' }}">
-                    &#128722; Cart <span class="cart-badge" id="cart-badge" style="display:none;">0</span>
+                    &#128722; Order <span class="cart-badge" id="cart-badge" style="display:none;">0</span>
                 </a>
                 @guest
-                    <a href="{{ route('login') }}" class="btn btn-outline btn-sm" style="border-color:rgba(255,255,255,0.4);color:#fff;">Login</a>
+                    <a href="{{ route('login') }}" class="btn btn-outline-white btn-sm">Login</a>
                     <a href="{{ route('register') }}" class="btn btn-primary btn-sm">Register</a>
                 @else
                     @if(auth()->user()->isAdmin() || auth()->user()->isStaff())

@@ -154,13 +154,14 @@ p:last-child { margin-bottom:0; }
 .navbar-brand:hover { color:#fff; opacity:0.9; }
 .navbar-brand img { height:36px; width:auto; border-radius:6px; }
 .navbar-links { display:flex; gap:0.125rem; align-items:center; flex-wrap:wrap; }
-.navbar-links a, .navbar-links button {
+.navbar-links a:not(.btn), .navbar-links button:not(.btn) {
     color:rgba(255,255,255,0.7); padding:0.5rem 0.875rem; border-radius:var(--radius-sm);
     font-size:0.875rem; font-weight:500; transition:all var(--transition-fast);
     background:none; border:none; cursor:pointer; font-family:inherit; white-space:nowrap;
 }
-.navbar-links a:hover, .navbar-links button:hover { color:#fff; background:rgba(255,255,255,0.08); }
-.navbar-links .active { color:var(--primary); background:rgba(249,115,22,0.1); font-weight:600; }
+.navbar-links a:not(.btn):hover, .navbar-links button:not(.btn):hover { color:#fff; background:rgba(255,255,255,0.08); }
+.navbar-links .active:not(.btn) { color:var(--primary); background:rgba(249,115,22,0.1); font-weight:600; }
+.navbar-links .btn { margin-left:0.25rem; }
 .navbar-toggle { display:none; background:none; border:none; color:#fff; font-size:1.5rem; cursor:pointer; padding:0.5rem; border-radius:var(--radius-sm); }
 .navbar-toggle:hover { background:rgba(255,255,255,0.08); }
 
@@ -908,8 +909,9 @@ tr:last-child td { border-bottom:none; }
         border-top:1px solid var(--glass-border);
     }
     .navbar-links.open { display:flex; }
-    .navbar-links a, .navbar-links button { width:100%; text-align:left; padding:0.625rem 1rem; border-radius:0; }
-    .navbar-links a:hover, .navbar-links button:hover { background:rgba(255,255,255,0.04); }
+    .navbar-links a:not(.btn), .navbar-links button:not(.btn) { width:100%; text-align:left; padding:0.625rem 1rem; border-radius:0; }
+    .navbar-links a:not(.btn):hover, .navbar-links button:not(.btn):hover { background:rgba(255,255,255,0.04); }
+    .navbar-links .btn { margin:0.25rem 1rem; }
     .cart-item { gap:0.5rem; }
     .cart-item-img { width:48px; height:48px; }
 }
