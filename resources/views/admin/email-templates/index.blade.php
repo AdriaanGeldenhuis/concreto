@@ -59,12 +59,12 @@
                 <div class="card-body">
                     <p class="small text-muted">Common variables available in email templates:</p>
                     <ul class="small">
-                        <li><code>{{ '{{ $user->name }}' }}</code> - User's name</li>
-                        <li><code>{{ '{{ $order->id }}' }}</code> - Order ID</li>
-                        <li><code>{{ '{{ $order->total }}' }}</code> - Order total</li>
-                        <li><code>{{ '{{ $quote->id }}' }}</code> - Quote ID</li>
-                        <li><code>{{ '{{ $customer->name }}' }}</code> - Customer name</li>
-                        <li><code>{{ '{{ config(\'app.name\') }}' }}</code> - Application name</li>
+                        <li><code>@{{ $user->name }}</code> - User's name</li>
+                        <li><code>@{{ $order->id }}</code> - Order ID</li>
+                        <li><code>@{{ $order->total }}</code> - Order total</li>
+                        <li><code>@{{ $quote->id }}</code> - Quote ID</li>
+                        <li><code>@{{ $customer->name }}</code> - Customer name</li>
+                        <li><code>@{{ config('app.name') }}</code> - Application name</li>
                     </ul>
                 </div>
             </div>
