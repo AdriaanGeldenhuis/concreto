@@ -22,7 +22,6 @@
                 <div class="card-body">
                     <form action="{{ route('admin.email-templates.update') }}" method="POST">
                         @csrf
-                        @method('PUT')
                         <input type="hidden" name="template" value="{{ $key }}">
 
                         <div class="mb-3">
@@ -62,20 +61,20 @@
                         <div class="col-md-6">
                             <h6 class="text-light">Blade Directives:</h6>
                             <ul class="small font-monospace">
-                                <li>{{ '{{ $variable }}' }} - Echo variable</li>
-                                <li>{{ '@if($condition) ... @endif' }} - Conditional</li>
-                                <li>{{ '@foreach($items as $item) ... @endforeach' }} - Loop</li>
-                                <li>{{ '@include(\'partial\')' }} - Include partial</li>
+                                <li><code>@{{ $variable }}</code> - Echo variable</li>
+                                <li><code>@@if($condition) ... @@endif</code> - Conditional</li>
+                                <li><code>@@foreach($items as $item) ... @@endforeach</code> - Loop</li>
+                                <li><code>@@include('partial')</code> - Include partial</li>
                             </ul>
                         </div>
                         <div class="col-md-6">
                             <h6 class="text-light">Common Variables:</h6>
                             <ul class="small font-monospace">
-                                <li>{{ '{{ $user->name }}' }} - User's name</li>
-                                <li>{{ '{{ $order->id }}' }} - Order ID</li>
-                                <li>{{ '{{ $order->total }}' }} - Order total</li>
-                                <li>{{ '{{ $quote->id }}' }} - Quote ID</li>
-                                <li>{{ '{{ config(\'app.name\') }}' }} - App name</li>
+                                <li><code>@{{ $user->name }}</code> - User's name</li>
+                                <li><code>@{{ $order->id }}</code> - Order ID</li>
+                                <li><code>@{{ $order->total }}</code> - Order total</li>
+                                <li><code>@{{ $quote->id }}</code> - Quote ID</li>
+                                <li><code>@{{ config('app.name') }}</code> - App name</li>
                             </ul>
                         </div>
                     </div>

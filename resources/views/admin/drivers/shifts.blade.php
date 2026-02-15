@@ -20,14 +20,13 @@
                 <div class="card-body">
                     <form action="{{ route('admin.drivers.salary', $driver->id) }}" method="POST">
                         @csrf
-                        @method('PUT')
                         <div class="row">
                             <div class="col-md-3 mb-3">
                                 <label for="pay_type" class="form-label">Pay Type</label>
                                 <select class="form-control bg-dark text-light border-secondary" id="pay_type" name="pay_type" required>
                                     <option value="hourly" {{ $config && $config->pay_type === 'hourly' ? 'selected' : '' }}>Hourly</option>
                                     <option value="per_delivery" {{ $config && $config->pay_type === 'per_delivery' ? 'selected' : '' }}>Per Delivery</option>
-                                    <option value="salary" {{ $config && $config->pay_type === 'salary' ? 'selected' : '' }}>Fixed Salary</option>
+                                    <option value="fixed_monthly" {{ $config && $config->pay_type === 'fixed_monthly' ? 'selected' : '' }}>Fixed Monthly</option>
                                 </select>
                             </div>
                             <div class="col-md-3 mb-3">

@@ -26,31 +26,32 @@ class PublicController extends Controller
 
         // Category filter
         if ($request->filled('category')) {
-            $query->whereHas('category', fn($q) => $q->where('slug', $request->category));
+            $query->where('category_id', $request->category);
         }
 
         // Price range filter
-        if ($request->filled('min_price')) {
-            $query->where('price', '>=', $request->min_price);
+        if ($request->filled('price_min')) {
+            $query->where('price', '>=', $request->price_min);
         }
-        if ($request->filled('max_price')) {
-            $query->where('price', '<=', $request->max_price);
+        if ($request->filled('price_max')) {
+            $query->where('price', '<=', $request->price_max);
         }
 
         // In stock only
-        if ($request->boolean('in_stock_only')) {
+        if ($request->boolean('in_stock')) {
             $query->where('in_stock', true);
         }
 
         // Sort
-        $sort = $request->input('sort', 'name');
+        $sort = $request->input('sort', 'name_asc');
         $query->orderBy(match ($sort) {
-            'price_low' => 'price',
-            'price_high' => 'price',
+            'name_desc' => 'name',
+            'price_asc' => 'price',
+            'price_desc' => 'price',
             'newest' => 'created_at',
             default => 'name',
         }, match ($sort) {
-            'price_high', 'newest' => 'desc',
+            'name_desc', 'price_desc', 'newest' => 'desc',
             default => 'asc',
         });
 

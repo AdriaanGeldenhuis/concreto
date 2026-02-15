@@ -34,17 +34,15 @@
                                 <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:1rem;">
                                     <div style="flex:1;">
                                         <h3 style="font-size:1.125rem; font-weight:700; margin-bottom:0.5rem;">{{ $template->name }}</h3>
-                                        @if($template->description)
-                                            <p class="text-muted" style="font-size:0.875rem; margin-bottom:0.5rem;">{{ $template->description }}</p>
+                                        @if($template->notes)
+                                            <p class="text-muted" style="font-size:0.875rem; margin-bottom:0.5rem;">{{ $template->notes }}</p>
                                         @endif
                                         <div style="font-size:0.8125rem; color:var(--text-muted);">
                                             Created {{ $template->created_at->diffForHumans() }}
+                                            &middot; {{ is_array($template->items) ? count($template->items) : 0 }} item(s)
                                         </div>
                                     </div>
                                     <div style="display:flex; gap:0.5rem; flex-shrink:0;">
-                                        <a href="{{ route('customer.templates.use', $template) }}" class="btn btn-primary btn-sm">
-                                            Use Template
-                                        </a>
                                         <form method="POST" action="{{ route('customer.templates.destroy', $template) }}" onsubmit="return confirm('Are you sure you want to delete this template?');">
                                             @csrf
                                             @method('DELETE')
@@ -55,19 +53,16 @@
                                     </div>
                                 </div>
 
-                                @if($template->items && $template->items->count() > 0)
+                                @if(is_array($template->items) && count($template->items) > 0)
                                     <div style="border-top:1px solid var(--glass-border); padding-top:0.75rem;">
                                         <div style="font-size:0.8125rem; font-weight:600; color:var(--text-light); margin-bottom:0.5rem;">Template Items:</div>
                                         <div style="display:flex; flex-direction:column; gap:0.5rem;">
                                             @foreach($template->items as $item)
                                                 <div style="display:flex; justify-content:space-between; font-size:0.875rem; padding:0.5rem; background:rgba(0,0,0,0.2); border-radius:var(--radius-sm);">
-                                                    <span>{{ $item->product->name ?? 'Product' }}</span>
-                                                    <span class="text-muted">{{ $item->quantity }} {{ $item->product->unit ?? 'units' }} × R {{ number_format($item->unit_price, 2) }}</span>
+                                                    <span>Product #{{ $item['product_id'] ?? '-' }}</span>
+                                                    <span class="text-muted">Qty: {{ $item['qty'] ?? 0 }}</span>
                                                 </div>
                                             @endforeach
-                                        </div>
-                                        <div style="text-align:right; margin-top:0.75rem; font-weight:700; color:var(--primary);">
-                                            Total: R {{ number_format($template->items->sum(fn($i) => $i->quantity * $i->unit_price), 2) }} excl VAT
                                         </div>
                                     </div>
                                 @endif
@@ -83,9 +78,6 @@
     <div class="card">
         <div class="card-header">
             <span>Recurring Orders</span>
-            @if($templates->isNotEmpty())
-                <a href="{{ route('customer.recurring.create') }}" class="btn btn-primary btn-sm">Setup Recurring Order</a>
-            @endif
         </div>
         <div class="card-body">
             @if($recurringOrders->isEmpty())
@@ -102,7 +94,6 @@
                                 <th>Frequency</th>
                                 <th>Next Order</th>
                                 <th>Status</th>
-                                <th>Total</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -118,8 +109,8 @@
                                         </span>
                                     </td>
                                     <td>
-                                        @if($recurring->next_order_date)
-                                            <span class="text-muted">{{ $recurring->next_order_date->format('d M Y') }}</span>
+                                        @if($recurring->next_run_date)
+                                            <span class="text-muted">{{ $recurring->next_run_date->format('d M Y') }}</span>
                                         @else
                                             <span class="text-muted">-</span>
                                         @endif
@@ -128,36 +119,18 @@
                                         @if($recurring->is_active)
                                             <span class="badge badge-success">Active</span>
                                         @else
-                                            <span class="badge badge-secondary">Paused</span>
+                                            <span class="badge badge-secondary">Cancelled</span>
                                         @endif
                                     </td>
                                     <td>
-                                        <strong>R {{ number_format($recurring->estimated_total ?? 0, 2) }}</strong>
-                                    </td>
-                                    <td>
-                                        <div style="display:flex; gap:0.5rem;">
-                                            @if($recurring->is_active)
-                                                <form method="POST" action="{{ route('customer.recurring.pause', $recurring) }}">
-                                                    @csrf
-                                                    <button type="submit" class="btn btn-warning btn-sm">
-                                                        Pause
-                                                    </button>
-                                                </form>
-                                            @else
-                                                <form method="POST" action="{{ route('customer.recurring.resume', $recurring) }}">
-                                                    @csrf
-                                                    <button type="submit" class="btn btn-success btn-sm">
-                                                        Resume
-                                                    </button>
-                                                </form>
-                                            @endif
+                                        @if($recurring->is_active)
                                             <form method="POST" action="{{ route('customer.recurring.cancel', $recurring) }}" onsubmit="return confirm('Are you sure you want to cancel this recurring order?');">
                                                 @csrf
                                                 <button type="submit" class="btn btn-danger btn-sm">
                                                     Cancel
                                                 </button>
                                             </form>
-                                        </div>
+                                        @endif
                                     </td>
                                 </tr>
                             @endforeach

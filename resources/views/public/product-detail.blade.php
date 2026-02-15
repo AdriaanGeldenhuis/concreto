@@ -79,7 +79,7 @@
                 @endif
 
                 <!-- Bulk Pricing Tiers -->
-                @if($product->pricingTiers && $product->pricingTiers->count() > 0)
+                @if($product->bulkPricingTiers && $product->bulkPricingTiers->count() > 0)
                     <div style="margin-bottom:1.5rem;">
                         <h3 style="font-size:1.125rem; margin-bottom:0.75rem;">Bulk Pricing</h3>
                         <div class="table-responsive">
@@ -92,9 +92,9 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($product->pricingTiers->sortBy('min_quantity') as $tier)
+                                    @foreach($product->bulkPricingTiers as $tier)
                                         <tr>
-                                            <td>{{ number_format($tier->min_quantity) }}+ {{ Str::plural($product->unit, $tier->min_quantity) }}</td>
+                                            <td>{{ number_format($tier->min_qty) }}+ {{ Str::plural($product->unit, $tier->min_qty) }}</td>
                                             <td style="font-weight:700; color:var(--primary);">R {{ number_format($tier->price, 2) }} excl VAT</td>
                                             <td style="color:var(--success);">{{ number_format((($product->price - $tier->price) / $product->price) * 100, 1) }}%</td>
                                         </tr>
@@ -196,14 +196,14 @@
         <div style="margin-top:4rem;">
             <h2 style="font-size:1.5rem; margin-bottom:1.5rem;">Customer Reviews</h2>
 
-            @if(isset($product->reviews) && $product->reviews->count() > 0)
+            @if($product->approvedReviews && $product->approvedReviews->count() > 0)
                 <div style="margin-bottom:2rem;">
-                    @foreach($product->reviews as $review)
+                    @foreach($product->approvedReviews as $review)
                         <div class="card" style="margin-bottom:1rem;">
                             <div class="card-body">
                                 <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:0.75rem;">
                                     <div>
-                                        <div style="font-weight:700; margin-bottom:0.25rem;">{{ $review->user->name ?? 'Anonymous' }}</div>
+                                        <div style="font-weight:700; margin-bottom:0.25rem;">{{ $review->customer->user->name ?? 'Anonymous' }}</div>
                                         <div style="color:var(--warning); font-size:0.875rem;">
                                             @for($i = 1; $i <= 5; $i++)
                                                 {{ $i <= $review->rating ? '&#9733;' : '&#9734;' }}

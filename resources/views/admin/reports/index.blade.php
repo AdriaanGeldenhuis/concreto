@@ -5,13 +5,13 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">Reports & Analytics</h1>
         <div class="btn-group">
-            <a href="{{ route('admin.reports.export.orders', ['from' => $from->format('Y-m-d'), 'to' => $to->format('Y-m-d')]) }}" class="btn btn-primary">
+            <a href="{{ route('admin.reports.export', ['type' => 'orders', 'from' => $from->format('Y-m-d'), 'to' => $to->format('Y-m-d')]) }}" class="btn btn-primary">
                 <i class="fas fa-download"></i> Export Orders
             </a>
-            <a href="{{ route('admin.reports.export.products', ['from' => $from->format('Y-m-d'), 'to' => $to->format('Y-m-d')]) }}" class="btn btn-primary">
+            <a href="{{ route('admin.reports.export', ['type' => 'products', 'from' => $from->format('Y-m-d'), 'to' => $to->format('Y-m-d')]) }}" class="btn btn-primary">
                 <i class="fas fa-download"></i> Export Products
             </a>
-            <a href="{{ route('admin.reports.export.customers', ['from' => $from->format('Y-m-d'), 'to' => $to->format('Y-m-d')]) }}" class="btn btn-primary">
+            <a href="{{ route('admin.reports.export', ['type' => 'customers', 'from' => $from->format('Y-m-d'), 'to' => $to->format('Y-m-d')]) }}" class="btn btn-primary">
                 <i class="fas fa-download"></i> Export Customers
             </a>
         </div>
@@ -361,7 +361,7 @@
                                                     'cancelled' => 'danger',
                                                     'failed' => 'danger',
                                                 ];
-                                                $badgeClass = $statusColors[$status->status] ?? 'secondary';
+                                                $badgeClass = $statusColors[strtolower($status->status)] ?? 'secondary';
                                             @endphp
                                             <span class="badge bg-{{ $badgeClass }} mb-2">{{ ucfirst($status->status) }}</span>
                                             <h3 class="mb-0">{{ number_format($status->count) }}</h3>

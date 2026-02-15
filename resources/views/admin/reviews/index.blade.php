@@ -53,29 +53,27 @@
                                     </td>
                                     <td>{{ $review->created_at->format('Y-m-d H:i') }}</td>
                                     <td>
-                                        @if($review->approved === null)
+                                        @if($review->is_approved === null)
                                             <span class="badge bg-warning">Pending</span>
-                                        @elseif($review->approved)
+                                        @elseif($review->is_approved)
                                             <span class="badge bg-success">Approved</span>
                                         @else
                                             <span class="badge bg-danger">Rejected</span>
                                         @endif
                                     </td>
                                     <td>
-                                        @if($review->approved !== true)
+                                        @if($review->is_approved !== true)
                                         <form action="{{ route('admin.reviews.approve', $review->id) }}" method="POST" class="d-inline">
                                             @csrf
-                                            @method('PUT')
                                             <button type="submit" class="btn btn-sm btn-success" title="Approve">
                                                 Approve
                                             </button>
                                         </form>
                                         @endif
 
-                                        @if($review->approved !== false)
+                                        @if($review->is_approved !== false)
                                         <form action="{{ route('admin.reviews.reject', $review->id) }}" method="POST" class="d-inline">
                                             @csrf
-                                            @method('PUT')
                                             <button type="submit" class="btn btn-sm btn-warning" title="Reject">
                                                 Reject
                                             </button>
@@ -138,9 +136,9 @@
                                                 <div class="mb-3">
                                                     <h6 class="text-muted">Status</h6>
                                                     <p>
-                                                        @if($review->approved === null)
+                                                        @if($review->is_approved === null)
                                                             <span class="badge bg-warning">Pending</span>
-                                                        @elseif($review->approved)
+                                                        @elseif($review->is_approved)
                                                             <span class="badge bg-success">Approved</span>
                                                         @else
                                                             <span class="badge bg-danger">Rejected</span>
