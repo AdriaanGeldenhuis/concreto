@@ -134,6 +134,17 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff'])
     Route::get('/audit-logs', [Admin\AuditLogController::class, 'index'])->name('audit-logs.index');
 
     Route::get('/ops', [Admin\OpsController::class, 'index'])->name('ops.index');
+
+    // Tracking
+    Route::get('/tracking/drivers', [Admin\TrackingController::class, 'drivers'])->name('tracking.drivers');
+    Route::get('/tracking/drivers/{driver}', [Admin\TrackingController::class, 'driverDetail'])->name('tracking.driver-detail');
+    Route::get('/tracking/orders/{order}', [Admin\TrackingController::class, 'orderTracking'])->name('tracking.order');
+
+    // Delivery Areas
+    Route::get('/delivery-areas', [Admin\DeliveryAreaController::class, 'index'])->name('delivery-areas.index');
+    Route::post('/delivery-areas', [Admin\DeliveryAreaController::class, 'store'])->name('delivery-areas.store');
+    Route::put('/delivery-areas/{deliveryArea}', [Admin\DeliveryAreaController::class, 'update'])->name('delivery-areas.update');
+    Route::delete('/delivery-areas/{deliveryArea}', [Admin\DeliveryAreaController::class, 'destroy'])->name('delivery-areas.destroy');
 });
 
 // Health check (no auth)

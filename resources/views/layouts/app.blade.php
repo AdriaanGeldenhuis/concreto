@@ -86,10 +86,11 @@
     <nav class="navbar">
         <div class="container">
             <a href="{{ route('home') }}" class="navbar-brand">
+                @php $logoH = ($siteSettings['logo_height'] ?? 36) . 'px'; @endphp
                 @if(!empty($siteSettings['site_logo']))
-                    <img src="{{ url('media/' . $siteSettings['site_logo']) }}" alt="{{ $siteSettings['company_name'] ?? 'Concreto' }}">
+                    <img src="{{ url('media/' . $siteSettings['site_logo']) }}" alt="{{ $siteSettings['company_name'] ?? 'Concreto' }}" style="height:{{ $logoH }};">
                 @else
-                    <img src="/assets/logo/concreto.webp" alt="Concreto">
+                    <img src="/assets/logo/concreto.webp" alt="Concreto" style="height:{{ $logoH }};">
                 @endif
             </a>
             <button class="navbar-toggle" aria-label="Toggle menu">&#9776;</button>
@@ -147,9 +148,9 @@
                 <div>
                     <div class="footer-brand">
                         @if(!empty($siteSettings['site_logo']))
-                            <img src="{{ url('media/' . $siteSettings['site_logo']) }}" alt="{{ $siteSettings['company_name'] ?? 'Concreto' }}">
+                            <img src="{{ url('media/' . $siteSettings['site_logo']) }}" alt="{{ $siteSettings['company_name'] ?? 'Concreto' }}" style="height:{{ $logoH }};">
                         @else
-                            <img src="/assets/logo/concreto.webp" alt="Concreto">
+                            <img src="/assets/logo/concreto.webp" alt="Concreto" style="height:{{ $logoH }};">
                         @endif
                     </div>
                     <p>{{ $siteSettings['footer_about'] ?? 'Quality building materials delivered to your site.' }}</p>

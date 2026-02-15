@@ -30,6 +30,14 @@
                         <small class="text-muted">Recommended: PNG or SVG, max 5MB</small>
                     </div>
                     <div class="form-group">
+                        <label class="form-label">Logo Height (px)</label>
+                        <input type="number" name="settings[logo_height]" class="form-control" min="20" max="200" step="2" value="{{ $siteSettings['logo_height'] ?? '36' }}" style="max-width:150px;">
+                        <input type="hidden" name="groups[logo_height]" value="branding">
+                        <small class="text-muted">Controls the logo size in the navbar, sidebar, and footer. Default: 36px</small>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
                         <label class="form-label">Favicon</label>
                         @if(!empty($siteSettings['site_favicon']))
                             <div class="settings-preview mb-1">

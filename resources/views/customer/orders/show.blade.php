@@ -37,6 +37,71 @@
         </div>
     @endif
 
+    {{-- Live Delivery Tracking --}}
+    @if(in_array($order->status, ['ASSIGNED', 'ACCEPTED', 'LOADED', 'IN_TRANSIT', 'ARRIVED']))
+        @php
+            $lastLocation = $order->driverLocations()->orderBy('recorded_at', 'desc')->first();
+        @endphp
+        <div class="card" style="border-left: 3px solid var(--primary, #F97316);">
+            <div class="card-header">
+                <span>&#9737; Delivery Tracking</span>
+                <span class="badge badge-{{ match($order->status) {
+                    'IN_TRANSIT' => 'warning',
+                    'ARRIVED' => 'success',
+                    'LOADED' => 'info',
+                    default => 'primary'
+                } }}">{{ str_replace('_', ' ', $order->status) }}</span>
+            </div>
+            <div class="card-body">
+                {{-- Status Steps --}}
+                <div style="display:flex; gap:0.5rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+                    @php
+                        $steps = ['ASSIGNED' => 'Assigned', 'ACCEPTED' => 'Accepted', 'LOADED' => 'Loaded', 'IN_TRANSIT' => 'En Route', 'ARRIVED' => 'Arrived'];
+                        $statusOrder = array_keys($steps);
+                        $currentIndex = array_search($order->status, $statusOrder);
+                    @endphp
+                    @foreach($steps as $stepKey => $stepLabel)
+                        @php
+                            $stepIndex = array_search($stepKey, $statusOrder);
+                            $isDone = $stepIndex <= $currentIndex;
+                            $isCurrent = $stepKey === $order->status;
+                        @endphp
+                        <div style="flex:1; text-align:center; padding:0.75rem 0.5rem; border-radius:var(--radius, 8px); font-size:0.8125rem; font-weight:{{ $isCurrent ? '700' : '400' }}; background:{{ $isDone ? 'var(--primary-subtle, rgba(249,115,22,0.1))' : 'rgba(255,255,255,0.03)' }}; color:{{ $isDone ? 'var(--primary, #F97316)' : 'rgba(255,255,255,0.3)' }}; border:1px solid {{ $isCurrent ? 'var(--primary, #F97316)' : 'transparent' }};">
+                            {{ $isDone && !$isCurrent ? '&#10003; ' : '' }}{{ $stepLabel }}
+                        </div>
+                    @endforeach
+                </div>
+
+                @if($order->driver)
+                    <div class="info-row">
+                        <span class="label">Driver</span>
+                        <span class="value">
+                            {{ $order->driver->name }}
+                            @if($order->driver->phone)
+                                - <a href="tel:{{ $order->driver->phone }}">{{ $order->driver->phone }}</a>
+                            @endif
+                        </span>
+                    </div>
+                @endif
+
+                @if($lastLocation)
+                    <div class="info-row">
+                        <span class="label">Last Update</span>
+                        <span class="value">{{ $lastLocation->recorded_at->diffForHumans() }} ({{ $lastLocation->recorded_at->format('H:i') }})</span>
+                    </div>
+                    @if($lastLocation->speed > 0)
+                    <div class="info-row">
+                        <span class="label">Speed</span>
+                        <span class="value">{{ number_format($lastLocation->speed, 0) }} km/h</span>
+                    </div>
+                    @endif
+                @else
+                    <p class="text-muted" style="font-size:0.875rem;">Waiting for driver GPS updates...</p>
+                @endif
+            </div>
+        </div>
+    @endif
+
     <div class="card">
         <div class="card-header">Order Details</div>
         <div class="card-body">

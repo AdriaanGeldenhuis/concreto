@@ -38,6 +38,42 @@
                 </div>
             </div>
 
+            {{-- Tracking Link --}}
+            @if(in_array($order->status, ['ASSIGNED', 'ACCEPTED', 'LOADED', 'IN_TRANSIT', 'ARRIVED']) && $order->driver)
+            <div class="card" style="border-left: 3px solid var(--primary, #F97316);">
+                <div class="card-header">
+                    <span>&#9737; Delivery Tracking</span>
+                    <span class="badge badge-{{ match($order->status) {
+                        'IN_TRANSIT' => 'warning',
+                        'ARRIVED' => 'success',
+                        'LOADED' => 'info',
+                        default => 'primary'
+                    } }}">{{ str_replace('_', ' ', $order->status) }}</span>
+                </div>
+                <div class="card-body">
+                    @php $lastLoc = $order->driverLocations()->orderBy('recorded_at', 'desc')->first(); @endphp
+                    @if($lastLoc)
+                        <div class="info-row">
+                            <span class="label">Last GPS</span>
+                            <span class="value">{{ $lastLoc->recorded_at->diffForHumans() }}</span>
+                        </div>
+                        @if($lastLoc->speed > 0)
+                        <div class="info-row">
+                            <span class="label">Speed</span>
+                            <span class="value">{{ number_format($lastLoc->speed, 0) }} km/h</span>
+                        </div>
+                        @endif
+                    @else
+                        <p class="text-muted" style="font-size:0.875rem;">Waiting for GPS...</p>
+                    @endif
+                    <div class="mt-1">
+                        <a href="{{ route('admin.tracking.order', $order) }}" class="btn btn-sm btn-primary">View Full Tracking</a>
+                        <a href="{{ route('admin.tracking.driver-detail', $order->driver) }}" class="btn btn-sm btn-outline">Track Driver</a>
+                    </div>
+                </div>
+            </div>
+            @endif
+
             {{-- Driver Assignment --}}
             <div class="card">
                 <div class="card-header">

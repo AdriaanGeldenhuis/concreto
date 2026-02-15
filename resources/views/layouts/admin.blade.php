@@ -58,10 +58,11 @@
     <div class="admin-layout">
         <aside class="admin-sidebar">
             <div class="sidebar-brand">
+                @php $logoH = ($siteSettings['logo_height'] ?? 36) . 'px'; @endphp
                 @if(!empty($siteSettings['site_logo']))
-                    <img src="{{ url('media/' . $siteSettings['site_logo']) }}" alt="{{ $siteSettings['company_name'] ?? 'Concreto' }}">
+                    <img src="{{ url('media/' . $siteSettings['site_logo']) }}" alt="{{ $siteSettings['company_name'] ?? 'Concreto' }}" style="height:{{ $logoH }};">
                 @else
-                    <img src="/assets/logo/concreto.webp" alt="Concreto">
+                    <img src="/assets/logo/concreto.webp" alt="Concreto" style="height:{{ $logoH }};">
                 @endif
                 Admin
             </div>
@@ -75,6 +76,10 @@
             <div class="sidebar-section">People</div>
             <a href="{{ route('admin.customers.index') }}" class="{{ request()->routeIs('admin.customers*') ? 'active' : '' }}">&#9786; Customers</a>
             <a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users*') ? 'active' : '' }}">&#9998; Users</a>
+            <div class="sidebar-section">Tracking & Ops</div>
+            <a href="{{ route('admin.tracking.drivers') }}" class="{{ request()->routeIs('admin.tracking*') ? 'active' : '' }}">&#9737; Track Drivers</a>
+            <a href="{{ route('admin.ops.index') }}" class="{{ request()->routeIs('admin.ops*') ? 'active' : '' }}">&#9888; Operations Board</a>
+            <a href="{{ route('admin.delivery-areas.index') }}" class="{{ request()->routeIs('admin.delivery-areas*') ? 'active' : '' }}">&#9873; Delivery Areas</a>
             <div class="sidebar-section">Communication</div>
             <a href="{{ route('admin.messages.index') }}" class="{{ request()->routeIs('admin.messages*') ? 'active' : '' }}">&#9993; Messages</a>
             <div class="sidebar-section">System</div>
