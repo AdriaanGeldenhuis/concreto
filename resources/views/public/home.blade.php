@@ -50,40 +50,25 @@
             @if($featuredProducts->count())
             <div class="product-grid">
                 @foreach($featuredProducts as $product)
-                <div class="product-card">
-                    <a href="{{ route('products.show', $product) }}" class="product-card-link">
-                        <div class="product-card-img">
-                            @if($product->image_path)
-                                <img src="/media/{{ $product->image_path }}" alt="{{ $product->name }}">
-                            @else
-                                <span class="product-card-placeholder">&#9881;</span>
-                            @endif
-                            @if(!$product->in_stock)
-                                <span class="product-card-badge badge badge-danger">Out of Stock</span>
-                            @endif
-                        </div>
-                        <div class="product-card-body">
-                            @if($product->category)
-                                <span class="product-card-cat">{{ $product->category->name }}</span>
-                            @endif
-                            <h3>{{ $product->name }}</h3>
-                            <div class="product-card-pricing">
-                                <span class="price">R{{ number_format($product->price, 2) }}</span>
-                                <span class="unit">/ {{ $product->unit }}</span>
-                            </div>
-                        </div>
-                    </a>
-                    <div class="product-card-actions">
-                        @if($product->in_stock)
-                        <form class="add-to-cart-form" data-product-id="{{ $product->id }}">
-                            <input type="number" name="qty" value="1" min="0.01" step="0.01" class="form-control cart-qty-sm">
-                            <button type="submit" class="btn btn-primary btn-sm btn-add-cart">Add to Cart</button>
-                        </form>
+                <a href="{{ route('products.show', $product) }}" class="product-card">
+                    <div class="product-card-img">
+                        @if($product->image_path)
+                            <img src="/media/{{ $product->image_path }}" alt="{{ $product->name }}">
                         @else
-                            <a href="{{ route('request-quote') }}" class="btn btn-outline btn-sm btn-block">Request Quote</a>
+                            <span class="product-card-placeholder">&#9881;</span>
                         @endif
                     </div>
-                </div>
+                    <div class="product-card-body">
+                        <h3>{{ $product->name }}</h3>
+                        <p class="product-card-meta">
+                            @if($product->category){{ $product->category->name }}@endif
+                            <span class="meta-dot">&middot;</span>
+                            per {{ $product->unit }}
+                        </p>
+                        <div class="product-card-divider"></div>
+                        <div class="product-card-price">R {{ number_format($product->price, 2) }}</div>
+                    </div>
+                </a>
                 @endforeach
             </div>
             @else
