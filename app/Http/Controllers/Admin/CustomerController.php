@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
+use App\Models\Company;
 use App\Models\Customer;
 use Illuminate\Http\Request;
 
@@ -56,5 +57,48 @@ class CustomerController extends Controller
         AuditLog::log('updated', 'Customer', $customer->id, $data);
 
         return back()->with('success', 'Customer updated.');
+    }
+
+    public function updateCompany(Request $request, Customer $customer)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'trading_as' => 'nullable|string|max:255',
+            'registration_number' => 'nullable|string|max:100',
+            'vat_number' => 'nullable|string|max:50',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:50',
+            'contact_person' => 'nullable|string|max:255',
+            'address_line1' => 'nullable|string|max:255',
+            'address_line2' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:100',
+            'province' => 'nullable|string|max:100',
+            'postal_code' => 'nullable|string|max:10',
+        ]);
+
+        if ($customer->company) {
+            $customer->company->update($data);
+        } else {
+            $company = Company::create($data);
+            $customer->update(['company_id' => $company->id]);
+        }
+
+        AuditLog::log('updated', 'Company', $customer->company_id, $data);
+
+        return back()->with('success', 'Company details updated.');
+    }
+
+    public function updateContact(Request $request, Customer $customer)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'nullable|string|max:50',
+        ]);
+
+        $customer->user->update($data);
+        AuditLog::log('updated', 'User', $customer->user_id, $data);
+
+        return back()->with('success', 'Contact information updated.');
     }
 }

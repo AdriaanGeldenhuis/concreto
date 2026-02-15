@@ -142,6 +142,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff'])
     Route::get('/customers', [Admin\CustomerController::class, 'index'])->name('customers.index');
     Route::get('/customers/{customer}', [Admin\CustomerController::class, 'show'])->name('customers.show');
     Route::put('/customers/{customer}', [Admin\CustomerController::class, 'update'])->name('customers.update');
+    Route::put('/customers/{customer}/company', [Admin\CustomerController::class, 'updateCompany'])->name('customers.update-company');
+    Route::put('/customers/{customer}/contact', [Admin\CustomerController::class, 'updateContact'])->name('customers.update-contact');
 
     Route::get('/quotes', [Admin\QuoteController::class, 'index'])->name('quotes.index');
     Route::get('/quotes/create', [Admin\QuoteController::class, 'create'])->name('quotes.create');
