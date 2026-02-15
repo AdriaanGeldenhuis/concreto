@@ -27,7 +27,7 @@
                     </div>
                     <div class="cart-item-info">
                         <h4>{{ $item['product']->name }}</h4>
-                        <div class="text-muted text-small">R{{ number_format($item['product']->price, 2) }} per {{ $item['product']->unit }}</div>
+                        <div class="text-muted text-small">R{{ number_format($item['product']->price, 2) }} excl VAT per {{ $item['product']->unit }}</div>
                     </div>
                     <div class="cart-item-qty">
                         <form method="POST" action="{{ route('cart.update') }}" class="cart-qty-form">
@@ -53,7 +53,7 @@
             <div class="card-body">
                 <div class="cart-totals">
                     <div class="cart-totals-row">
-                        <span>Subtotal</span>
+                        <span>Subtotal (excl VAT)</span>
                         <span>R{{ number_format($subtotal, 2) }}</span>
                     </div>
                     <div class="cart-totals-row">

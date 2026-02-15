@@ -12,6 +12,60 @@
         <h1>Dashboard</h1>
     </div>
 
+    {{-- Clock In/Out Section --}}
+    <div class="card mb-2">
+        <div class="card-body">
+            @if(isset($currentShift))
+                <div class="d-flex justify-between items-center mb-2">
+                    <div>
+                        <div class="font-semibold">Current Shift</div>
+                        <div class="text-small text-muted">Clocked in at {{ $currentShift->clock_in->format('H:i') }}</div>
+                        <div class="text-small text-muted">Duration: {{ $currentShift->clock_in->diffForHumans(null, true) }}</div>
+                    </div>
+                    <form method="POST" action="{{ route('driver.clock-out') }}">
+                        @csrf
+                        <button type="submit" class="btn btn-danger btn-lg" style="min-height:50px;">Clock Out</button>
+                    </form>
+                </div>
+                @if(isset($lastOffloadTime))
+                <div class="text-small text-muted">
+                    <strong>Last Offload:</strong> {{ $lastOffloadTime->format('H:i') }} ({{ $lastOffloadTime->diffForHumans() }})
+                </div>
+                @endif
+            @else
+                <div class="d-flex justify-between items-center">
+                    <div>
+                        <div class="font-semibold">Not Clocked In</div>
+                        <div class="text-small text-muted">Start your shift to begin tracking</div>
+                    </div>
+                    <form method="POST" action="{{ route('driver.clock-in') }}">
+                        @csrf
+                        <button type="submit" class="btn btn-success btn-lg" style="min-height:50px;">Clock In</button>
+                    </form>
+                </div>
+            @endif
+        </div>
+    </div>
+
+    {{-- Monthly Stats --}}
+    @if(isset($monthDeliveries) && isset($monthHours))
+    <div class="card mb-2">
+        <div class="card-header">This Month</div>
+        <div class="card-body">
+            <div class="d-flex gap-2">
+                <div style="flex: 1;">
+                    <div class="stat-value">{{ $monthDeliveries }}</div>
+                    <div class="stat-label">Deliveries</div>
+                </div>
+                <div style="flex: 1;">
+                    <div class="stat-value">{{ number_format($monthHours, 1) }}</div>
+                    <div class="stat-label">Hours Worked</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
     {{-- Stats overview --}}
     <div class="stats-grid">
         <div class="stat-card">

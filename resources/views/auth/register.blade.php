@@ -16,7 +16,7 @@
 </head>
 <body>
     <div class="auth-page">
-        <div class="auth-card">
+        <div class="auth-card" style="max-width: 520px;">
             <div class="logo">
                 <img src="/assets/logo/concreto.webp" alt="Concreto">
                 <h2>Create Account</h2>
@@ -33,25 +33,47 @@
 
             <form method="POST" action="{{ route('register') }}">
                 @csrf
+
+                <div style="font-size:0.85rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--primary);margin-bottom:0.5rem;margin-top:0.5rem;">Company Details</div>
+
                 <div class="form-group">
-                    <label class="form-label">Full Name</label>
-                    <input type="text" name="name" class="form-control" value="{{ old('name') }}" required autofocus placeholder="John Smith">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Email Address</label>
-                    <input type="email" name="email" class="form-control" value="{{ old('email') }}" required placeholder="you@example.com">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Phone Number</label>
-                    <input type="tel" name="phone" class="form-control" value="{{ old('phone') }}" placeholder="082 123 4567">
+                    <label class="form-label">Company / Business Name *</label>
+                    <input type="text" name="company_name" class="form-control" value="{{ old('company_name') }}" required placeholder="Acme Construction (Pty) Ltd">
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">Password</label>
+                        <label class="form-label">VAT Number</label>
+                        <input type="text" name="vat_number" class="form-control" value="{{ old('vat_number') }}" placeholder="4123456789">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Registration Number</label>
+                        <input type="text" name="registration_number" class="form-control" value="{{ old('registration_number') }}" placeholder="2024/123456/07">
+                    </div>
+                </div>
+
+                <div style="font-size:0.85rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--primary);margin-bottom:0.5rem;margin-top:1rem;">Your Details</div>
+
+                <div class="form-group">
+                    <label class="form-label">Full Name *</label>
+                    <input type="text" name="name" class="form-control" value="{{ old('name') }}" required autofocus placeholder="John Smith">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Email Address *</label>
+                        <input type="email" name="email" class="form-control" value="{{ old('email') }}" required placeholder="you@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone Number *</label>
+                        <input type="tel" name="phone" class="form-control" value="{{ old('phone') }}" required placeholder="082 123 4567">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Password *</label>
                         <input type="password" name="password" class="form-control" required placeholder="Min 8 characters">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Confirm Password</label>
+                        <label class="form-label">Confirm Password *</label>
                         <input type="password" name="password_confirmation" class="form-control" required placeholder="Repeat password">
                     </div>
                 </div>

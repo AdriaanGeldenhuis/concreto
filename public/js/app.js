@@ -55,14 +55,21 @@ function initOrderForm() {
 
     let itemIndex = 0;
 
-    addItemBtn.addEventListener('click', function() {
+    function addItemRow() {
         const productSelect = document.getElementById('product-select');
         const products = JSON.parse(productSelect.dataset.products || '[]');
         const template = createOrderItemRow(itemIndex, products);
         itemsContainer.insertAdjacentHTML('beforeend', template);
         itemIndex++;
         updateOrderTotal();
-    });
+    }
+
+    addItemBtn.addEventListener('click', addItemRow);
+
+    // Auto-add first item row so the form isn't empty
+    if (itemsContainer.children.length === 0 || (itemsContainer.children.length === 1 && itemsContainer.querySelector('.form-error'))) {
+        addItemRow();
+    }
 
     // Delegate change/input events for quantity
     itemsContainer.addEventListener('input', function(e) {
@@ -129,15 +136,16 @@ function initSignaturePad() {
 
     const ctx = canvas.getContext('2d');
     let drawing = false;
+    let hasDrawn = false;
     let lastX = 0, lastY = 0;
 
     // Set canvas size
     function resizeCanvas() {
         const rect = canvas.parentElement.getBoundingClientRect();
         canvas.width = rect.width;
-        canvas.height = 200;
-        ctx.strokeStyle = '#2c3e50';
-        ctx.lineWidth = 2;
+        canvas.height = 250;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2.5;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
     }
@@ -150,18 +158,16 @@ function initSignaturePad() {
         return { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
     }
 
-    canvas.addEventListener('mousedown', function(e) { drawing = true; const p = getPos(e); lastX = p.x; lastY = p.y; });
-    canvas.addEventListener('touchstart', function(e) { e.preventDefault(); drawing = true; const p = getPos(e); lastX = p.x; lastY = p.y; }, { passive: false });
-
-    canvas.addEventListener('mousemove', draw);
-    canvas.addEventListener('touchmove', function(e) { e.preventDefault(); draw(e); }, { passive: false });
-
-    canvas.addEventListener('mouseup', function() { drawing = false; });
-    canvas.addEventListener('touchend', function() { drawing = false; });
-    canvas.addEventListener('mouseleave', function() { drawing = false; });
+    function startDraw(e) {
+        drawing = true;
+        const p = getPos(e);
+        lastX = p.x;
+        lastY = p.y;
+    }
 
     function draw(e) {
         if (!drawing) return;
+        hasDrawn = true;
         const p = getPos(e);
         ctx.beginPath();
         ctx.moveTo(lastX, lastY);
@@ -171,18 +177,34 @@ function initSignaturePad() {
         lastY = p.y;
     }
 
+    function stopDraw() { drawing = false; }
+
+    canvas.addEventListener('mousedown', startDraw);
+    canvas.addEventListener('touchstart', function(e) { e.preventDefault(); startDraw(e); }, { passive: false });
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('touchmove', function(e) { e.preventDefault(); draw(e); }, { passive: false });
+    canvas.addEventListener('mouseup', stopDraw);
+    canvas.addEventListener('touchend', stopDraw);
+    canvas.addEventListener('mouseleave', stopDraw);
+
     // Clear button
     const clearBtn = document.getElementById('clear-signature');
     if (clearBtn) {
         clearBtn.addEventListener('click', function() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            hasDrawn = false;
         });
     }
 
-    // On form submit, set hidden input to base64
+    // On form submit, validate signature and set hidden input to base64
     const form = canvas.closest('form');
     if (form) {
-        form.addEventListener('submit', function() {
+        form.addEventListener('submit', function(e) {
+            if (!hasDrawn) {
+                e.preventDefault();
+                alert('Please provide a signature before completing delivery.');
+                return false;
+            }
             const input = document.getElementById('signature-data');
             if (input) {
                 input.value = canvas.toDataURL('image/png');

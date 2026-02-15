@@ -15,7 +15,9 @@
         <link href="{{ $siteSettings['google_font_url'] }}" rel="stylesheet">
     @endif
     <link rel="stylesheet" href="/css/app.css">
-    <link rel="icon" type="image/png" href="/assets/logo/concreto.webp">
+    @if(empty($siteSettings['site_favicon']))
+        <link rel="icon" type="image/png" href="/assets/logo/concreto.webp">
+    @endif
     @if(isset($siteSettings))
     <style>
         :root {
@@ -60,13 +62,15 @@
     <nav class="navbar">
         <div class="container">
             <a href="@yield('home-url', '/')" class="navbar-brand">
+                @php $logoH = ($siteSettings['logo_height'] ?? 36) . 'px'; @endphp
                 @if(!empty($siteSettings['site_logo']))
-                    <img src="{{ url('media/' . $siteSettings['site_logo']) }}" alt="{{ $siteSettings['company_name'] ?? 'Concreto' }}">
+                    <img src="{{ url('media/' . $siteSettings['site_logo']) }}" alt="{{ $siteSettings['company_name'] ?? 'Concreto' }}" style="height:{{ $logoH }} !important; width:auto !important; max-width:none !important; max-height:none !important;">
                 @else
-                    <img src="/assets/logo/concreto.webp" alt="Concreto">
+                    <img src="/assets/logo/concreto.webp" alt="Concreto" style="height:{{ $logoH }} !important; width:auto !important; max-width:none !important; max-height:none !important;">
                 @endif
                 <span>@yield('portal-name', 'Portal')</span>
             </a>
+            <button class="navbar-toggle" aria-label="Toggle menu">&#9776;</button>
             <div class="navbar-links">
                 @yield('nav-links')
                 <form method="POST" action="{{ route('logout') }}" style="display:inline">

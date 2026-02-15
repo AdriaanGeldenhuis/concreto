@@ -16,6 +16,7 @@ class DriverLocation extends Model
         'lng',
         'speed',
         'heading',
+        'accuracy',
         'recorded_at',
     ];
 
@@ -26,6 +27,7 @@ class DriverLocation extends Model
             'lng' => 'decimal:7',
             'speed' => 'decimal:2',
             'heading' => 'decimal:2',
+            'accuracy' => 'decimal:2',
             'recorded_at' => 'datetime',
         ];
     }

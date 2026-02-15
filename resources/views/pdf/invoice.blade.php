@@ -42,13 +42,36 @@
         </tr>
     </table>
 
+    @php $company = $order->customer->company; @endphp
     <table width="100%" style="margin-bottom: 20px;">
         <tr>
             <td width="50%">
                 <div class="section-title">Bill To</div>
-                <strong>{{ $order->customer->user->name }}</strong><br>
-                {{ $order->customer->user->email }}<br>
-                {{ $order->customer->user->phone ?? '' }}
+                @if($company)
+                    <strong>{{ $company->display_name }}</strong><br>
+                    @if($company->registration_number)
+                        <span style="color:#666;">Reg: {{ $company->registration_number }}</span><br>
+                    @endif
+                    @if($company->vat_number)
+                        <span style="color:#666;">VAT: {{ $company->vat_number }}</span><br>
+                    @endif
+                    @if($company->full_address)
+                        {{ $company->full_address }}<br>
+                    @endif
+                    @if($company->email)
+                        {{ $company->email }}<br>
+                    @endif
+                    @if($company->phone)
+                        {{ $company->phone }}<br>
+                    @endif
+                    @if($company->contact_person)
+                        <span style="color:#666;">Attn: {{ $company->contact_person }}</span>
+                    @endif
+                @else
+                    <strong>{{ $order->customer->user->name }}</strong><br>
+                    {{ $order->customer->user->email }}<br>
+                    {{ $order->customer->user->phone ?? '' }}
+                @endif
             </td>
             <td width="50%">
                 <div class="section-title">Deliver To</div>
@@ -75,8 +98,8 @@
                 <th>Product</th>
                 <th>Unit</th>
                 <th class="number">Qty</th>
-                <th class="number">Unit Price</th>
-                <th class="number">Total</th>
+                <th class="number">Unit Price (excl VAT)</th>
+                <th class="number">Total (excl VAT)</th>
             </tr>
         </thead>
         <tbody>
@@ -95,10 +118,13 @@
     <div class="clearfix">
         <div class="totals">
             <table>
-                <tr><td>Subtotal</td><td class="number">R{{ number_format($order->subtotal, 2) }}</td></tr>
+                <tr><td>Subtotal (excl VAT)</td><td class="number">R{{ number_format($order->subtotal, 2) }}</td></tr>
+                @if(($order->discount_amount ?? 0) > 0)
+                <tr><td>Discount</td><td class="number">-R{{ number_format($order->discount_amount, 2) }}</td></tr>
+                @endif
                 <tr><td>Delivery Fee</td><td class="number">R{{ number_format($order->delivery_fee, 2) }}</td></tr>
                 <tr><td>VAT (15%)</td><td class="number">R{{ number_format($order->vat, 2) }}</td></tr>
-                <tr class="total-row"><td><strong>Total</strong></td><td class="number"><strong>R{{ number_format($order->total, 2) }}</strong></td></tr>
+                <tr class="total-row"><td><strong>Total (incl VAT)</strong></td><td class="number"><strong>R{{ number_format($order->total, 2) }}</strong></td></tr>
             </table>
         </div>
     </div>

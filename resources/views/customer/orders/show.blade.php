@@ -33,17 +33,85 @@
     @if($order->status === 'PENDING_PAYMENT')
         <div class="alert alert-warning">
             Payment required to process this order.
-            <a href="{{ route('customer.orders.pay', $order) }}" class="btn btn-sm btn-warning">Pay Now</a>
+            <a href="{{ route('customer.orders.pay', $order) }}" class="btn btn-sm btn-warning" style="margin-left:auto;">Pay Now</a>
+        </div>
+    @endif
+
+    {{-- Live Delivery Tracking --}}
+    @if(in_array($order->status, ['ASSIGNED', 'ACCEPTED', 'LOADED', 'IN_TRANSIT', 'ARRIVED']))
+        @php
+            $lastLocation = $order->driverLocations()->orderBy('recorded_at', 'desc')->first();
+        @endphp
+        <div class="card" id="tracking-card" style="border-left: 3px solid var(--primary, #F97316);">
+            <div class="card-header">
+                <span>&#9737; Delivery Tracking</span>
+                <span class="badge badge-{{ match($order->status) {
+                    'IN_TRANSIT' => 'warning',
+                    'ARRIVED' => 'success',
+                    'LOADED' => 'info',
+                    default => 'primary'
+                } }}">{{ str_replace('_', ' ', $order->status) }}</span>
+            </div>
+            <div class="card-body">
+                {{-- Status Steps --}}
+                <div style="display:flex; gap:0.5rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+                    @php
+                        $steps = ['ASSIGNED' => 'Assigned', 'ACCEPTED' => 'Accepted', 'LOADED' => 'Loaded', 'IN_TRANSIT' => 'En Route', 'ARRIVED' => 'Arrived'];
+                        $statusOrder = array_keys($steps);
+                        $currentIndex = array_search($order->status, $statusOrder);
+                    @endphp
+                    @foreach($steps as $stepKey => $stepLabel)
+                        @php
+                            $stepIndex = array_search($stepKey, $statusOrder);
+                            $isDone = $stepIndex <= $currentIndex;
+                            $isCurrent = $stepKey === $order->status;
+                        @endphp
+                        <div style="flex:1; text-align:center; padding:0.75rem 0.5rem; border-radius:var(--radius, 8px); font-size:0.8125rem; font-weight:{{ $isCurrent ? '700' : '400' }}; background:{{ $isDone ? 'var(--primary-subtle, rgba(249,115,22,0.1))' : 'rgba(255,255,255,0.03)' }}; color:{{ $isDone ? 'var(--primary, #F97316)' : 'rgba(255,255,255,0.3)' }}; border:1px solid {{ $isCurrent ? 'var(--primary, #F97316)' : 'transparent' }};">
+                            {!! $isDone && !$isCurrent ? '&#10003; ' : '' !!}{{ $stepLabel }}
+                        </div>
+                    @endforeach
+                </div>
+
+                @if($order->driver)
+                    <div class="info-row">
+                        <span class="label">Driver</span>
+                        <span class="value">
+                            {{ $order->driver->name }}
+                            @if($order->driver->phone)
+                                - <a href="tel:{{ $order->driver->phone }}">{{ $order->driver->phone }}</a>
+                            @endif
+                        </span>
+                    </div>
+                @endif
+
+                @if($lastLocation)
+                    <div class="info-row" id="tracking-last-update">
+                        <span class="label">Last Update</span>
+                        <span class="value">{{ $lastLocation->recorded_at->diffForHumans() }} ({{ $lastLocation->recorded_at->format('H:i') }})</span>
+                    </div>
+                    @if($lastLocation->speed > 0)
+                    <div class="info-row" id="tracking-speed">
+                        <span class="label">Speed</span>
+                        <span class="value">{{ number_format($lastLocation->speed, 0) }} km/h</span>
+                    </div>
+                    @endif
+                @else
+                    <p class="text-muted" style="font-size:0.875rem;">Waiting for driver GPS updates...</p>
+                @endif
+
+                <p class="text-small text-muted mt-1" id="tracking-refresh-note" style="opacity:0.5;">Auto-refreshes every 30s</p>
+            </div>
         </div>
     @endif
 
     <div class="card">
         <div class="card-header">Order Details</div>
         <div class="card-body">
-            @if($order->driver)
+            {{-- Only show driver here if not already in tracking card above --}}
+            @if($order->driver && !in_array($order->status, ['ASSIGNED', 'ACCEPTED', 'LOADED', 'IN_TRANSIT', 'ARRIVED']))
                 <div class="info-row">
                     <span class="label">Driver</span>
-                    <span class="value">{{ $order->driver->name }} ({{ $order->driver->phone }})</span>
+                    <span class="value">{{ $order->driver->name }}@if($order->driver->phone) ({{ $order->driver->phone }})@endif</span>
                 </div>
             @endif
             @if($order->scheduled_date)
@@ -154,20 +222,25 @@
         <div class="card-header">Actions</div>
         <div class="card-body">
             <div class="d-flex gap-1 flex-wrap">
-                <a href="{{ route('customer.orders.create') }}" class="btn btn-primary">Reorder</a>
+                @if($order->status === 'DELIVERED')
+                    <a href="{{ route('customer.orders.reorder', $order) }}" class="btn btn-primary">Reorder</a>
+                @else
+                    <a href="{{ route('customer.orders.create') }}" class="btn btn-primary">New Order</a>
+                @endif
 
-                <button type="button" class="btn btn-outline" onclick="document.getElementById('dispute-form').classList.toggle('d-none')">
-                    Dispute Order
-                </button>
+                @if(!in_array($order->status, ['CANCELLED', 'REFUNDED']))
+                    <button type="button" class="btn btn-outline" onclick="document.getElementById('dispute-form').classList.toggle('d-none')">
+                        Report Issue
+                    </button>
+                @endif
             </div>
 
             <div id="dispute-form" class="d-none mt-2">
-                <div class="card">
+                <div class="card" style="margin-bottom:0;">
                     <div class="card-header">Report an Issue</div>
                     <div class="card-body">
-                        <form method="POST" action="{{ route('customer.orders.show', $order) }}">
+                        <form method="POST" action="{{ route('customer.orders.dispute', $order) }}">
                             @csrf
-                            <input type="hidden" name="dispute" value="1">
                             <div class="form-group">
                                 <label class="form-label">Issue Type</label>
                                 <select name="dispute_type" class="form-control" required>
@@ -199,6 +272,22 @@
     <a href="{{ route('customer.dashboard') }}"><span class="nav-icon">&#9632;</span>Dashboard</a>
     <a href="{{ route('customer.orders.index') }}" class="active"><span class="nav-icon">&#9744;</span>Orders</a>
     <a href="{{ route('customer.invoices.index') }}"><span class="nav-icon">&#9993;</span>Invoices</a>
-    <a href="{{ route('customer.addresses.index') }}"><span class="nav-icon">&#9786;</span>Account</a>
+    <a href="{{ route('customer.account') }}"><span class="nav-icon">&#9786;</span>Account</a>
 </nav>
 @endsection
+
+@if(in_array($order->status, ['ASSIGNED', 'ACCEPTED', 'LOADED', 'IN_TRANSIT', 'ARRIVED']))
+@push('scripts')
+<script>
+    // Auto-refresh tracking every 30 seconds
+    (function() {
+        var refreshInterval = setInterval(function() {
+            var trackingCard = document.getElementById('tracking-card');
+            if (!trackingCard) { clearInterval(refreshInterval); return; }
+            // Reload the page silently to update tracking info
+            window.location.reload();
+        }, 30000);
+    })();
+</script>
+@endpush
+@endif

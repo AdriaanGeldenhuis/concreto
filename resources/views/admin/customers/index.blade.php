@@ -36,7 +36,7 @@
                 <thead>
                     <tr>
                         <th>Name</th>
-                        <th>Email</th>
+                        <th>Company</th>
                         <th>Type</th>
                         <th class="text-right">Credit Limit</th>
                         <th class="text-right">Actions</th>
@@ -45,8 +45,11 @@
                 <tbody>
                 @forelse($customers as $customer)
                     <tr>
-                        <td class="font-semibold">{{ $customer->user->name }}</td>
-                        <td class="text-muted">{{ $customer->user->email }}</td>
+                        <td class="font-semibold">
+                            {{ $customer->user->name }}
+                            <div class="text-muted text-small">{{ $customer->user->email }}</div>
+                        </td>
+                        <td>{{ $customer->company->display_name ?? '-' }}</td>
                         <td>
                             <span class="badge badge-{{ $customer->type == 'COD' ? 'warning' : 'info' }}">
                                 {{ $customer->type }}

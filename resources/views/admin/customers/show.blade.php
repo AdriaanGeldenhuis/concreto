@@ -5,27 +5,111 @@
         <div class="breadcrumb">
             <a href="{{ route('admin.customers.index') }}">Customers</a> / {{ $customer->user->name }}
         </div>
-        <h1>{{ $customer->user->name }}</h1>
+        <h1>{{ $customer->company->display_name ?? $customer->user->name }}</h1>
         <span class="badge badge-{{ $customer->type == 'COD' ? 'warning' : 'info' }}">{{ $customer->type }}</span>
     </div>
+
+    @if(session('success'))
+        <div class="alert alert-success mb-2">{{ session('success') }}</div>
+    @endif
 
     <div class="form-row">
         {{-- Left Column --}}
         <div>
+            {{-- Company / Business Details --}}
+            <div class="card">
+                <div class="card-header">Company / Business Details</div>
+                <div class="card-body">
+                    <form method="POST" action="{{ route('admin.customers.update-company', $customer) }}">
+                        @csrf @method('PUT')
+                        <div class="form-row">
+                            <div class="form-group" style="flex:1">
+                                <label class="form-label">Company Name *</label>
+                                <input type="text" name="name" class="form-control" required value="{{ old('name', $customer->company->name ?? '') }}">
+                            </div>
+                            <div class="form-group" style="flex:1">
+                                <label class="form-label">Trading As</label>
+                                <input type="text" name="trading_as" class="form-control" value="{{ old('trading_as', $customer->company->trading_as ?? '') }}">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group" style="flex:1">
+                                <label class="form-label">Registration Number</label>
+                                <input type="text" name="registration_number" class="form-control" value="{{ old('registration_number', $customer->company->registration_number ?? '') }}">
+                            </div>
+                            <div class="form-group" style="flex:1">
+                                <label class="form-label">VAT Number</label>
+                                <input type="text" name="vat_number" class="form-control" value="{{ old('vat_number', $customer->company->vat_number ?? '') }}">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group" style="flex:1">
+                                <label class="form-label">Company Email</label>
+                                <input type="email" name="email" class="form-control" value="{{ old('email', $customer->company->email ?? '') }}">
+                            </div>
+                            <div class="form-group" style="flex:1">
+                                <label class="form-label">Company Phone</label>
+                                <input type="text" name="phone" class="form-control" value="{{ old('phone', $customer->company->phone ?? '') }}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Contact Person</label>
+                            <input type="text" name="contact_person" class="form-control" value="{{ old('contact_person', $customer->company->contact_person ?? '') }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Address Line 1</label>
+                            <input type="text" name="address_line1" class="form-control" value="{{ old('address_line1', $customer->company->address_line1 ?? '') }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Address Line 2</label>
+                            <input type="text" name="address_line2" class="form-control" value="{{ old('address_line2', $customer->company->address_line2 ?? '') }}">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group" style="flex:1">
+                                <label class="form-label">City</label>
+                                <input type="text" name="city" class="form-control" value="{{ old('city', $customer->company->city ?? '') }}">
+                            </div>
+                            <div class="form-group" style="flex:1">
+                                <label class="form-label">Province</label>
+                                <select name="province" class="form-control">
+                                    <option value="">Select Province</option>
+                                    @foreach(['Eastern Cape','Free State','Gauteng','KwaZulu-Natal','Limpopo','Mpumalanga','North West','Northern Cape','Western Cape'] as $prov)
+                                        <option value="{{ $prov }}" {{ old('province', $customer->company->province ?? '') == $prov ? 'selected' : '' }}>{{ $prov }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="form-group" style="flex:0.5">
+                                <label class="form-label">Postal Code</label>
+                                <input type="text" name="postal_code" class="form-control" value="{{ old('postal_code', $customer->company->postal_code ?? '') }}">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-1">Save Company Details</button>
+                    </form>
+                </div>
+            </div>
+
             {{-- Contact Info --}}
             <div class="card">
                 <div class="card-header">Contact Information</div>
                 <div class="card-body">
-                    <div class="info-grid">
-                        <div class="info-row">
-                            <span class="label">Email</span>
-                            <span class="value">{{ $customer->user->email }}</span>
+                    <form method="POST" action="{{ route('admin.customers.update-contact', $customer) }}">
+                        @csrf @method('PUT')
+                        <div class="form-row">
+                            <div class="form-group" style="flex:1">
+                                <label class="form-label">Full Name *</label>
+                                <input type="text" name="name" class="form-control" required value="{{ old('name', $customer->user->name) }}">
+                            </div>
+                            <div class="form-group" style="flex:1">
+                                <label class="form-label">Email *</label>
+                                <input type="email" name="email" class="form-control" required value="{{ old('email', $customer->user->email) }}">
+                            </div>
                         </div>
-                        <div class="info-row">
-                            <span class="label">Phone</span>
-                            <span class="value">{{ $customer->user->phone ?? '-' }}</span>
+                        <div class="form-group">
+                            <label class="form-label">Phone</label>
+                            <input type="text" name="phone" class="form-control" value="{{ old('phone', $customer->user->phone ?? '') }}">
                         </div>
-                    </div>
+                        <button type="submit" class="btn btn-primary mt-1">Save Contact Info</button>
+                    </form>
                 </div>
             </div>
 
@@ -60,10 +144,10 @@
                 </div>
             </div>
 
-            {{-- Addresses --}}
+            {{-- Delivery Addresses --}}
             <div class="card">
                 <div class="card-header">
-                    <span>Addresses</span>
+                    <span>Delivery Addresses</span>
                     <span class="badge badge-secondary">{{ $customer->addresses->count() }}</span>
                 </div>
                 <div class="card-body">

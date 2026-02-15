@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Payment;
 use App\Models\PaymentEvent;
+use App\Services\NotificationService;
 use App\Services\YocoService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,7 +14,10 @@ use Illuminate\Support\Facades\Log;
 
 class YocoWebhookController extends Controller
 {
-    public function __construct(private YocoService $yocoService) {}
+    public function __construct(
+        private YocoService $yocoService,
+        private NotificationService $notificationService,
+    ) {}
 
     public function handle(Request $request)
     {
@@ -96,6 +100,23 @@ class YocoWebhookController extends Controller
                 return;
             }
 
+            // Verify payment amount matches order total
+            if ($payment->order) {
+                $webhookAmountCents = $data['payload']['amount'] ?? null;
+                if ($webhookAmountCents !== null) {
+                    $webhookAmount = $webhookAmountCents / 100;
+                    if (abs($webhookAmount - (float) $payment->order->total) > 0.01) {
+                        Log::error('Yoco payment amount mismatch', [
+                            'event_id' => $eventId,
+                            'webhook_amount' => $webhookAmount,
+                            'order_total' => $payment->order->total,
+                            'order_id' => $payment->order->id,
+                        ]);
+                        return;
+                    }
+                }
+            }
+
             $payment->update([
                 'status' => 'completed',
                 'reference' => $data['payload']['id'] ?? null,
@@ -110,6 +131,16 @@ class YocoWebhookController extends Controller
                     'provider' => 'yoco',
                     'event_id' => $eventId,
                 ]);
+
+                // Notify customer of payment receipt
+                try {
+                    $this->notificationService->paymentReceived($payment->order);
+                } catch (\Exception $e) {
+                    Log::warning('Failed to send payment notification', [
+                        'order_id' => $payment->order->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
             }
         });
     }

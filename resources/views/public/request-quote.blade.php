@@ -90,6 +90,10 @@
 
                     <div class="divider"></div>
 
+                    {{-- Honeypot anti-spam --}}
+                    <div style="position:absolute;left:-9999px;" aria-hidden="true">
+                        <input type="text" name="website" tabindex="-1" autocomplete="off">
+                    </div>
                     <button type="submit" class="btn btn-primary btn-lg btn-block">Submit Quote Request</button>
                     <p class="text-center text-muted text-small mt-2">We typically respond within 24 hours on business days.</p>
                 </form>

@@ -8,13 +8,17 @@ use App\Models\DriverLocation;
 use App\Models\Order;
 use App\Models\ProofOfDelivery;
 use App\Services\InvoiceService;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class DriverApiController extends Controller
 {
-    public function __construct(private InvoiceService $invoiceService) {}
+    public function __construct(
+        private InvoiceService $invoiceService,
+        private NotificationService $notificationService,
+    ) {}
 
     public function listOrders(Request $request)
     {
@@ -38,6 +42,13 @@ class DriverApiController extends Controller
     {
         $this->authorizeDriver($request, $order);
         $this->transitionStatus($order, 'LOADED', 'loaded');
+
+        try {
+            $this->notificationService->orderLoaded($order->fresh());
+        } catch (\Exception $e) {
+            // Notification failure should not block the operation
+        }
+
         return response()->json(['status' => 'loaded']);
     }
 
@@ -45,6 +56,13 @@ class DriverApiController extends Controller
     {
         $this->authorizeDriver($request, $order);
         $this->transitionStatus($order, 'IN_TRANSIT', 'in_transit');
+
+        try {
+            $this->notificationService->orderEnRoute($order->fresh());
+        } catch (\Exception $e) {
+            // Notification failure should not block the operation
+        }
+
         return response()->json(['status' => 'in_transit']);
     }
 
@@ -69,16 +87,21 @@ class DriverApiController extends Controller
             'lng' => 'required|numeric|between:-180,180',
             'speed' => 'nullable|numeric|min:0',
             'heading' => 'nullable|numeric|between:0,360',
+            'accuracy' => 'nullable|numeric|min:0',
         ]);
 
-        // Rate limit: 1 update per 10 seconds per order
+        // Rate limit: moving = 1 per 10s, stationary = 1 per 60s
         $lastLocation = DriverLocation::where('order_id', $order->id)
             ->where('driver_id', $request->user()->id)
             ->orderBy('recorded_at', 'desc')
             ->first();
 
-        if ($lastLocation && $lastLocation->recorded_at->diffInSeconds(now()) < 10) {
-            return response()->json(['status' => 'throttled'], 429);
+        if ($lastLocation) {
+            $isStationary = ($request->speed ?? 0) < 1;
+            $minInterval = $isStationary ? 60 : 10;
+            if ($lastLocation->recorded_at->diffInSeconds(now()) < $minInterval) {
+                return response()->json(['status' => 'throttled'], 429);
+            }
         }
 
         DriverLocation::create([
@@ -88,6 +111,7 @@ class DriverApiController extends Controller
             'lng' => $request->lng,
             'speed' => $request->speed,
             'heading' => $request->heading,
+            'accuracy' => $request->accuracy,
             'recorded_at' => now(),
             'created_at' => now(),
         ]);
@@ -106,6 +130,7 @@ class DriverApiController extends Controller
         $request->validate([
             'signer_name' => 'required|string|max:255',
             'signature' => 'required|string',
+            'photo' => 'nullable|image|max:10240|mimes:jpg,jpeg,png',
             'gps_lat' => 'nullable|numeric|between:-90,90',
             'gps_lng' => 'nullable|numeric|between:-180,180',
         ]);
@@ -127,13 +152,26 @@ class DriverApiController extends Controller
                 return response()->json(['error' => 'Invalid signature data.'], 422);
             }
 
+            // Validate decoded signature is actually a PNG image
+            $finfo = new \finfo(FILEINFO_MIME_TYPE);
+            $mimeType = $finfo->buffer($decoded);
+            if (!in_array($mimeType, ['image/png', 'image/jpeg', 'image/gif'])) {
+                return response()->json(['error' => 'Signature must be a valid image.'], 422);
+            }
+
             $signaturePath = 'signatures/' . $order->id . '_' . time() . '.png';
             Storage::disk('local')->put($signaturePath, $decoded);
+
+            $photoPath = null;
+            if ($request->hasFile('photo')) {
+                $photoPath = $request->file('photo')->store('delivery-photos', 'local');
+            }
 
             ProofOfDelivery::create([
                 'order_id' => $order->id,
                 'signer_name' => $request->input('signer_name'),
                 'signature_path' => $signaturePath,
+                'photo_path' => $photoPath,
                 'gps_lat' => $request->input('gps_lat'),
                 'gps_lng' => $request->input('gps_lng'),
                 'signed_at' => now(),
@@ -143,6 +181,13 @@ class DriverApiController extends Controller
             AuditLog::log('delivered', 'Order', $order->id);
 
             $invoice = $this->invoiceService->generate($order);
+
+            // Notify customer of delivery
+            try {
+                $this->notificationService->orderDelivered($order);
+            } catch (\Exception $e) {
+                // Notification failure should not block the operation
+            }
 
             return response()->json([
                 'status' => 'delivered',

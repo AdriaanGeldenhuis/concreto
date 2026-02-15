@@ -20,18 +20,71 @@ class PublicController extends Controller
         return view('public.home', compact('categories', 'featuredProducts'));
     }
 
-    public function products()
+    public function products(Request $request)
     {
-        $categories = Category::where('is_active', true)->with(['products' => function ($q) {
-            $q->where('is_active', true)->orderBy('name');
-        }])->orderBy('sort_order')->get();
+        $query = Product::where('is_active', true);
 
-        return view('public.products', compact('categories'));
+        // Category filter
+        if ($request->filled('category')) {
+            $query->where('category_id', $request->category);
+        }
+
+        // Price range filter
+        if ($request->filled('price_min')) {
+            $query->where('price', '>=', $request->price_min);
+        }
+        if ($request->filled('price_max')) {
+            $query->where('price', '<=', $request->price_max);
+        }
+
+        // In stock only
+        if ($request->boolean('in_stock')) {
+            $query->where('in_stock', true);
+        }
+
+        // Sort
+        $sort = $request->input('sort', 'name_asc');
+        $query->orderBy(match ($sort) {
+            'name_desc' => 'name',
+            'price_asc' => 'price',
+            'price_desc' => 'price',
+            'newest' => 'created_at',
+            default => 'name',
+        }, match ($sort) {
+            'name_desc', 'price_desc', 'newest' => 'desc',
+            default => 'asc',
+        });
+
+        $products = $query->with('category')->paginate(24)->withQueryString();
+        $categories = Category::where('is_active', true)->orderBy('sort_order')->get();
+
+        return view('public.products', compact('products', 'categories'));
     }
 
     public function productDetail(Product $product)
     {
-        return view('public.product-detail', compact('product'));
+        $product->load(['approvedReviews.customer.user', 'bulkPricingTiers', 'category']);
+
+        // Related products from same category
+        $relatedProducts = Product::where('is_active', true)
+            ->where('in_stock', true)
+            ->where('id', '!=', $product->id)
+            ->where('category_id', $product->category_id)
+            ->take(4)
+            ->get();
+
+        $avgRating = $product->approvedReviews->avg('rating');
+        $reviewCount = $product->approvedReviews->count();
+
+        return view('public.product-detail', compact('product', 'relatedProducts', 'avgRating', 'reviewCount'));
+    }
+
+    public function sitemap()
+    {
+        $products = Product::where('is_active', true)->get();
+        $categories = Category::where('is_active', true)->get();
+        return response()->view('public.sitemap', compact('products', 'categories'))
+            ->header('Content-Type', 'text/xml');
     }
 
     public function contact()
@@ -41,6 +94,11 @@ class PublicController extends Controller
 
     public function submitContact(Request $request)
     {
+        // Honeypot spam check
+        if ($request->filled('website')) {
+            return back()->with('success', 'Thank you! Your message has been sent.');
+        }
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
@@ -107,6 +165,11 @@ class PublicController extends Controller
 
     public function submitQuoteRequest(Request $request)
     {
+        // Honeypot spam check
+        if ($request->filled('website')) {
+            return redirect()->route('request-quote')->with('success', 'Thank you!');
+        }
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',

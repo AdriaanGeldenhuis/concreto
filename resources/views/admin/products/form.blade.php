@@ -40,9 +40,44 @@
                         @error('price')<div class="form-error">{{ $message }}</div>@enderror
                     </div>
                     <div class="form-group">
+                        <label class="form-label">Cost Price (excl VAT)</label>
+                        <input type="number" name="cost_price" class="form-control" step="0.01" value="{{ old('cost_price', $product->cost_price ?? '') }}">
+                        <div class="form-hint">For profit tracking</div>
+                        @error('cost_price')<div class="form-error">{{ $message }}</div>@enderror
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
                         <label class="form-label">Unit</label>
                         <input type="text" name="unit" class="form-control" value="{{ old('unit', $product->unit ?? 'ton') }}" required>
                         <div class="form-hint">e.g. ton, m3, bag, load</div>
+                    </div>
+                    @if(isset($product) && $product->cost_price)
+                    <div class="form-group">
+                        <label class="form-label">Profit Margin</label>
+                        <div class="form-control" style="background: #f5f5f5; border: 1px solid #ddd;">
+                            @php
+                                $margin = $product->price > 0 && $product->cost_price > 0
+                                    ? (($product->price - $product->cost_price) / $product->price) * 100
+                                    : 0;
+                            @endphp
+                            <strong>{{ number_format($margin, 2) }}%</strong>
+                            <span class="text-muted text-small"> (R{{ number_format($product->price - $product->cost_price, 2) }} per unit)</span>
+                        </div>
+                    </div>
+                    @endif
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Stock Quantity</label>
+                        <input type="number" name="stock_qty" class="form-control" step="1" value="{{ old('stock_qty', $product->stock_qty ?? 0) }}">
+                        @error('stock_qty')<div class="form-error">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Low Stock Alert Threshold</label>
+                        <input type="number" name="low_stock_threshold" class="form-control" step="1" value="{{ old('low_stock_threshold', $product->low_stock_threshold ?? 10) }}">
+                        <div class="form-hint">Alert when stock falls below this level</div>
+                        @error('low_stock_threshold')<div class="form-error">{{ $message }}</div>@enderror
                     </div>
                 </div>
                 <div class="form-group">

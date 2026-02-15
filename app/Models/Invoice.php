@@ -27,6 +27,11 @@ class Invoice extends Model
         return $this->belongsTo(Order::class);
     }
 
+    public function reminders(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(InvoiceReminder::class);
+    }
+
     public static function generateInvoiceNumber(): string
     {
         return DB::transaction(function () {
