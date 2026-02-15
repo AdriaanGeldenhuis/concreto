@@ -66,4 +66,40 @@ class Customer extends Model
     {
         return $this->type === 'ACCOUNT';
     }
+
+    public function wishlists(): HasMany
+    {
+        return $this->hasMany(Wishlist::class);
+    }
+
+    public function orderTemplates(): HasMany
+    {
+        return $this->hasMany(OrderTemplate::class);
+    }
+
+    public function recurringOrders(): HasMany
+    {
+        return $this->hasMany(RecurringOrder::class);
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(ProductReview::class);
+    }
+
+    /** Outstanding balance for ACCOUNT customers */
+    public function getOutstandingBalanceAttribute(): float
+    {
+        return (float) $this->orders()
+            ->where('status', 'DELIVERED')
+            ->whereDoesntHave('payments', fn($q) => $q->where('status', 'completed'))
+            ->sum('total');
+    }
+
+    /** Available credit = limit - outstanding */
+    public function getAvailableCreditAttribute(): ?float
+    {
+        if (!$this->credit_limit) return null;
+        return max(0, (float) $this->credit_limit - $this->outstanding_balance);
+    }
 }

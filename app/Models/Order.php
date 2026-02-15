@@ -58,6 +58,8 @@ class Order extends Model
         'driver_id',
         'order_number',
         'idempotency_key',
+        'promo_code_id',
+        'discount_amount',
     ];
 
     protected function casts(): array
@@ -68,6 +70,7 @@ class Order extends Model
             'vat' => 'decimal:2',
             'total' => 'decimal:2',
             'locked_total' => 'decimal:2',
+            'discount_amount' => 'decimal:2',
             'scheduled_date' => 'date',
         ];
     }
@@ -118,11 +121,18 @@ class Order extends Model
         return in_array($newStatus, $allowed, true);
     }
 
+    public function promoCode(): BelongsTo
+    {
+        return $this->belongsTo(PromoCode::class);
+    }
+
     public function calculateTotals(): void
     {
         $subtotal = $this->items()->sum('line_total');
-        $vat = round($subtotal * 0.15, 2); // 15% VAT (South Africa)
-        $total = round($subtotal + $vat + $this->delivery_fee, 2);
+        $discount = (float) ($this->discount_amount ?? 0);
+        $taxableAmount = max(0, $subtotal - $discount);
+        $vat = round($taxableAmount * 0.15, 2); // 15% VAT (South Africa)
+        $total = round($taxableAmount + $vat + $this->delivery_fee, 2);
         $this->update([
             'subtotal' => $subtotal,
             'vat' => $vat,

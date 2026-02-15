@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Order;
+use App\Models\Payment;
 use App\Models\User;
 use App\Services\InvoiceService;
 use App\Services\OrderService;
@@ -125,5 +126,80 @@ class OrderController extends Controller
         } catch (\Exception $e) {
             return back()->with('error', 'Failed to send invoice: ' . $e->getMessage());
         }
+    }
+
+    public function recordPayment(Request $request, Order $order)
+    {
+        $request->validate([
+            'amount' => 'required|numeric|min:0.01',
+            'provider' => 'required|in:eft,cash,card_manual,other',
+            'reference' => 'nullable|string|max:255',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        $payment = Payment::create([
+            'order_id' => $order->id,
+            'customer_id' => $order->customer_id,
+            'provider' => $request->provider,
+            'reference' => $request->reference,
+            'amount' => $request->amount,
+            'status' => 'completed',
+            'notes' => $request->notes,
+            'recorded_by' => auth()->user()->name,
+        ]);
+
+        AuditLog::log('manual_payment_recorded', 'Payment', $payment->id, [
+            'order_id' => $order->id,
+            'amount' => $request->amount,
+            'provider' => $request->provider,
+        ]);
+
+        // If the order is pending payment and the amount covers the total, mark as placed
+        if ($order->status === 'PENDING_PAYMENT') {
+            $totalPaid = $order->payments()->where('status', 'completed')->sum('amount');
+            if ($totalPaid >= (float) $order->total) {
+                $order->update(['status' => 'PLACED']);
+                AuditLog::log('payment_completed', 'Order', $order->id, [
+                    'total_paid' => $totalPaid,
+                    'provider' => $request->provider,
+                ]);
+            }
+        }
+
+        return back()->with('success', 'Payment of R' . number_format($request->amount, 2) . ' recorded.');
+    }
+
+    public function refund(Request $request, Order $order)
+    {
+        $request->validate([
+            'amount' => 'required|numeric|min:0.01',
+            'reason' => 'required|string|max:1000',
+        ]);
+
+        $payment = Payment::create([
+            'order_id' => $order->id,
+            'customer_id' => $order->customer_id,
+            'provider' => 'refund',
+            'reference' => 'REFUND-' . now()->format('YmdHis'),
+            'amount' => -abs($request->amount),
+            'status' => 'completed',
+            'notes' => 'Refund: ' . $request->reason,
+            'recorded_by' => auth()->user()->name,
+        ]);
+
+        AuditLog::log('refund_processed', 'Payment', $payment->id, [
+            'order_id' => $order->id,
+            'amount' => $request->amount,
+            'reason' => $request->reason,
+        ]);
+
+        // Optionally update order status to REFUNDED
+        if ($request->boolean('mark_refunded') && $order->canTransitionTo('REFUNDED')) {
+            $order->update(['status' => 'REFUNDED']);
+        } elseif ($request->boolean('mark_refunded')) {
+            $this->orderService->forceStatus($order, 'REFUNDED', 'Refund processed: ' . $request->reason);
+        }
+
+        return back()->with('success', 'Refund of R' . number_format($request->amount, 2) . ' processed.');
     }
 }

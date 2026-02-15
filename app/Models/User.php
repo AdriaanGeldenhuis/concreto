@@ -13,17 +13,12 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        'name',
-        'email',
-        'phone',
-        'password',
-        'role',
-        'is_active',
+        'name', 'email', 'phone', 'password', 'role', 'is_active',
+        'two_factor_secret', 'two_factor_enabled', 'two_factor_recovery_codes',
     ];
 
     protected $hidden = [
-        'password',
-        'remember_token',
+        'password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes',
     ];
 
     protected function casts(): array
@@ -32,6 +27,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'two_factor_enabled' => 'boolean',
         ];
     }
 
@@ -73,5 +69,15 @@ class User extends Authenticatable
     public function isCustomer(): bool
     {
         return $this->role === 'customer';
+    }
+
+    public function driverShifts(): HasMany
+    {
+        return $this->hasMany(DriverShift::class, 'driver_id');
+    }
+
+    public function salaryConfig(): HasOne
+    {
+        return $this->hasOne(DriverSalaryConfig::class, 'driver_id')->where('is_active', true);
     }
 }
