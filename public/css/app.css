@@ -360,10 +360,11 @@ tr:last-child td { border-bottom:none; }
     display:flex; flex-direction:column;
     background:#1a1a1a; border-radius:var(--radius-lg);
     border:1px solid rgba(255,255,255,0.1);
+    border-left:3px solid var(--primary);
     overflow:hidden; text-decoration:none; color:inherit;
     transition:transform var(--transition), box-shadow var(--transition), border-color var(--transition);
 }
-.product-card:hover { transform:translateY(-4px); box-shadow:var(--shadow-md); border-color:rgba(255,255,255,0.18); color:inherit; }
+.product-card:hover { transform:translateY(-4px); box-shadow:var(--shadow-md), 0 0 15px var(--primary-glow); border-color:rgba(249,115,22,0.3); border-left-color:var(--primary); color:inherit; }
 .product-card-img {
     margin:0.625rem; border-radius:var(--radius);
     overflow:hidden; background:#242424;
@@ -376,8 +377,8 @@ tr:last-child td { border-bottom:none; }
 .product-card-body h3 { font-size:1rem; font-weight:700; color:#fff; margin-bottom:0.25rem; line-height:1.35; }
 .product-card-meta { font-size:0.8125rem; color:var(--text-muted); margin:0; }
 .meta-dot { margin:0 0.25rem; opacity:0.4; }
-.product-card-divider { height:1px; background:rgba(255,255,255,0.08); margin:0.75rem 0; }
-.product-card-price { font-size:1.25rem; font-weight:800; color:var(--primary); letter-spacing:-0.01em; }
+.product-card-divider { height:1px; background:linear-gradient(90deg, var(--primary) 0%, rgba(255,255,255,0.06) 100%); margin:0.75rem 0; }
+.product-card-price { font-size:1.25rem; font-weight:800; color:var(--primary); letter-spacing:-0.01em; text-shadow:0 0 12px var(--primary-glow); }
 
 /* ============================================
    Product Detail - Premium Layout
