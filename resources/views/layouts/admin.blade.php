@@ -60,9 +60,9 @@
             <div class="sidebar-brand">
                 @php $logoH = ($siteSettings['logo_height'] ?? 36) . 'px'; @endphp
                 @if(!empty($siteSettings['site_logo']))
-                    <img src="{{ url('media/' . $siteSettings['site_logo']) }}" alt="{{ $siteSettings['company_name'] ?? 'Concreto' }}" style="height:{{ $logoH }};">
+                    <img src="{{ url('media/' . $siteSettings['site_logo']) }}" alt="{{ $siteSettings['company_name'] ?? 'Concreto' }}" style="height:{{ $logoH }} !important; width:auto !important;">
                 @else
-                    <img src="/assets/logo/concreto.webp" alt="Concreto" style="height:{{ $logoH }};">
+                    <img src="/assets/logo/concreto.webp" alt="Concreto" style="height:{{ $logoH }} !important; width:auto !important;">
                 @endif
                 Admin
             </div>
