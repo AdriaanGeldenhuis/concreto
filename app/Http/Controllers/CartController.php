@@ -133,6 +133,7 @@ class CartController extends Controller
         }
 
         $customer = $this->getOrCreateCustomer($request);
+        $customer->load('company');
         $addresses = $customer->addresses;
 
         $productIds = array_keys($cart);
@@ -209,6 +210,31 @@ class CartController extends Controller
         }
 
         return redirect()->route('checkout')->with('success', 'Address added.');
+    }
+
+    public function saveCompany(Request $request)
+    {
+        $request->validate([
+            'company_name' => 'required|string|max:255',
+            'vat_number' => 'nullable|string|max:50',
+            'registration_number' => 'nullable|string|max:50',
+        ]);
+
+        $customer = $this->getOrCreateCustomer($request);
+
+        if (!$customer->company_id) {
+            $company = \App\Models\Company::create([
+                'name' => $request->company_name,
+                'vat_number' => $request->vat_number,
+                'registration_number' => $request->registration_number,
+                'email' => $request->user()->email,
+                'phone' => $request->user()->phone,
+                'contact_person' => $request->user()->name,
+            ]);
+            $customer->update(['company_id' => $company->id]);
+        }
+
+        return redirect()->route('checkout')->with('success', 'Company details saved.');
     }
 
     public function placeOrder(Request $request)

@@ -5,18 +5,77 @@
         <div class="breadcrumb">
             <a href="{{ route('admin.customers.index') }}">Customers</a> / {{ $customer->user->name }}
         </div>
-        <h1>{{ $customer->user->name }}</h1>
+        <h1>{{ $customer->company->display_name ?? $customer->user->name }}</h1>
         <span class="badge badge-{{ $customer->type == 'COD' ? 'warning' : 'info' }}">{{ $customer->type }}</span>
     </div>
 
     <div class="form-row">
         {{-- Left Column --}}
         <div>
+            {{-- Company / Business Details --}}
+            <div class="card">
+                <div class="card-header">Company / Business Details</div>
+                <div class="card-body">
+                    @if($customer->company)
+                        <div class="info-grid">
+                            <div class="info-row">
+                                <span class="label">Company Name</span>
+                                <span class="value">{{ $customer->company->name }}</span>
+                            </div>
+                            @if($customer->company->trading_as)
+                            <div class="info-row">
+                                <span class="label">Trading As</span>
+                                <span class="value">{{ $customer->company->trading_as }}</span>
+                            </div>
+                            @endif
+                            <div class="info-row">
+                                <span class="label">VAT Number</span>
+                                <span class="value">{{ $customer->company->vat_number ?: '-' }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Reg. Number</span>
+                                <span class="value">{{ $customer->company->registration_number ?: '-' }}</span>
+                            </div>
+                            @if($customer->company->email)
+                            <div class="info-row">
+                                <span class="label">Company Email</span>
+                                <span class="value">{{ $customer->company->email }}</span>
+                            </div>
+                            @endif
+                            @if($customer->company->phone)
+                            <div class="info-row">
+                                <span class="label">Company Phone</span>
+                                <span class="value">{{ $customer->company->phone }}</span>
+                            </div>
+                            @endif
+                            @if($customer->company->contact_person)
+                            <div class="info-row">
+                                <span class="label">Contact Person</span>
+                                <span class="value">{{ $customer->company->contact_person }}</span>
+                            </div>
+                            @endif
+                            @if($customer->company->full_address)
+                            <div class="info-row">
+                                <span class="label">Company Address</span>
+                                <span class="value">{{ $customer->company->full_address }}</span>
+                            </div>
+                            @endif
+                        </div>
+                    @else
+                        <p class="text-muted mb-0">No company linked. Customer can add company details from their account page.</p>
+                    @endif
+                </div>
+            </div>
+
             {{-- Contact Info --}}
             <div class="card">
                 <div class="card-header">Contact Information</div>
                 <div class="card-body">
                     <div class="info-grid">
+                        <div class="info-row">
+                            <span class="label">Name</span>
+                            <span class="value">{{ $customer->user->name }}</span>
+                        </div>
                         <div class="info-row">
                             <span class="label">Email</span>
                             <span class="value">{{ $customer->user->email }}</span>
@@ -60,10 +119,10 @@
                 </div>
             </div>
 
-            {{-- Addresses --}}
+            {{-- Delivery Addresses --}}
             <div class="card">
                 <div class="card-header">
-                    <span>Addresses</span>
+                    <span>Delivery Addresses</span>
                     <span class="badge badge-secondary">{{ $customer->addresses->count() }}</span>
                 </div>
                 <div class="card-body">

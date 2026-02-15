@@ -44,16 +44,39 @@
         </tr>
     </table>
 
+    @php $company = $quote->customer?->company; @endphp
     <table width="100%" style="margin-bottom: 20px;">
         <tr>
             <td width="50%">
                 <div class="section-title">Quote For</div>
-                <strong>{{ $quote->customer_name }}</strong><br>
-                @if($quote->customer_email)
-                {{ $quote->customer_email }}<br>
-                @endif
-                @if($quote->customer_phone)
-                {{ $quote->customer_phone }}
+                @if($company)
+                    <strong>{{ $company->display_name }}</strong><br>
+                    @if($company->registration_number)
+                        <span style="color:#666;">Reg: {{ $company->registration_number }}</span><br>
+                    @endif
+                    @if($company->vat_number)
+                        <span style="color:#666;">VAT: {{ $company->vat_number }}</span><br>
+                    @endif
+                    @if($company->full_address)
+                        {{ $company->full_address }}<br>
+                    @endif
+                    @if($company->email)
+                        {{ $company->email }}<br>
+                    @endif
+                    @if($company->phone)
+                        {{ $company->phone }}<br>
+                    @endif
+                    @if($company->contact_person)
+                        <span style="color:#666;">Attn: {{ $company->contact_person }}</span>
+                    @endif
+                @else
+                    <strong>{{ $quote->customer?->user?->name ?? 'Customer' }}</strong><br>
+                    @if($quote->customer?->user?->email)
+                    {{ $quote->customer->user->email }}<br>
+                    @endif
+                    @if($quote->customer?->user?->phone)
+                    {{ $quote->customer->user->phone }}
+                    @endif
                 @endif
             </td>
             <td width="50%">

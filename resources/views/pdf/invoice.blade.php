@@ -42,13 +42,36 @@
         </tr>
     </table>
 
+    @php $company = $order->customer->company; @endphp
     <table width="100%" style="margin-bottom: 20px;">
         <tr>
             <td width="50%">
                 <div class="section-title">Bill To</div>
-                <strong>{{ $order->customer->user->name }}</strong><br>
-                {{ $order->customer->user->email }}<br>
-                {{ $order->customer->user->phone ?? '' }}
+                @if($company)
+                    <strong>{{ $company->display_name }}</strong><br>
+                    @if($company->registration_number)
+                        <span style="color:#666;">Reg: {{ $company->registration_number }}</span><br>
+                    @endif
+                    @if($company->vat_number)
+                        <span style="color:#666;">VAT: {{ $company->vat_number }}</span><br>
+                    @endif
+                    @if($company->full_address)
+                        {{ $company->full_address }}<br>
+                    @endif
+                    @if($company->email)
+                        {{ $company->email }}<br>
+                    @endif
+                    @if($company->phone)
+                        {{ $company->phone }}<br>
+                    @endif
+                    @if($company->contact_person)
+                        <span style="color:#666;">Attn: {{ $company->contact_person }}</span>
+                    @endif
+                @else
+                    <strong>{{ $order->customer->user->name }}</strong><br>
+                    {{ $order->customer->user->email }}<br>
+                    {{ $order->customer->user->phone ?? '' }}
+                @endif
             </td>
             <td width="50%">
                 <div class="section-title">Deliver To</div>

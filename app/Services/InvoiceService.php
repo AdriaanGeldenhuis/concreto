@@ -15,7 +15,7 @@ class InvoiceService
     public function generate(Order $order): Invoice
     {
         return DB::transaction(function () use ($order) {
-            $order->load(['customer.user', 'items.product', 'deliveryAddress', 'proofOfDelivery']);
+            $order->load(['customer.user', 'customer.company', 'items.product', 'deliveryAddress', 'proofOfDelivery']);
 
             // Don't regenerate invoice number if one already exists
             $invoice = Invoice::where('order_id', $order->id)->lockForUpdate()->first();
@@ -47,7 +47,7 @@ class InvoiceService
 
     public function generateStatement(Customer $customer, string $from, string $to): string
     {
-        $customer->load('user');
+        $customer->load(['user', 'company']);
         $orders = Order::where('customer_id', $customer->id)
             ->where('status', 'DELIVERED')
             ->whereBetween('updated_at', [$from, $to])

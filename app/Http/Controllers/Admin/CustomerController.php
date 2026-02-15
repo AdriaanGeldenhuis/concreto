@@ -11,16 +11,22 @@ class CustomerController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Customer::with('user');
+        $query = Customer::with(['user', 'company']);
 
         if ($request->filled('type')) {
             $query->where('type', $request->type);
         }
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->whereHas('user', function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('user', function ($q2) use ($search) {
+                    $q2->where('name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%");
+                })->orWhereHas('company', function ($q2) use ($search) {
+                    $q2->where('name', 'like', "%{$search}%")
+                      ->orWhere('trading_as', 'like', "%{$search}%")
+                      ->orWhere('vat_number', 'like', "%{$search}%");
+                });
             });
         }
 
@@ -30,7 +36,7 @@ class CustomerController extends Controller
 
     public function show(Customer $customer)
     {
-        $customer->load(['user', 'addresses', 'orders' => function ($q) {
+        $customer->load(['user', 'company', 'addresses', 'orders' => function ($q) {
             $q->orderBy('created_at', 'desc')->take(10);
         }]);
         return view('admin.customers.show', compact('customer'));

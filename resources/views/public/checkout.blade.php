@@ -7,11 +7,50 @@
         <h1>Checkout</h1>
     </div>
 
-    {{-- Separate form for adding address (outside the main order form) --}}
+    {{-- Separate forms (outside the main order form) --}}
     <form id="address-form" method="POST" action="{{ route('checkout.add-address') }}" style="display:none;">@csrf</form>
+    <form id="company-form" method="POST" action="{{ route('checkout.save-company') }}" style="display:none;">@csrf</form>
 
     <form method="POST" action="{{ route('checkout.place') }}">
         @csrf
+
+        {{-- Company Details (show if no company linked yet) --}}
+        @if(!$customer->company)
+        <div class="card" style="border-left:3px solid var(--warning, #f0ad4e);">
+            <div class="card-header">Company / Business Details</div>
+            <div class="card-body">
+                <p class="text-muted text-small" style="margin-bottom:0.75rem;">Your company details will appear on invoices and quotes.</p>
+                <div class="form-group">
+                    <label class="form-label">Company / Business Name *</label>
+                    <input type="text" form="company-form" name="company_name" class="form-control" required
+                           value="{{ old('company_name') }}" placeholder="Acme Construction (Pty) Ltd">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">VAT Number</label>
+                        <input type="text" form="company-form" name="vat_number" class="form-control"
+                               value="{{ old('vat_number') }}" placeholder="4123456789">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Registration Number</label>
+                        <input type="text" form="company-form" name="registration_number" class="form-control"
+                               value="{{ old('registration_number') }}" placeholder="2024/123456/07">
+                    </div>
+                </div>
+                <button type="submit" form="company-form" class="btn btn-primary btn-sm">Save Company Details</button>
+            </div>
+        </div>
+        @else
+        <div class="card">
+            <div class="card-header">Company</div>
+            <div class="card-body" style="padding:0.75rem 1rem;">
+                <strong>{{ $customer->company->display_name }}</strong>
+                @if($customer->company->vat_number)
+                    <span class="text-muted text-small" style="margin-left:0.5rem;">VAT: {{ $customer->company->vat_number }}</span>
+                @endif
+            </div>
+        </div>
+        @endif
 
         <div class="card">
             <div class="card-header">Delivery Address</div>

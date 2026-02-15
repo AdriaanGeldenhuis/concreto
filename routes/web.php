@@ -47,6 +47,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/checkout/apply-promo', [CartController::class, 'applyPromo'])->name('checkout.apply-promo');
     Route::post('/checkout/remove-promo', [CartController::class, 'removePromo'])->name('checkout.remove-promo');
     Route::post('/checkout/add-address', [CartController::class, 'storeAddress'])->name('checkout.add-address');
+    Route::post('/checkout/save-company', [CartController::class, 'saveCompany'])->name('checkout.save-company');
 });
 
 // Auth (rate limited)
@@ -79,7 +80,10 @@ Route::prefix('customer')->name('customer.')->middleware(['auth', 'role:customer
     Route::get('/quotes/{quote}', [Customer\QuoteController::class, 'show'])->name('quotes.show');
     Route::post('/quotes/{quote}/approve', [Customer\QuoteController::class, 'approve'])->name('quotes.approve');
 
-    Route::get('/addresses', [Customer\AddressController::class, 'index'])->name('addresses.index');
+    Route::get('/account', [Customer\AccountController::class, 'index'])->name('account');
+    Route::post('/account/company', [Customer\AccountController::class, 'updateCompany'])->name('account.update-company');
+
+    Route::get('/addresses', [Customer\AccountController::class, 'index'])->name('addresses.index');
     Route::post('/addresses', [Customer\AddressController::class, 'store'])->name('addresses.store');
     Route::delete('/addresses/{address}', [Customer\AddressController::class, 'destroy'])->name('addresses.destroy');
 

@@ -24,11 +24,19 @@
         <h2>Account Statement</h2>
     </div>
 
+    @php $company = $customer->company; @endphp
     <table class="info-table">
         <tr>
             <td style="width:50%">
-                <strong>Customer:</strong> {{ $customer->user->name }}<br>
-                <strong>Email:</strong> {{ $customer->user->email }}<br>
+                @if($company)
+                    <strong>{{ $company->display_name }}</strong><br>
+                    @if($company->vat_number)<strong>VAT:</strong> {{ $company->vat_number }}<br>@endif
+                    @if($company->registration_number)<strong>Reg:</strong> {{ $company->registration_number }}<br>@endif
+                    @if($company->full_address){{ $company->full_address }}<br>@endif
+                @else
+                    <strong>Customer:</strong> {{ $customer->user->name }}<br>
+                    <strong>Email:</strong> {{ $customer->user->email }}<br>
+                @endif
                 <strong>Account Type:</strong> {{ $customer->type }}
             </td>
             <td style="width:50%; text-align:right">
