@@ -149,8 +149,8 @@ p:last-child { margin-bottom:0; }
     border-bottom:1px solid var(--glass-border);
     box-shadow:0 4px 30px rgba(0,0,0,0.5);
 }
-.navbar .container { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.5rem; min-height:64px; }
-.navbar-brand { display:flex; align-items:center; gap:0.625rem; color:#fff; font-weight:800; font-size:1.2rem; letter-spacing:-0.02em; padding:0.5rem 0; }
+.navbar .container { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.5rem; }
+.navbar-brand { display:flex; align-items:center; gap:0.625rem; color:#fff; font-weight:800; font-size:1.2rem; letter-spacing:-0.02em; padding:0.25rem 0; }
 .navbar-brand:hover { color:#fff; opacity:0.9; }
 .navbar-brand img { height:36px; width:auto; border-radius:6px; }
 .navbar-links { display:flex; gap:0.125rem; align-items:center; flex-wrap:wrap; }
