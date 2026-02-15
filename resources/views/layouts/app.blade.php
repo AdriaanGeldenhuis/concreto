@@ -140,30 +140,55 @@
     </main>
 
     <footer class="footer">
+        <div class="footer-accent"></div>
         <div class="container">
             <div class="footer-grid">
                 <div>
-                    <h4>{{ $siteSettings['company_name'] ?? 'Concreto' }}</h4>
+                    <div class="footer-brand">
+                        @if(!empty($siteSettings['site_logo']))
+                            <img src="{{ url('media/' . $siteSettings['site_logo']) }}" alt="{{ $siteSettings['company_name'] ?? 'Concreto' }}">
+                        @else
+                            <img src="/assets/logo/concreto.webp" alt="Concreto">
+                        @endif
+                        <span>{{ $siteSettings['company_name'] ?? 'Concreto' }}</span>
+                    </div>
                     <p>{{ $siteSettings['footer_about'] ?? 'Quality building materials delivered to your site.' }}</p>
+                    <div class="footer-social">
+                        @if(!empty($siteSettings['social_facebook']))<a href="{{ $siteSettings['social_facebook'] }}" class="social-icon" aria-label="Facebook">f</a>@endif
+                        @if(!empty($siteSettings['social_instagram']))<a href="{{ $siteSettings['social_instagram'] }}" class="social-icon" aria-label="Instagram">&#9634;</a>@endif
+                        @if(!empty($siteSettings['social_twitter']))<a href="{{ $siteSettings['social_twitter'] }}" class="social-icon" aria-label="Twitter">X</a>@endif
+                        @if(!empty($siteSettings['social_whatsapp']))<a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $siteSettings['social_whatsapp']) }}" class="social-icon" aria-label="WhatsApp">W</a>@endif
+                    </div>
                 </div>
                 <div>
                     <h4>Quick Links</h4>
-                    <p><a href="{{ route('products') }}">Products</a></p>
-                    <p><a href="{{ route('request-quote') }}">Request Quote</a></p>
-                    <p><a href="{{ route('contact') }}">Contact Us</a></p>
-                    <p><a href="{{ route('terms') }}">Terms & Conditions</a></p>
-                    <p><a href="{{ route('privacy') }}">Privacy Policy</a></p>
+                    <ul class="footer-links">
+                        <li><a href="{{ route('products') }}">Products</a></li>
+                        <li><a href="{{ route('request-quote') }}">Request Quote</a></li>
+                        <li><a href="{{ route('contact') }}">Contact Us</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Support</h4>
+                    <ul class="footer-links">
+                        <li><a href="{{ route('terms') }}">Terms & Conditions</a></li>
+                        <li><a href="{{ route('privacy') }}">Privacy Policy</a></li>
+                        @if(!empty($siteSettings['business_hours']))<li>{{ $siteSettings['business_hours'] }}</li>@endif
+                    </ul>
                 </div>
                 <div>
                     <h4>Contact</h4>
-                    @if(!empty($siteSettings['contact_email']))<p>{{ $siteSettings['contact_email'] }}</p>@endif
-                    @if(!empty($siteSettings['contact_phone']))<p>{{ $siteSettings['contact_phone'] }}</p>@endif
-                    @if(!empty($siteSettings['contact_address']))<p>{{ $siteSettings['contact_address'] }}</p>@endif
-                    @if(!empty($siteSettings['social_facebook']))<p><a href="{{ $siteSettings['social_facebook'] }}">Facebook</a></p>@endif
-                    @if(!empty($siteSettings['social_instagram']))<p><a href="{{ $siteSettings['social_instagram'] }}">Instagram</a></p>@endif
-                    @if(!empty($siteSettings['social_twitter']))<p><a href="{{ $siteSettings['social_twitter'] }}">Twitter / X</a></p>@endif
-                    @if(!empty($siteSettings['social_whatsapp']))<p><a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $siteSettings['social_whatsapp']) }}">WhatsApp</a></p>@endif
+                    <ul class="footer-links">
+                        @if(!empty($siteSettings['contact_phone']))<li>{{ $siteSettings['contact_phone'] }}</li>@endif
+                        @if(!empty($siteSettings['contact_email']))<li>{{ $siteSettings['contact_email'] }}</li>@endif
+                        @if(!empty($siteSettings['contact_address']))<li>{{ $siteSettings['contact_address'] }}</li>@endif
+                    </ul>
                 </div>
+            </div>
+            <div class="footer-trust">
+                <div class="trust-badge"><span class="trust-icon">&#128274;</span> Secure Payments</div>
+                <div class="trust-badge"><span class="trust-icon">&#9989;</span> Quality Guaranteed</div>
+                <div class="trust-badge"><span class="trust-icon">&#128666;</span> Fast Delivery</div>
             </div>
             <div class="footer-bottom">
                 <p>{!! $siteSettings['footer_text'] ?? '&copy; ' . date('Y') . ' Concreto. All rights reserved.' !!}</p>

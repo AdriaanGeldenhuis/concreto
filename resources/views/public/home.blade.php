@@ -96,22 +96,27 @@
 
     <section class="section">
         <div class="container">
-            <h2 class="section-title">Why Choose Concreto?</h2>
-            <div class="feature-grid">
+            <h2 class="section-title">Why Choose {{ $siteSettings['company_name'] ?? 'Concreto' }}?</h2>
+            <div class="feature-grid feature-grid--4">
                 <div class="feature-card">
-                    <div class="icon">&#128666;</div>
+                    <div class="feature-icon-wrap">&#128666;</div>
                     <h3>Fast Delivery</h3>
                     <p>Same-day and next-day delivery available. Track your driver in real-time.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="icon">&#128176;</div>
+                    <div class="feature-icon-wrap">&#128176;</div>
                     <h3>Fair Pricing</h3>
                     <p>Competitive prices with no hidden fees. Pay online or on account.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="icon">&#9989;</div>
+                    <div class="feature-icon-wrap">&#9989;</div>
                     <h3>Quality Materials</h3>
                     <p>Premium sand, stone, and building supplies from trusted suppliers.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon-wrap">&#128222;</div>
+                    <h3>Expert Support</h3>
+                    <p>Dedicated support team ready to help with orders, quotes, and advice.</p>
                 </div>
             </div>
         </div>
