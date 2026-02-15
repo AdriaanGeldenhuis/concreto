@@ -84,11 +84,11 @@
                     @foreach($weeklyRevenue as $day)
                         <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
                             <div style="font-size: 0.75rem; color: var(--text-muted);">
-                                R{{ number_format($day->revenue, 0) }}
+                                R{{ number_format($day['revenue'], 0) }}
                             </div>
-                            <div style="width: 100%; background: linear-gradient(180deg, var(--primary), var(--primary-dark)); border-radius: 4px 4px 0 0; height: {{ $maxRevenue > 0 ? ($day->revenue / $maxRevenue * 100) : 0 }}%; min-height: 4px;"></div>
+                            <div style="width: 100%; background: linear-gradient(180deg, var(--primary), var(--primary-dark)); border-radius: 4px 4px 0 0; height: {{ $maxRevenue > 0 ? ($day['revenue'] / $maxRevenue * 100) : 0 }}%; min-height: 4px;"></div>
                             <div style="font-size: 0.75rem; color: var(--text-muted);">
-                                {{ \Carbon\Carbon::parse($day->date)->format('D') }}
+                                {{ $day['date'] }}
                             </div>
                         </div>
                     @endforeach
@@ -145,9 +145,9 @@
                 <thead>
                     <tr>
                         <th>Product</th>
-                        <th>SKU</th>
+                        <th>Unit</th>
                         <th>Current Stock</th>
-                        <th>Min Stock Level</th>
+                        <th>Low Stock Threshold</th>
                         <th>Status</th>
                         <th>Action</th>
                     </tr>
@@ -158,15 +158,15 @@
                         <td>
                             <a href="{{ route('admin.products.edit', $product) }}" class="font-semibold">{{ $product->name }}</a>
                         </td>
-                        <td class="text-muted">{{ $product->sku }}</td>
+                        <td class="text-muted">{{ $product->unit }}</td>
                         <td>
-                            <span class="badge badge-{{ $product->stock_quantity <= 0 ? 'danger' : 'warning' }}">
-                                {{ $product->stock_quantity }}
+                            <span class="badge badge-{{ $product->stock_qty <= 0 ? 'danger' : 'warning' }}">
+                                {{ $product->stock_qty }}
                             </span>
                         </td>
-                        <td class="text-muted">{{ $product->min_stock_level }}</td>
+                        <td class="text-muted">{{ $product->low_stock_threshold }}</td>
                         <td>
-                            @if($product->stock_quantity <= 0)
+                            @if($product->stock_qty <= 0)
                                 <span class="badge badge-danger">Out of Stock</span>
                             @else
                                 <span class="badge badge-warning">Low Stock</span>
