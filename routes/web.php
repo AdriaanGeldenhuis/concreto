@@ -78,6 +78,8 @@ Route::prefix('customer')->name('customer.')->middleware(['auth', 'role:customer
     Route::get('/addresses', [Customer\AddressController::class, 'index'])->name('addresses.index');
     Route::post('/addresses', [Customer\AddressController::class, 'store'])->name('addresses.store');
     Route::delete('/addresses/{address}', [Customer\AddressController::class, 'destroy'])->name('addresses.destroy');
+
+    Route::get('/statement', [Customer\InvoiceController::class, 'statement'])->name('statement');
 });
 
 // Driver portal
@@ -104,6 +106,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff'])
     Route::post('/orders/{order}/assign-driver', [Admin\OrderController::class, 'assignDriver'])->name('orders.assign-driver');
     Route::post('/orders/{order}/status', [Admin\OrderController::class, 'updateStatus'])->name('orders.update-status');
     Route::post('/orders/{order}/cancel', [Admin\OrderController::class, 'cancel'])->name('orders.cancel');
+    Route::post('/orders/{order}/force-status', [Admin\OrderController::class, 'forceStatus'])->name('orders.force-status');
     Route::post('/orders/{order}/resend-invoice', [Admin\OrderController::class, 'resendInvoice'])->name('orders.resend-invoice');
 
     Route::resource('products', Admin\ProductController::class)->except(['show']);
@@ -129,7 +132,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff'])
     Route::delete('/messages/{contactMessage}', [Admin\MessageController::class, 'destroy'])->name('messages.destroy');
 
     Route::get('/audit-logs', [Admin\AuditLogController::class, 'index'])->name('audit-logs.index');
+
+    Route::get('/ops', [Admin\OpsController::class, 'index'])->name('ops.index');
 });
+
+// Health check (no auth)
+Route::get('/health', \App\Http\Controllers\HealthController::class)->name('health');
 
 // Yoco Webhook (no CSRF)
 Route::post('/webhooks/yoco', [YocoWebhookController::class, 'handle'])->name('webhooks.yoco');

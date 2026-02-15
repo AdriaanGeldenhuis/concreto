@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Order extends Model
 {
+    use HasFactory;
     public const STATUSES = [
         'DRAFT',
         'PENDING_PAYMENT',
@@ -25,6 +27,22 @@ class Order extends Model
         'REFUNDED',
     ];
 
+    public const ALLOWED_TRANSITIONS = [
+        'DRAFT'              => ['PENDING_PAYMENT', 'PLACED', 'CANCELLED'],
+        'PENDING_PAYMENT'    => ['PLACED', 'CANCELLED'],
+        'PAID'               => ['PLACED', 'CANCELLED'],
+        'PLACED'             => ['ASSIGNED', 'CANCELLED'],
+        'ASSIGNED'           => ['ACCEPTED', 'PLACED', 'CANCELLED'],
+        'ACCEPTED'           => ['LOADED', 'CANCELLED'],
+        'LOADED'             => ['IN_TRANSIT', 'CANCELLED'],
+        'IN_TRANSIT'         => ['ARRIVED', 'CANCELLED'],
+        'ARRIVED'            => ['DELIVERED', 'CANCELLED'],
+        'DELIVERED'          => [],
+        'DELIVERED_PENDING_SIGNATURE' => ['DELIVERED', 'CANCELLED'],
+        'CANCELLED'          => ['REFUNDED'],
+        'REFUNDED'           => [],
+    ];
+
     protected $fillable = [
         'customer_id',
         'status',
@@ -32,12 +50,14 @@ class Order extends Model
         'delivery_fee',
         'vat',
         'total',
+        'locked_total',
         'delivery_address_id',
         'scheduled_date',
         'scheduled_time_window',
         'notes',
         'driver_id',
         'order_number',
+        'idempotency_key',
     ];
 
     protected function casts(): array
@@ -47,6 +67,7 @@ class Order extends Model
             'delivery_fee' => 'decimal:2',
             'vat' => 'decimal:2',
             'total' => 'decimal:2',
+            'locked_total' => 'decimal:2',
             'scheduled_date' => 'date',
         ];
     }
@@ -91,14 +112,22 @@ class Order extends Model
         return $this->hasMany(DriverLocation::class);
     }
 
+    public function canTransitionTo(string $newStatus): bool
+    {
+        $allowed = self::ALLOWED_TRANSITIONS[$this->status] ?? [];
+        return in_array($newStatus, $allowed, true);
+    }
+
     public function calculateTotals(): void
     {
         $subtotal = $this->items()->sum('line_total');
         $vat = round($subtotal * 0.15, 2); // 15% VAT (South Africa)
+        $total = round($subtotal + $vat + $this->delivery_fee, 2);
         $this->update([
             'subtotal' => $subtotal,
             'vat' => $vat,
-            'total' => $subtotal + $vat + $this->delivery_fee,
+            'total' => $total,
+            'locked_total' => $total,
         ]);
     }
 

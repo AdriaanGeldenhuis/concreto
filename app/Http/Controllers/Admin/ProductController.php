@@ -33,7 +33,7 @@ class ProductController extends Controller
             'description' => 'nullable|string',
             'is_active' => 'boolean',
             'in_stock' => 'boolean',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:5120|mimes:jpg,jpeg,png,webp',
         ]);
 
         $data['slug'] = Str::slug($data['name']);
@@ -67,7 +67,7 @@ class ProductController extends Controller
             'description' => 'nullable|string',
             'is_active' => 'boolean',
             'in_stock' => 'boolean',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:5120|mimes:jpg,jpeg,png,webp',
         ]);
 
         $data['slug'] = Str::slug($data['name']);

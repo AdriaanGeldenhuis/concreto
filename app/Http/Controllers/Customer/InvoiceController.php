@@ -36,4 +36,22 @@ class InvoiceController extends Controller
 
         return response()->download($path, "{$invoice->invoice_no}.pdf");
     }
+
+    public function statement(Request $request)
+    {
+        $request->validate([
+            'from' => 'required|date',
+            'to' => 'required|date|after_or_equal:from',
+        ]);
+
+        $customer = $request->user()->customer;
+        $path = $this->invoiceService->generateStatement(
+            $customer,
+            $request->from,
+            $request->to,
+        );
+
+        $filename = "Statement-{$request->from}-to-{$request->to}.pdf";
+        return response()->download($path, $filename);
+    }
 }

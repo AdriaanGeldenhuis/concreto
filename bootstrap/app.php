@@ -18,6 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\InjectSettings::class,
         ]);
+        $middleware->api(prepend: [
+            \App\Http\Middleware\RequestLogger::class,
+        ]);
         $middleware->throttleApi('60,1');
         $middleware->validateCsrfTokens(except: [
             'webhooks/*',
