@@ -45,8 +45,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/checkout', [CartController::class, 'placeOrder'])->name('checkout.place');
 });
 
-// Auth
-Route::middleware('guest')->group(function () {
+// Auth (rate limited)
+Route::middleware(['guest', 'throttle:login'])->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
     Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
@@ -63,7 +63,7 @@ Route::prefix('customer')->name('customer.')->middleware(['auth', 'role:customer
     Route::post('/orders', [Customer\OrderController::class, 'store'])->name('orders.store');
     Route::get('/orders/{order}', [Customer\OrderController::class, 'show'])->name('orders.show');
     Route::get('/orders/{order}/pay', [Customer\OrderController::class, 'pay'])->name('orders.pay');
-    Route::post('/orders/{order}/pay', [Customer\OrderController::class, 'createPaymentSession'])->name('orders.pay.create');
+    Route::post('/orders/{order}/pay', [Customer\OrderController::class, 'createPaymentSession'])->name('orders.pay.create')->middleware('throttle:payment');
     Route::get('/orders/{order}/payment-success', [Customer\OrderController::class, 'paymentSuccess'])->name('orders.payment-success');
     Route::get('/orders/{order}/reorder', [Customer\OrderController::class, 'reorder'])->name('orders.reorder');
     Route::post('/orders/{order}/dispute', [Customer\OrderController::class, 'dispute'])->name('orders.dispute');
@@ -94,7 +94,7 @@ Route::prefix('driver')->name('driver.')->middleware(['auth', 'role:driver'])->g
     Route::post('/jobs/{order}/arrived', [Driver\JobController::class, 'arrived'])->name('jobs.arrived');
     Route::get('/jobs/{order}/signature', [Driver\JobController::class, 'signatureForm'])->name('jobs.signature');
     Route::post('/jobs/{order}/signature', [Driver\JobController::class, 'storeSignature'])->name('jobs.signature.store');
-    Route::post('/jobs/{order}/location', [Driver\JobController::class, 'updateLocation'])->name('jobs.location');
+    Route::post('/jobs/{order}/location', [Driver\JobController::class, 'updateLocation'])->name('jobs.location')->middleware('throttle:tracking');
 });
 
 // Admin backend
@@ -139,5 +139,5 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff'])
 // Health check (no auth)
 Route::get('/health', \App\Http\Controllers\HealthController::class)->name('health');
 
-// Yoco Webhook (no CSRF)
-Route::post('/webhooks/yoco', [YocoWebhookController::class, 'handle'])->name('webhooks.yoco');
+// Yoco Webhook (no CSRF, rate limited)
+Route::post('/webhooks/yoco', [YocoWebhookController::class, 'handle'])->name('webhooks.yoco')->middleware('throttle:webhook');

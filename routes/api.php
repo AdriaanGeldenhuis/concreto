@@ -11,7 +11,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [CustomerApiController::class, 'listOrders']);
         Route::post('/', [CustomerApiController::class, 'createOrder']);
         Route::get('/{order}', [CustomerApiController::class, 'showOrder']);
-        Route::post('/{order}/pay/yoco', [CustomerApiController::class, 'createPaymentSession']);
+        Route::post('/{order}/pay/yoco', [CustomerApiController::class, 'createPaymentSession'])->middleware('throttle:payment');
     });
 
     Route::middleware('role:customer')->group(function () {
@@ -26,7 +26,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/orders/{order}/loaded', [DriverApiController::class, 'loadedOrder']);
         Route::post('/orders/{order}/transit', [DriverApiController::class, 'transitOrder']);
         Route::post('/orders/{order}/arrived', [DriverApiController::class, 'arrivedOrder']);
-        Route::post('/orders/{order}/location', [DriverApiController::class, 'updateLocation']);
+        Route::post('/orders/{order}/location', [DriverApiController::class, 'updateLocation'])->middleware('throttle:tracking');
         Route::post('/orders/{order}/signature', [DriverApiController::class, 'storeSignature']);
     });
 

@@ -9,12 +9,15 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class OrderService
 {
+    public function __construct(private NotificationService $notificationService) {}
+
     public function createOrder(Customer $customer, array $data): Order
     {
-        return DB::transaction(function () use ($customer, $data) {
+        $order = DB::transaction(function () use ($customer, $data) {
             // Check idempotency key
             if (!empty($data['idempotency_key'])) {
                 $existing = Order::where('idempotency_key', $data['idempotency_key'])->first();
@@ -65,6 +68,18 @@ class OrderService
 
             return $order->fresh();
         });
+
+        // Send order confirmation notification (outside transaction)
+        try {
+            $this->notificationService->orderConfirmed($order);
+        } catch (\Exception $e) {
+            Log::warning('Failed to send order confirmation notification', [
+                'order_id' => $order->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        return $order;
     }
 
     public function assignDriver(Order $order, int $driverId): Order

@@ -8,6 +8,7 @@ use App\Models\DriverLocation;
 use App\Models\Order;
 use App\Models\ProofOfDelivery;
 use App\Services\InvoiceService;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -15,7 +16,10 @@ use Illuminate\Support\Facades\Storage;
 
 class JobController extends Controller
 {
-    public function __construct(private InvoiceService $invoiceService) {}
+    public function __construct(
+        private InvoiceService $invoiceService,
+        private NotificationService $notificationService,
+    ) {}
 
     public function index(Request $request)
     {
@@ -46,6 +50,13 @@ class JobController extends Controller
     {
         $this->authorizeDriver($request, $order);
         $this->transitionStatus($order, 'LOADED', 'loaded');
+
+        try {
+            $this->notificationService->orderLoaded($order->fresh());
+        } catch (\Exception $e) {
+            // Notification failure should not block the operation
+        }
+
         return back()->with('success', 'Marked as loaded.');
     }
 
@@ -53,6 +64,13 @@ class JobController extends Controller
     {
         $this->authorizeDriver($request, $order);
         $this->transitionStatus($order, 'IN_TRANSIT', 'in_transit');
+
+        try {
+            $this->notificationService->orderEnRoute($order->fresh());
+        } catch (\Exception $e) {
+            // Notification failure should not block the operation
+        }
+
         return back()->with('success', 'Delivery started.');
     }
 
@@ -85,7 +103,7 @@ class JobController extends Controller
         $request->validate([
             'signer_name' => 'required|string|max:255',
             'signature' => 'required|string', // base64
-            'photo' => 'nullable|image|max:5120|mimes:jpg,jpeg,png',
+            'photo' => 'nullable|image|max:10240|mimes:jpg,jpeg,png',
         ]);
 
         return DB::transaction(function () use ($request, $order) {
@@ -103,6 +121,13 @@ class JobController extends Controller
             $decoded = base64_decode($signatureData, true);
             if ($decoded === false) {
                 return back()->with('error', 'Invalid signature data.');
+            }
+
+            // Validate decoded data is actually an image
+            $finfo = new \finfo(FILEINFO_MIME_TYPE);
+            $mimeType = $finfo->buffer($decoded);
+            if (!in_array($mimeType, ['image/png', 'image/jpeg', 'image/gif'])) {
+                return back()->with('error', 'Signature must be a valid image.');
             }
 
             $signaturePath = 'signatures/' . $order->id . '_' . time() . '.png';
@@ -130,6 +155,13 @@ class JobController extends Controller
             $invoice = $this->invoiceService->generate($order);
             $this->emailInvoice($order, $invoice);
 
+            // Send delivery notification
+            try {
+                $this->notificationService->orderDelivered($order);
+            } catch (\Exception $e) {
+                // Notification failure should not block the operation
+            }
+
             return redirect()->route('driver.jobs.show', $order)
                 ->with('success', 'Delivery completed and invoice sent!');
         });
@@ -149,16 +181,21 @@ class JobController extends Controller
             'lng' => 'required|numeric|between:-180,180',
             'speed' => 'nullable|numeric|min:0',
             'heading' => 'nullable|numeric|between:0,360',
+            'accuracy' => 'nullable|numeric|min:0',
         ]);
 
-        // Rate limit: 1 update per 10 seconds per order
+        // Rate limit: moving = 1 per 10s, stationary = 1 per 60s
         $lastLocation = DriverLocation::where('order_id', $order->id)
             ->where('driver_id', $request->user()->id)
             ->orderBy('recorded_at', 'desc')
             ->first();
 
-        if ($lastLocation && $lastLocation->recorded_at->diffInSeconds(now()) < 10) {
-            return response()->json(['status' => 'throttled'], 429);
+        if ($lastLocation) {
+            $isStationary = ($request->speed ?? 0) < 1;
+            $minInterval = $isStationary ? 60 : 10;
+            if ($lastLocation->recorded_at->diffInSeconds(now()) < $minInterval) {
+                return response()->json(['status' => 'throttled'], 429);
+            }
         }
 
         DriverLocation::create([
@@ -168,6 +205,7 @@ class JobController extends Controller
             'lng' => $request->lng,
             'speed' => $request->speed,
             'heading' => $request->heading,
+            'accuracy' => $request->accuracy,
             'recorded_at' => now(),
             'created_at' => now(),
         ]);
@@ -198,37 +236,51 @@ class JobController extends Controller
 
     private function emailInvoice(Order $order, $invoice): void
     {
-        try {
-            $order->load('customer.user');
-            $email = $order->customer->user->email;
-            $pdfPath = $this->invoiceService->getPdfPath($invoice);
+        $maxAttempts = 3;
+        $attempt = 0;
+        $lastError = null;
 
-            Mail::send('emails.invoice', ['order' => $order, 'invoice' => $invoice], function ($message) use ($email, $invoice, $pdfPath) {
-                $message->to($email)
-                    ->subject("Invoice {$invoice->invoice_no} - Concreto")
-                    ->attach($pdfPath, ['as' => "{$invoice->invoice_no}.pdf"]);
-            });
+        $order->load('customer.user');
+        $email = $order->customer->user->email;
+        $pdfPath = $this->invoiceService->getPdfPath($invoice);
 
-            $invoice->update(['emailed_at' => now()]);
+        while ($attempt < $maxAttempts) {
+            $attempt++;
+            try {
+                Mail::send('emails.invoice', ['order' => $order, 'invoice' => $invoice], function ($message) use ($email, $invoice, $pdfPath) {
+                    $message->to($email)
+                        ->subject("Invoice {$invoice->invoice_no} - Concreto")
+                        ->attach($pdfPath, ['as' => "{$invoice->invoice_no}.pdf"]);
+                });
 
-            \App\Models\EmailLog::create([
-                'to_email' => $email,
-                'subject' => "Invoice {$invoice->invoice_no}",
-                'template' => 'emails.invoice',
-                'related_type' => 'Invoice',
-                'related_id' => $invoice->id,
-                'status' => 'sent',
-            ]);
-        } catch (\Exception $e) {
-            \App\Models\EmailLog::create([
-                'to_email' => $order->customer->user->email ?? '',
-                'subject' => "Invoice {$invoice->invoice_no}",
-                'template' => 'emails.invoice',
-                'related_type' => 'Invoice',
-                'related_id' => $invoice->id,
-                'status' => 'failed',
-                'error_message' => $e->getMessage(),
-            ]);
+                $invoice->update(['emailed_at' => now()]);
+
+                \App\Models\EmailLog::create([
+                    'to_email' => $email,
+                    'subject' => "Invoice {$invoice->invoice_no}",
+                    'template' => 'emails.invoice',
+                    'related_type' => 'Invoice',
+                    'related_id' => $invoice->id,
+                    'status' => 'sent',
+                ]);
+                return;
+            } catch (\Exception $e) {
+                $lastError = $e;
+                if ($attempt < $maxAttempts) {
+                    usleep(pow(2, $attempt - 1) * 1000000); // 1s, 2s backoff
+                }
+            }
         }
+
+        // All attempts failed
+        \App\Models\EmailLog::create([
+            'to_email' => $email ?? ($order->customer->user->email ?? ''),
+            'subject' => "Invoice {$invoice->invoice_no}",
+            'template' => 'emails.invoice',
+            'related_type' => 'Invoice',
+            'related_id' => $invoice->id,
+            'status' => 'failed',
+            'error_message' => $lastError?->getMessage(),
+        ]);
     }
 }
