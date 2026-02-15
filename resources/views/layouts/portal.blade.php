@@ -21,12 +21,6 @@
         :root {
             @if(!empty($siteSettings['primary_color']))--primary: {{ $siteSettings['primary_color'] }};@endif
             @if(!empty($siteSettings['primary_dark_color']))--primary-dark: {{ $siteSettings['primary_dark_color'] }};@endif
-            @if(!empty($siteSettings['secondary_color']))--secondary: {{ $siteSettings['secondary_color'] }};@endif
-            @if(!empty($siteSettings['bg_color']))--bg: {{ $siteSettings['bg_color'] }};@endif
-            @if(!empty($siteSettings['text_color']))--text: {{ $siteSettings['text_color'] }};@endif
-            @if(!empty($siteSettings['text_light_color']))--text-light: {{ $siteSettings['text_light_color'] }};@endif
-            @if(!empty($siteSettings['card_color']))--card: {{ $siteSettings['card_color'] }};@endif
-            @if(!empty($siteSettings['border_color']))--border: {{ $siteSettings['border_color'] }};@endif
             @if(!empty($siteSettings['success_color']))--success: {{ $siteSettings['success_color'] }};@endif
             @if(!empty($siteSettings['danger_color']))--danger: {{ $siteSettings['danger_color'] }};@endif
             @if(!empty($siteSettings['warning_color']))--warning: {{ $siteSettings['warning_color'] }};@endif

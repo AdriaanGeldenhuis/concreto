@@ -160,38 +160,6 @@
                         <input type="hidden" name="groups[primary_dark_color]" value="theme">
                         <small class="text-muted">Darker shade for gradients and hover states</small>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Secondary Color</label>
-                        <input type="color" name="settings[secondary_color]" class="form-control" value="{{ $siteSettings['secondary_color'] ?? '#141414' }}" style="height:45px;">
-                        <input type="hidden" name="groups[secondary_color]" value="theme">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Background Color</label>
-                        <input type="color" name="settings[bg_color]" class="form-control" value="{{ $siteSettings['bg_color'] ?? '#0a0a0a' }}" style="height:45px;">
-                        <input type="hidden" name="groups[bg_color]" value="theme">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Text Color</label>
-                        <input type="color" name="settings[text_color]" class="form-control" value="{{ $siteSettings['text_color'] ?? '#ffffff' }}" style="height:45px;">
-                        <input type="hidden" name="groups[text_color]" value="theme">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Text Light Color</label>
-                        <input type="color" name="settings[text_light_color]" class="form-control" value="{{ $siteSettings['text_light_color'] ?? '#a3a3a3' }}" style="height:45px;">
-                        <input type="hidden" name="groups[text_light_color]" value="theme">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Card Color</label>
-                        <input type="color" name="settings[card_color]" class="form-control" value="{{ $siteSettings['card_color'] ?? '#1a1a1a' }}" style="height:45px;">
-                        <input type="hidden" name="groups[card_color]" value="theme">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Border Color</label>
-                        <input type="color" name="settings[border_color]" class="form-control" value="{{ $siteSettings['border_color'] ?? '#2d2d2d' }}" style="height:45px;">
-                        <input type="hidden" name="groups[border_color]" value="theme">
-                    </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
@@ -213,28 +181,6 @@
                         <label class="form-label">Info Color</label>
                         <input type="color" name="settings[info_color]" class="form-control" value="{{ $siteSettings['info_color'] ?? '#3b82f6' }}" style="height:45px;">
                         <input type="hidden" name="groups[info_color]" value="theme">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Navbar Background Color</label>
-                        <input type="color" name="settings[navbar_bg_color]" class="form-control" value="{{ $siteSettings['navbar_bg_color'] ?? '#0a0a0a' }}" style="height:45px;">
-                        <input type="hidden" name="groups[navbar_bg_color]" value="theme">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Navbar Text Color</label>
-                        <input type="color" name="settings[navbar_text_color]" class="form-control" value="{{ $siteSettings['navbar_text_color'] ?? '#ffffff' }}" style="height:45px;">
-                        <input type="hidden" name="groups[navbar_text_color]" value="theme">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Footer Background Color</label>
-                        <input type="color" name="settings[footer_bg_color]" class="form-control" value="{{ $siteSettings['footer_bg_color'] ?? '#141414' }}" style="height:45px;">
-                        <input type="hidden" name="groups[footer_bg_color]" value="theme">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Footer Text Color</label>
-                        <input type="color" name="settings[footer_text_color]" class="form-control" value="{{ $siteSettings['footer_text_color'] ?? '#ffffff' }}" style="height:45px;">
-                        <input type="hidden" name="groups[footer_text_color]" value="theme">
                     </div>
                 </div>
             </div>
