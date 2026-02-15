@@ -3,28 +3,36 @@
 @section('content')
 
 <div class="section">
-    <div class="container" style="max-width: 900px;">
+    <div class="container">
         <div class="page-header">
             <div class="breadcrumb">
-                <a href="{{ route('home') }}">Home</a> /
+                <a href="{{ route('home') }}">Home</a>
+                <span class="breadcrumb-sep">/</span>
                 <a href="{{ route('products') }}">Products</a>
                 @if($product->category)
-                    / <a href="{{ route('products') }}">{{ $product->category->name }}</a>
+                    <span class="breadcrumb-sep">/</span>
+                    <a href="{{ route('products') }}?category={{ $product->category->slug }}">{{ $product->category->name }}</a>
                 @endif
-                / {{ $product->name }}
+                <span class="breadcrumb-sep">/</span>
+                <span>{{ $product->name }}</span>
             </div>
         </div>
 
-        <div class="card">
-            @if($product->image_path)
-                <div class="product-detail-img overflow-hidden" style="max-height: 400px;">
-                    <img src="/media/{{ $product->image_path }}" alt="{{ $product->name }}" style="width:100%;height:100%;object-fit:cover;">
+        <div class="product-detail">
+            <div class="product-detail-gallery">
+                <div class="product-detail-img-wrap">
+                    @if($product->image_path)
+                        <img src="/media/{{ $product->image_path }}" alt="{{ $product->name }}" class="product-detail-main-img">
+                    @else
+                        <div class="product-detail-no-img">&#9881;</div>
+                    @endif
                 </div>
-            @endif
-            <div class="card-body p-3">
-                <div class="d-flex items-center gap-1 flex-wrap mb-2">
+            </div>
+
+            <div class="product-detail-info">
+                <div class="d-flex gap-1 flex-wrap mb-1">
                     @if($product->category)
-                        <span class="badge badge-secondary">{{ $product->category->name }}</span>
+                        <span class="badge badge-primary">{{ $product->category->name }}</span>
                     @endif
                     @if($product->in_stock)
                         <span class="badge badge-success">In Stock</span>
@@ -33,61 +41,71 @@
                     @endif
                 </div>
 
-                <h1 class="mb-1">{{ $product->name }}</h1>
+                <h1 class="product-detail-title">{{ $product->name }}</h1>
 
-                <div class="d-flex items-center gap-1 flex-wrap mb-3">
-                    <span class="text-xl font-bold text-primary" style="font-size: 2rem; font-weight: 800;">R{{ number_format($product->price, 2) }}</span>
-                    <span class="text-muted text-lg">per {{ $product->unit }}</span>
+                <div class="product-detail-price-row">
+                    <span class="product-detail-price">R{{ number_format($product->price, 2) }}</span>
+                    <span class="product-detail-unit">per {{ $product->unit }}</span>
                 </div>
 
                 @if($product->description)
-                    <div class="divider"></div>
-                    <h4 class="mb-1">Description</h4>
-                    <p class="text-muted">{{ $product->description }}</p>
+                    <div class="product-detail-desc">
+                        <p>{{ $product->description }}</p>
+                    </div>
                 @endif
 
-                <div class="divider"></div>
-
-                <div class="info-grid mb-3">
-                    <div class="info-row">
-                        <span class="label">Unit</span>
-                        <span class="value">{{ $product->unit }}</span>
+                <div class="product-detail-specs">
+                    <div class="spec-row">
+                        <span class="spec-label">Unit</span>
+                        <span class="spec-value">{{ ucfirst($product->unit) }}</span>
                     </div>
-                    <div class="info-row">
-                        <span class="label">Price</span>
-                        <span class="value">R{{ number_format($product->price, 2) }}</span>
+                    <div class="spec-row">
+                        <span class="spec-label">Price (excl. VAT)</span>
+                        <span class="spec-value">R{{ number_format($product->price, 2) }}</span>
                     </div>
-                    <div class="info-row">
-                        <span class="label">Availability</span>
-                        <span class="value">{{ $product->in_stock ? 'In Stock' : 'Out of Stock' }}</span>
+                    <div class="spec-row">
+                        <span class="spec-label">VAT (15%)</span>
+                        <span class="spec-value">R{{ number_format($product->price * 0.15, 2) }}</span>
+                    </div>
+                    <div class="spec-row spec-row--total">
+                        <span class="spec-label">Total (incl. VAT)</span>
+                        <span class="spec-value">R{{ number_format($product->price * 1.15, 2) }}</span>
                     </div>
                     @if($product->category)
-                        <div class="info-row">
-                            <span class="label">Category</span>
-                            <span class="value">{{ $product->category->name }}</span>
-                        </div>
+                    <div class="spec-row">
+                        <span class="spec-label">Category</span>
+                        <span class="spec-value">{{ $product->category->name }}</span>
+                    </div>
                     @endif
+                    <div class="spec-row">
+                        <span class="spec-label">Availability</span>
+                        <span class="spec-value">{{ $product->in_stock ? 'Available for delivery' : 'Currently unavailable' }}</span>
+                    </div>
                 </div>
 
                 @if($product->in_stock)
-                <div class="mt-3">
-                    <form class="add-to-cart-form" data-product-id="{{ $product->id }}" style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
-                        <input type="number" name="qty" value="1" min="0.01" step="0.01" class="form-control" style="width:100px;text-align:center;">
-                        <span class="text-muted">{{ $product->unit }}</span>
-                        <button type="submit" class="btn btn-primary btn-lg btn-add-cart">Add to Cart</button>
+                <div class="product-detail-cart">
+                    <form class="add-to-cart-form" data-product-id="{{ $product->id }}">
+                        <div class="product-detail-qty">
+                            <label class="form-label">Quantity ({{ $product->unit }})</label>
+                            <input type="number" name="qty" value="1" min="0.01" step="0.01" class="form-control">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg btn-block btn-add-cart">
+                            Add to Cart
+                        </button>
                     </form>
                 </div>
-                <div class="mt-2">
-                    <a href="{{ route('cart.index') }}" class="btn btn-outline btn-sm">View Cart</a>
-                    <a href="{{ route('request-quote') }}" class="btn btn-outline btn-sm">Request Quote</a>
-                    <a href="{{ route('products') }}" class="btn btn-ghost btn-sm">Back to Products</a>
-                </div>
                 @else
-                <div class="mt-3">
-                    <span class="badge badge-danger" style="font-size:1rem;padding:0.5rem 1rem;">Out of Stock</span>
-                    <a href="{{ route('request-quote') }}" class="btn btn-outline mt-1">Request Quote</a>
+                <div class="product-detail-cart">
+                    <a href="{{ route('request-quote') }}" class="btn btn-primary btn-lg btn-block">Request a Quote</a>
                 </div>
                 @endif
+
+                <div class="product-detail-links">
+                    <a href="{{ route('cart.index') }}" class="btn btn-outline btn-sm">View Cart</a>
+                    <a href="{{ route('request-quote') }}" class="btn btn-outline btn-sm">Request Quote</a>
+                    <a href="{{ route('products') }}" class="btn btn-ghost btn-sm">All Products</a>
+                </div>
             </div>
         </div>
     </div>

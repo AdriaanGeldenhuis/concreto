@@ -37,18 +37,24 @@
                     <div class="product-grid">
                         @foreach($category->products as $product)
                             <div class="product-card">
-                                <a href="{{ route('products.show', $product) }}" style="color:inherit;text-decoration:none;">
+                                <a href="{{ route('products.show', $product) }}" class="product-card-link">
                                     <div class="product-card-img">
                                         @if($product->image_path)
                                             <img src="/media/{{ $product->image_path }}" alt="{{ $product->name }}">
                                         @else
-                                            <span>&#9881;</span>
+                                            <span class="product-card-placeholder">&#9881;</span>
+                                        @endif
+                                        @if(!$product->in_stock)
+                                            <span class="product-card-badge badge badge-danger">Out of Stock</span>
                                         @endif
                                     </div>
                                     <div class="product-card-body">
+                                        <span class="product-card-cat">{{ $category->name }}</span>
                                         <h3>{{ $product->name }}</h3>
-                                        <div class="price">R{{ number_format($product->price, 2) }}</div>
-                                        <div class="unit">per {{ $product->unit }}</div>
+                                        <div class="product-card-pricing">
+                                            <span class="price">R{{ number_format($product->price, 2) }}</span>
+                                            <span class="unit">/ {{ $product->unit }}</span>
+                                        </div>
                                     </div>
                                 </a>
                                 <div class="product-card-actions">
@@ -58,7 +64,7 @@
                                         <button type="submit" class="btn btn-primary btn-sm btn-add-cart">Add to Cart</button>
                                     </form>
                                     @else
-                                        <span class="badge badge-danger">Out of stock</span>
+                                        <a href="{{ route('request-quote') }}" class="btn btn-outline btn-sm btn-block">Request Quote</a>
                                     @endif
                                 </div>
                             </div>
