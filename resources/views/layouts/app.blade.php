@@ -88,9 +88,9 @@
             <a href="{{ route('home') }}" class="navbar-brand">
                 @php $logoH = ($siteSettings['logo_height'] ?? 36) . 'px'; @endphp
                 @if(!empty($siteSettings['site_logo']))
-                    <img src="{{ url('media/' . $siteSettings['site_logo']) }}" alt="{{ $siteSettings['company_name'] ?? 'Concreto' }}" style="height:{{ $logoH }} !important; width:auto !important;">
+                    <img src="{{ url('media/' . $siteSettings['site_logo']) }}" alt="{{ $siteSettings['company_name'] ?? 'Concreto' }}" style="height:{{ $logoH }} !important; width:auto !important; max-width:none !important; max-height:none !important;">
                 @else
-                    <img src="/assets/logo/concreto.webp" alt="Concreto" style="height:{{ $logoH }} !important; width:auto !important;">
+                    <img src="/assets/logo/concreto.webp" alt="Concreto" style="height:{{ $logoH }} !important; width:auto !important; max-width:none !important; max-height:none !important;">
                 @endif
             </a>
             <button class="navbar-toggle" aria-label="Toggle menu">&#9776;</button>
@@ -148,9 +148,9 @@
                 <div>
                     <div class="footer-brand">
                         @if(!empty($siteSettings['site_logo']))
-                            <img src="{{ url('media/' . $siteSettings['site_logo']) }}" alt="{{ $siteSettings['company_name'] ?? 'Concreto' }}" style="height:{{ $logoH }} !important; width:auto !important;">
+                            <img src="{{ url('media/' . $siteSettings['site_logo']) }}" alt="{{ $siteSettings['company_name'] ?? 'Concreto' }}" style="height:{{ $logoH }} !important; width:auto !important; max-width:none !important; max-height:none !important;">
                         @else
-                            <img src="/assets/logo/concreto.webp" alt="Concreto" style="height:{{ $logoH }} !important; width:auto !important;">
+                            <img src="/assets/logo/concreto.webp" alt="Concreto" style="height:{{ $logoH }} !important; width:auto !important; max-width:none !important; max-height:none !important;">
                         @endif
                     </div>
                     <p>{{ $siteSettings['footer_about'] ?? 'Quality building materials delivered to your site.' }}</p>

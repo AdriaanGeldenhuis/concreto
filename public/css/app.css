@@ -152,7 +152,7 @@ p:last-child { margin-bottom:0; }
 .navbar .container { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.5rem; }
 .navbar-brand { display:flex; align-items:center; gap:0.625rem; color:#fff; font-weight:800; font-size:1.2rem; letter-spacing:-0.02em; padding:0.25rem 0; }
 .navbar-brand:hover { color:#fff; opacity:0.9; }
-.navbar-brand img { height:36px; width:auto; border-radius:6px; }
+.navbar-brand img { height:36px; width:auto; max-width:none; max-height:none; border-radius:6px; display:inline-block; }
 .navbar-links { display:flex; gap:0.125rem; align-items:center; flex-wrap:wrap; }
 .navbar-links a:not(.btn), .navbar-links button:not(.btn) {
     color:rgba(255,255,255,0.7); padding:0.5rem 0.875rem; border-radius:var(--radius-sm);
@@ -450,7 +450,7 @@ tr:last-child td { border-bottom:none; }
 .footer a { color:rgba(255,255,255,0.5); transition:color var(--transition-fast); }
 .footer a:hover { color:var(--primary); }
 .footer-brand { display:flex; align-items:center; gap:0.625rem; margin-bottom:0.75rem; }
-.footer-brand img { height:40px; width:auto; border-radius:6px; }
+.footer-brand img { height:40px; width:auto; max-width:none; max-height:none; border-radius:6px; display:inline-block; }
 .footer-links { list-style:none; padding:0; margin:0; }
 .footer-links li { padding:0.3rem 0; font-size:0.875rem; }
 .footer-links li a { color:rgba(255,255,255,0.5); }
@@ -613,7 +613,7 @@ tr:last-child td { border-bottom:none; }
     border-bottom:1px solid var(--glass-border); display:flex; align-items:center; gap:0.5rem;
     letter-spacing:-0.02em; background:linear-gradient(180deg,rgba(255,255,255,0.03) 0%,transparent 100%);
 }
-.admin-sidebar .sidebar-brand img { height:30px; border-radius:4px; }
+.admin-sidebar .sidebar-brand img { height:30px; width:auto; max-width:none; max-height:none; border-radius:4px; display:inline-block; }
 .admin-sidebar a {
     display:flex; align-items:center; gap:0.75rem; padding:0.625rem 1.25rem;
     color:rgba(255,255,255,0.5); font-size:0.875rem; transition:all var(--transition-fast);
