@@ -271,7 +271,7 @@ function initCart() {
                 btn.classList.remove('btn-primary');
                 btn.classList.add('btn-success');
                 updateCartBadgeCount(data.count);
-                showCartToast(data.message || 'Added to cart');
+                showCartToast(data.message || 'Added to order');
                 setTimeout(function() {
                     btn.textContent = origText;
                     btn.classList.remove('btn-success');

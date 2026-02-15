@@ -21,18 +21,12 @@
         :root {
             @if(!empty($siteSettings['primary_color']))--primary: {{ $siteSettings['primary_color'] }};@endif
             @if(!empty($siteSettings['primary_dark_color']))--primary-dark: {{ $siteSettings['primary_dark_color'] }};@endif
-            @if(!empty($siteSettings['secondary_color']))--secondary: {{ $siteSettings['secondary_color'] }};@endif
-            @if(!empty($siteSettings['bg_color']))--bg: {{ $siteSettings['bg_color'] }};@endif
-            @if(!empty($siteSettings['text_color']))--text: {{ $siteSettings['text_color'] }};@endif
-            @if(!empty($siteSettings['text_light_color']))--text-light: {{ $siteSettings['text_light_color'] }};@endif
-            @if(!empty($siteSettings['card_color']))--card: {{ $siteSettings['card_color'] }};@endif
-            @if(!empty($siteSettings['border_color']))--border: {{ $siteSettings['border_color'] }};@endif
             @if(!empty($siteSettings['success_color']))--success: {{ $siteSettings['success_color'] }};@endif
             @if(!empty($siteSettings['danger_color']))--danger: {{ $siteSettings['danger_color'] }};@endif
             @if(!empty($siteSettings['warning_color']))--warning: {{ $siteSettings['warning_color'] }};@endif
             @if(!empty($siteSettings['info_color']))--info: {{ $siteSettings['info_color'] }};@endif
             @if(!empty($siteSettings['border_radius']))--radius: {{ $siteSettings['border_radius'] }}px;@endif
-            @if(!empty($siteSettings['font_family']) && $siteSettings['font_family'] !== 'system')--font-family: {{ $siteSettings['font_family'] }};@endif
+            @if(!empty($siteSettings['font_family']) && $siteSettings['font_family'] !== 'system')--font-body: {{ $siteSettings['font_family'] }};@endif
             @if(!empty($siteSettings['heading_font_family']) && $siteSettings['heading_font_family'] !== 'inherit')--heading-font-family: {{ $siteSettings['heading_font_family'] }};@endif
             @if(!empty($siteSettings['font_size_base']))--font-size-base: {{ $siteSettings['font_size_base'] }}px;@endif
             @if(!empty($siteSettings['font_weight_body']))--font-weight-body: {{ $siteSettings['font_weight_body'] }};@endif
@@ -40,12 +34,20 @@
             @if(!empty($siteSettings['line_height']))--line-height: {{ $siteSettings['line_height'] }};@endif
             @if(!empty($siteSettings['btn_border_radius']))--btn-radius: {{ $siteSettings['btn_border_radius'] }}px;@endif
             @if(!empty($siteSettings['btn_text_transform']))--btn-text-transform: {{ $siteSettings['btn_text_transform'] }};@endif
-            @if(!empty($siteSettings['navbar_bg_color']))--navbar-bg: {{ $siteSettings['navbar_bg_color'] }};@endif
-            @if(!empty($siteSettings['navbar_text_color']))--navbar-text: {{ $siteSettings['navbar_text_color'] }};@endif
+            @if(!empty($siteSettings['primary_color']))
+            @php
+                $pc = $siteSettings['primary_color'];
+                $r = hexdec(substr($pc,1,2)); $g = hexdec(substr($pc,3,2)); $b = hexdec(substr($pc,5,2));
+            @endphp
+            --primary-glow: rgba({{ $r }},{{ $g }},{{ $b }},0.25);
+            --primary-subtle: rgba({{ $r }},{{ $g }},{{ $b }},0.10);
+            --gradient-primary: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            --shadow-glow: 0 0 30px rgba({{ $r }},{{ $g }},{{ $b }},0.25);
+            @endif
         }
         @if(!empty($siteSettings['card_shadow']))
-        @php $shadowMap = ['none'=>'none','light'=>'0 1px 4px rgba(0,0,0,0.04)','medium'=>'0 2px 8px rgba(0,0,0,0.08)','heavy'=>'0 4px 20px rgba(0,0,0,0.15)']; @endphp
-        :root { --shadow: {{ $shadowMap[$siteSettings['card_shadow']] ?? '0 2px 8px rgba(0,0,0,0.08)' }}; }
+        @php $shadowMap = ['none'=>'none','light'=>'0 2px 8px rgba(0,0,0,0.3)','medium'=>'0 4px 20px rgba(0,0,0,0.4)','heavy'=>'0 8px 32px rgba(0,0,0,0.5)']; @endphp
+        :root { --shadow: {{ $shadowMap[$siteSettings['card_shadow']] ?? '0 4px 20px rgba(0,0,0,0.4)' }}; }
         @endif
     </style>
     @endif

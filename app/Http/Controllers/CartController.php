@@ -73,11 +73,11 @@ class CartController extends Controller
         if ($request->wantsJson()) {
             return response()->json([
                 'count' => count($cart),
-                'message' => $product->name . ' added to cart',
+                'message' => $product->name . ' added to order',
             ]);
         }
 
-        return redirect()->back()->with('success', $product->name . ' added to cart!');
+        return redirect()->back()->with('success', $product->name . ' added to order!');
     }
 
     public function update(Request $request)
@@ -114,7 +114,7 @@ class CartController extends Controller
             return response()->json(['count' => count($cart)]);
         }
 
-        return redirect()->route('cart.index')->with('success', 'Item removed from cart.');
+        return redirect()->route('cart.index')->with('success', 'Item removed from order.');
     }
 
     public function count()
@@ -127,7 +127,7 @@ class CartController extends Controller
     {
         $cart = session('cart', []);
         if (empty($cart)) {
-            return redirect()->route('cart.index')->with('error', 'Your cart is empty.');
+            return redirect()->route('cart.index')->with('error', 'Your order is empty.');
         }
 
         $customer = $this->getOrCreateCustomer($request);
@@ -160,7 +160,7 @@ class CartController extends Controller
     {
         $cart = session('cart', []);
         if (empty($cart)) {
-            return redirect()->route('cart.index')->with('error', 'Your cart is empty.');
+            return redirect()->route('cart.index')->with('error', 'Your order is empty.');
         }
 
         $request->validate([

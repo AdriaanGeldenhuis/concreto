@@ -1,15 +1,15 @@
 @extends('layouts.app')
-@section('title', 'Cart')
+@section('title', 'Order')
 @section('content')
 <div class="container" style="padding-top: 2rem; padding-bottom: 3rem; max-width: 800px;">
     <div class="page-header">
-        <h1>Your Cart</h1>
+        <h1>Your Order</h1>
     </div>
 
     @if(empty($items))
         <div class="empty-state">
             <div class="icon">&#128722;</div>
-            <h3>Your cart is empty</h3>
+            <h3>Your order is empty</h3>
             <p class="text-muted">Browse our products and add items to get started.</p>
             <a href="{{ route('products') }}" class="btn btn-primary">View Products</a>
         </div>

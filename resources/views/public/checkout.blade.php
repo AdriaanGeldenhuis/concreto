@@ -3,7 +3,7 @@
 @section('content')
 <div class="container" style="padding-top: 2rem; padding-bottom: 3rem; max-width: 800px;">
     <div class="page-header">
-        <div class="breadcrumb"><a href="{{ route('cart.index') }}">Cart</a> / Checkout</div>
+        <div class="breadcrumb"><a href="{{ route('cart.index') }}">Order</a> / Checkout</div>
         <h1>Checkout</h1>
     </div>
 
