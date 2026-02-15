@@ -24,8 +24,8 @@
     {{-- JSON-LD Structured Data --}}
     <script type="application/ld+json">
     {
-        "@context": "https://schema.org",
-        "@type": "LocalBusiness",
+        "@@context": "https://schema.org",
+        "@@type": "LocalBusiness",
         "name": "{{ $siteSettings['company_name'] ?? 'Concreto' }}",
         "description": "{{ $siteSettings['hero_subtitle'] ?? 'Quality building materials delivered to your site.' }}",
         @if(!empty($siteSettings['site_logo']))
@@ -39,7 +39,7 @@
         @endif
         @if(!empty($siteSettings['contact_address']))
         "address": {
-            "@type": "PostalAddress",
+            "@@type": "PostalAddress",
             "streetAddress": "{{ $siteSettings['contact_address'] }}"
         },
         @endif
@@ -306,106 +306,5 @@
         }
     </script>
 
-    <style>
-        /* Cookie Consent Banner */
-        .cookie-consent {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #1a1a1a;
-            color: #fff;
-            padding: 1.25rem;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
-            z-index: 9999;
-        }
-        .cookie-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-        .cookie-content p {
-            margin: 0;
-            flex: 1;
-            font-size: 0.9rem;
-        }
-        .cookie-buttons {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        /* WhatsApp Float Button */
-        .whatsapp-float {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 60px;
-            height: 60px;
-            background: #25D366;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
-            z-index: 1000;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .whatsapp-float:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 16px rgba(37, 211, 102, 0.5);
-        }
-
-        /* Dark Mode Toggle Button */
-        .dark-mode-toggle {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 0.5rem;
-            color: inherit;
-            transition: transform 0.3s ease;
-        }
-        .dark-mode-toggle:hover {
-            transform: rotate(180deg);
-        }
-
-        /* Dark Mode Styles */
-        body.dark-mode {
-            background: #1a1a1a;
-            color: #e0e0e0;
-        }
-        body.dark-mode .navbar {
-            background: #2a2a2a;
-            border-bottom-color: #3a3a3a;
-        }
-        body.dark-mode .card {
-            background: #2a2a2a;
-            border-color: #3a3a3a;
-        }
-        body.dark-mode .footer {
-            background: #2a2a2a;
-            border-top-color: #3a3a3a;
-        }
-
-        @@media (max-width: 768px) {
-            .cookie-content {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            .cookie-buttons {
-                width: 100%;
-            }
-            .cookie-buttons button {
-                flex: 1;
-            }
-            .whatsapp-float {
-                bottom: 80px;
-            }
-        }
-    </style>
 </body>
 </html>
