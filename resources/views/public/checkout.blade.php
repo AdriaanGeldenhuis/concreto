@@ -61,6 +61,38 @@
             </div>
         </div>
 
+        {{-- Promo Code --}}
+        <div class="card">
+            <div class="card-header">Promo Code</div>
+            <div class="card-body">
+                @if(!empty($promoCode))
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem;">
+                        <div>
+                            <span class="badge badge-success" style="font-size:0.9rem;">{{ $promoCode->code }}</span>
+                            <span class="text-muted" style="margin-left:0.5rem;">
+                                -R{{ number_format($discount, 2) }} discount applied
+                                @if($promoCode->type === 'percentage')
+                                    ({{ $promoCode->value }}% off)
+                                @endif
+                            </span>
+                        </div>
+                        <form method="POST" action="{{ route('checkout.remove-promo') }}" style="margin:0;">
+                            @csrf
+                            <button type="submit" class="btn btn-ghost btn-sm">Remove</button>
+                        </form>
+                    </div>
+                @else
+                    <div style="display:flex; gap:0.5rem;">
+                        <input type="text" id="promo-input" class="form-control" placeholder="Enter promo code" style="flex:1;">
+                        <button type="button" class="btn btn-outline" onclick="applyPromo()">Apply</button>
+                    </div>
+                    @if(!empty($promoError))
+                        <div class="form-error" style="margin-top:0.5rem;">{{ $promoError }}</div>
+                    @endif
+                @endif
+            </div>
+        </div>
+
         <div class="card">
             <div class="card-header">Order Summary</div>
             <div class="card-body" style="padding:0;">
@@ -77,15 +109,21 @@
             <div class="card-footer">
                 <div class="cart-totals">
                     <div class="cart-totals-row">
-                        <span>Subtotal</span>
+                        <span>Subtotal (excl VAT)</span>
                         <span>R{{ number_format($subtotal, 2) }}</span>
                     </div>
+                    @if($discount > 0)
+                    <div class="cart-totals-row" style="color: var(--success);">
+                        <span>Discount</span>
+                        <span>-R{{ number_format($discount, 2) }}</span>
+                    </div>
+                    @endif
                     <div class="cart-totals-row">
                         <span>VAT (15%)</span>
                         <span>R{{ number_format($vat, 2) }}</span>
                     </div>
                     <div class="cart-totals-row cart-totals-total">
-                        <span>Total</span>
+                        <span>Total (incl VAT)</span>
                         <span>R{{ number_format($total, 2) }}</span>
                     </div>
                 </div>
@@ -96,4 +134,30 @@
         <p class="text-center text-muted text-small mt-2">By placing your order you agree to our <a href="{{ route('terms') }}">Terms & Conditions</a></p>
     </form>
 </div>
+
+@push('scripts')
+<script>
+function applyPromo() {
+    var code = document.getElementById('promo-input').value.trim();
+    if (!code) return;
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{{ route("checkout.apply-promo") }}';
+    var csrf = document.createElement('input');
+    csrf.type = 'hidden'; csrf.name = '_token'; csrf.value = '{{ csrf_token() }}';
+    var input = document.createElement('input');
+    input.type = 'hidden'; input.name = 'promo_code'; input.value = code;
+    form.appendChild(csrf); form.appendChild(input);
+    document.body.appendChild(form); form.submit();
+}
+document.addEventListener('DOMContentLoaded', function() {
+    var promoInput = document.getElementById('promo-input');
+    if (promoInput) {
+        promoInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') { e.preventDefault(); applyPromo(); }
+        });
+    }
+});
+</script>
+@endpush
 @endsection

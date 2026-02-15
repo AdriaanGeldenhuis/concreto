@@ -75,8 +75,8 @@
                 <th>Product</th>
                 <th>Unit</th>
                 <th class="number">Qty</th>
-                <th class="number">Unit Price</th>
-                <th class="number">Total</th>
+                <th class="number">Unit Price (excl VAT)</th>
+                <th class="number">Total (excl VAT)</th>
             </tr>
         </thead>
         <tbody>
@@ -95,10 +95,13 @@
     <div class="clearfix">
         <div class="totals">
             <table>
-                <tr><td>Subtotal</td><td class="number">R{{ number_format($order->subtotal, 2) }}</td></tr>
+                <tr><td>Subtotal (excl VAT)</td><td class="number">R{{ number_format($order->subtotal, 2) }}</td></tr>
+                @if(($order->discount_amount ?? 0) > 0)
+                <tr><td>Discount</td><td class="number">-R{{ number_format($order->discount_amount, 2) }}</td></tr>
+                @endif
                 <tr><td>Delivery Fee</td><td class="number">R{{ number_format($order->delivery_fee, 2) }}</td></tr>
                 <tr><td>VAT (15%)</td><td class="number">R{{ number_format($order->vat, 2) }}</td></tr>
-                <tr class="total-row"><td><strong>Total</strong></td><td class="number"><strong>R{{ number_format($order->total, 2) }}</strong></td></tr>
+                <tr class="total-row"><td><strong>Total (incl VAT)</strong></td><td class="number"><strong>R{{ number_format($order->total, 2) }}</strong></td></tr>
             </table>
         </div>
     </div>

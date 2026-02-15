@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use App\Models\Product;
+use App\Models\PromoCode;
+use App\Models\PromoCodeUsage;
 use Illuminate\Http\Request;
 
 class CartController extends Controller
@@ -150,10 +152,42 @@ class CartController extends Controller
             $subtotal += $lineTotal;
         }
 
-        $vat = round($subtotal * 0.15, 2);
-        $total = $subtotal + $vat;
+        // Handle promo code
+        $discount = 0;
+        $promoCode = null;
+        $promoError = null;
+        $promoCodeInput = session('promo_code', $request->input('promo_code'));
 
-        return view('public.checkout', compact('items', 'subtotal', 'vat', 'total', 'addresses', 'customer'));
+        if ($promoCodeInput) {
+            $promo = PromoCode::where('code', strtoupper($promoCodeInput))->first();
+            if ($promo && $promo->isValid($subtotal, $customer->id)) {
+                $discount = $promo->calculateDiscount($subtotal);
+                $promoCode = $promo;
+                session(['promo_code' => $promo->code]);
+            } else {
+                $promoError = $promo ? 'This promo code is not valid for your order.' : 'Invalid promo code.';
+                session()->forget('promo_code');
+            }
+        }
+
+        $taxableAmount = max(0, $subtotal - $discount);
+        $vat = round($taxableAmount * 0.15, 2);
+        $total = $taxableAmount + $vat;
+
+        return view('public.checkout', compact('items', 'subtotal', 'vat', 'total', 'addresses', 'customer', 'discount', 'promoCode', 'promoError'));
+    }
+
+    public function applyPromo(Request $request)
+    {
+        $request->validate(['promo_code' => 'required|string|max:50']);
+        session(['promo_code' => strtoupper($request->promo_code)]);
+        return redirect()->route('checkout');
+    }
+
+    public function removePromo()
+    {
+        session()->forget('promo_code');
+        return redirect()->route('checkout');
     }
 
     public function placeOrder(Request $request)
@@ -174,7 +208,12 @@ class CartController extends Controller
 
         // Build items array from cart session
         $items = [];
+        $subtotal = 0;
         foreach ($cart as $productId => $qty) {
+            $product = Product::find($productId);
+            if ($product) {
+                $subtotal += round($product->price * $qty, 2);
+            }
             $items[] = [
                 'product_id' => $productId,
                 'qty' => $qty,
@@ -184,11 +223,35 @@ class CartController extends Controller
         $data = $request->all();
         $data['items'] = $items;
 
+        // Apply promo code if stored in session
+        $promoCodeStr = session('promo_code');
+        if ($promoCodeStr) {
+            $promo = PromoCode::where('code', $promoCodeStr)->first();
+            if ($promo && $promo->isValid($subtotal, $customer->id)) {
+                $data['promo_code_id'] = $promo->id;
+                $data['discount_amount'] = $promo->calculateDiscount($subtotal);
+            }
+        }
+
         $orderService = app(\App\Services\OrderService::class);
         $order = $orderService->createOrder($customer, $data);
 
-        // Clear the cart
-        session()->forget('cart');
+        // Record promo code usage
+        if (!empty($data['promo_code_id'])) {
+            $promo = PromoCode::find($data['promo_code_id']);
+            if ($promo) {
+                PromoCodeUsage::create([
+                    'promo_code_id' => $promo->id,
+                    'customer_id' => $customer->id,
+                    'order_id' => $order->id,
+                    'discount_amount' => $data['discount_amount'],
+                ]);
+                $promo->increment('times_used');
+            }
+        }
+
+        // Clear the cart and promo code
+        session()->forget(['cart', 'promo_code']);
 
         if ($order->status === 'PENDING_PAYMENT') {
             return redirect()->route('customer.orders.pay', $order)

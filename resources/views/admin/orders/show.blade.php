@@ -188,6 +188,12 @@
                             <span>Delivery Fee</span>
                             <span>R{{ number_format($order->delivery_fee, 2) }}</span>
                         </div>
+                        @if($order->discount_amount > 0)
+                        <div class="totals-row" style="color:var(--success, #22c55e);">
+                            <span>Discount</span>
+                            <span>-R{{ number_format($order->discount_amount, 2) }}</span>
+                        </div>
+                        @endif
                         <div class="totals-row">
                             <span>VAT</span>
                             <span>R{{ number_format($order->vat, 2) }}</span>
@@ -229,6 +235,62 @@
                         @endforeach
                         </tbody>
                     </table>
+                </div>
+            </div>
+            @endif
+
+            {{-- Record Manual Payment --}}
+            <div class="card">
+                <div class="card-header">Record Payment (EFT/Cash)</div>
+                <div class="card-body">
+                    <form method="POST" action="{{ route('admin.orders.record-payment', $order) }}">
+                        @csrf
+                        <div class="form-group">
+                            <label>Amount (R)</label>
+                            <input type="number" step="0.01" name="amount" class="form-control" value="{{ $order->total }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Method</label>
+                            <select name="provider" class="form-control" required>
+                                <option value="eft">EFT / Bank Transfer</option>
+                                <option value="cash">Cash</option>
+                                <option value="card_manual">Card (Manual)</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Reference</label>
+                            <input type="text" name="reference" class="form-control" placeholder="EFT reference / receipt #">
+                        </div>
+                        <div class="form-group">
+                            <label>Notes</label>
+                            <input type="text" name="notes" class="form-control" placeholder="Optional notes">
+                        </div>
+                        <button type="submit" class="btn btn-success btn-sm">Record Payment</button>
+                    </form>
+                </div>
+            </div>
+
+            {{-- Refund --}}
+            @if(in_array($order->status, ['DELIVERED', 'PLACED', 'ASSIGNED', 'ACCEPTED', 'LOADED', 'CANCELLED']))
+            <div class="card">
+                <div class="card-header">Process Refund</div>
+                <div class="card-body">
+                    <form method="POST" action="{{ route('admin.orders.refund', $order) }}">
+                        @csrf
+                        <div class="form-group">
+                            <label>Refund Amount (R)</label>
+                            <input type="number" step="0.01" name="amount" class="form-control" value="{{ $order->total }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Reason</label>
+                            <textarea name="reason" class="form-control" rows="2" required placeholder="Reason for refund..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label><input type="checkbox" name="mark_refunded" value="1"> Mark order as Refunded</label>
+                        </div>
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Process this refund?')">Process Refund</button>
+                    </form>
                 </div>
             </div>
             @endif

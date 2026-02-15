@@ -93,6 +93,11 @@ class PublicController extends Controller
 
     public function submitContact(Request $request)
     {
+        // Honeypot spam check
+        if ($request->filled('website')) {
+            return back()->with('success', 'Thank you! Your message has been sent.');
+        }
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
@@ -159,6 +164,11 @@ class PublicController extends Controller
 
     public function submitQuoteRequest(Request $request)
     {
+        // Honeypot spam check
+        if ($request->filled('website')) {
+            return redirect()->route('request-quote')->with('success', 'Thank you!');
+        }
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',

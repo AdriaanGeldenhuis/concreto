@@ -80,8 +80,15 @@
             <a href="{{ route('admin.tracking.drivers') }}" class="{{ request()->routeIs('admin.tracking*') ? 'active' : '' }}">&#9737; Track Drivers</a>
             <a href="{{ route('admin.ops.index') }}" class="{{ request()->routeIs('admin.ops*') ? 'active' : '' }}">&#9888; Operations Board</a>
             <a href="{{ route('admin.delivery-areas.index') }}" class="{{ request()->routeIs('admin.delivery-areas*') ? 'active' : '' }}">&#9873; Delivery Areas</a>
+            <a href="{{ route('admin.drivers.index') }}" class="{{ request()->routeIs('admin.drivers*') ? 'active' : '' }}">&#128664; Driver Management</a>
+            <div class="sidebar-section">Marketing</div>
+            <a href="{{ route('admin.promo-codes.index') }}" class="{{ request()->routeIs('admin.promo-codes*') ? 'active' : '' }}">&#127991; Promo Codes</a>
+            <a href="{{ route('admin.reviews.index') }}" class="{{ request()->routeIs('admin.reviews*') ? 'active' : '' }}">&#9733; Reviews</a>
             <div class="sidebar-section">Communication</div>
             <a href="{{ route('admin.messages.index') }}" class="{{ request()->routeIs('admin.messages*') ? 'active' : '' }}">&#9993; Messages</a>
+            <a href="{{ route('admin.email-templates.index') }}" class="{{ request()->routeIs('admin.email-templates*') ? 'active' : '' }}">&#9993; Email Templates</a>
+            <div class="sidebar-section">Reports</div>
+            <a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports*') ? 'active' : '' }}">&#128202; Reports</a>
             <div class="sidebar-section">System</div>
             <a href="{{ route('admin.settings.index') }}" class="{{ request()->routeIs('admin.settings*') ? 'active' : '' }}">&#9881; Settings</a>
             <a href="{{ route('admin.audit-logs.index') }}" class="{{ request()->routeIs('admin.audit-logs*') ? 'active' : '' }}">&#9201; Audit Log</a>

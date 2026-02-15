@@ -44,6 +44,8 @@ Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
 Route::middleware(['auth'])->group(function () {
     Route::get('/checkout', [CartController::class, 'checkout'])->name('checkout');
     Route::post('/checkout', [CartController::class, 'placeOrder'])->name('checkout.place');
+    Route::post('/checkout/apply-promo', [CartController::class, 'applyPromo'])->name('checkout.apply-promo');
+    Route::post('/checkout/remove-promo', [CartController::class, 'removePromo'])->name('checkout.remove-promo');
 });
 
 // Auth (rate limited)

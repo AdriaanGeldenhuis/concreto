@@ -7,6 +7,49 @@
     <meta name="theme-color" content="{{ $siteSettings['primary_color'] ?? '#e67e22' }}">
     <meta name="description" content="{{ $siteSettings['hero_subtitle'] ?? 'Quality building materials delivered to your site.' }}">
     <title>@yield('title', 'Concreto') - {{ $siteSettings['company_name'] ?? 'Concreto' }}</title>
+
+    {{-- Open Graph Meta Tags --}}
+    <meta property="og:title" content="@yield('title', 'Concreto') - {{ $siteSettings['company_name'] ?? 'Concreto' }}">
+    <meta property="og:description" content="{{ $siteSettings['hero_subtitle'] ?? 'Quality building materials delivered to your site.' }}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ url()->current() }}">
+    @if(!empty($siteSettings['site_logo']))
+    <meta property="og:image" content="{{ url('media/' . $siteSettings['site_logo']) }}">
+    @endif
+    <meta property="og:site_name" content="{{ $siteSettings['company_name'] ?? 'Concreto' }}">
+
+    {{-- Canonical URL --}}
+    <link rel="canonical" href="{{ url()->current() }}">
+
+    {{-- JSON-LD Structured Data --}}
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        "name": "{{ $siteSettings['company_name'] ?? 'Concreto' }}",
+        "description": "{{ $siteSettings['hero_subtitle'] ?? 'Quality building materials delivered to your site.' }}",
+        @if(!empty($siteSettings['site_logo']))
+        "image": "{{ url('media/' . $siteSettings['site_logo']) }}",
+        @endif
+        @if(!empty($siteSettings['contact_phone']))
+        "telephone": "{{ $siteSettings['contact_phone'] }}",
+        @endif
+        @if(!empty($siteSettings['contact_email']))
+        "email": "{{ $siteSettings['contact_email'] }}",
+        @endif
+        @if(!empty($siteSettings['contact_address']))
+        "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "{{ $siteSettings['contact_address'] }}"
+        },
+        @endif
+        "url": "{{ url('/') }}",
+        "priceRange": "$$",
+        @if(!empty($siteSettings['business_hours']))
+        "openingHours": "{{ $siteSettings['business_hours'] }}"
+        @endif
+    }
+    </script>
     @if(!empty($siteSettings['site_favicon']))
         <link rel="icon" href="{{ url('media/' . $siteSettings['site_favicon']) }}">
     @endif
@@ -94,6 +137,7 @@
                 @endif
             </a>
             <button class="navbar-toggle" aria-label="Toggle menu">&#9776;</button>
+            <button class="dark-mode-toggle" aria-label="Toggle dark mode" onclick="toggleDarkMode()">&#9789;</button>
             <div class="navbar-links">
                 <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}">Home</a>
                 <a href="{{ route('products') }}" class="{{ request()->routeIs('products*') ? 'active' : '' }}">Products</a>
@@ -197,7 +241,171 @@
         </div>
     </footer>
 
+    {{-- Cookie Consent Banner (POPIA Compliant) --}}
+    <div id="cookie-consent" class="cookie-consent" style="display:none;">
+        <div class="cookie-content">
+            <p>We use cookies to improve your experience on our website. By continuing to browse, you agree to our use of cookies. <a href="{{ route('privacy') }}" style="color: inherit; text-decoration: underline;">Privacy Policy</a></p>
+            <div class="cookie-buttons">
+                <button onclick="acceptCookies()" class="btn btn-primary btn-sm">Accept</button>
+                <button onclick="declineCookies()" class="btn btn-ghost btn-sm">Decline</button>
+            </div>
+        </div>
+    </div>
+
+    {{-- WhatsApp Floating Chat Widget --}}
+    @if(!empty($siteSettings['whatsapp']))
+    <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $siteSettings['whatsapp']) }}" target="_blank" class="whatsapp-float" aria-label="Chat on WhatsApp">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16 0C7.164 0 0 7.164 0 16c0 2.828.736 5.484 2.028 7.78L0 32l8.44-2.016A15.917 15.917 0 0016 32c8.836 0 16-7.164 16-16S24.836 0 16 0zm0 29.333c-2.464 0-4.84-.68-6.92-1.96l-.496-.296-5.144 1.232 1.248-5.012-.328-.516A13.276 13.276 0 012.667 16c0-7.364 5.969-13.333 13.333-13.333S29.333 8.636 29.333 16 23.364 29.333 16 29.333z" fill="white"/>
+            <path d="M12.227 9.547c-.264-.587-.542-.598-.792-.608-.206-.008-.44-.008-.676-.008-.234 0-.616.088-.938.44-.322.352-1.23 1.202-1.23 2.93 0 1.73 1.258 3.402 1.434 3.636.176.235 2.46 3.933 6.074 5.377 3.012 1.204 3.614.965 4.268.904.654-.06 2.112-.864 2.41-1.698.298-.834.298-1.548.208-1.698-.088-.15-.322-.238-.676-.416-.352-.176-2.084-1.03-2.408-1.146-.322-.118-.558-.176-.792.176-.235.352-.91 1.146-1.116 1.382-.206.234-.412.264-.764.088-.352-.177-1.486-.548-2.832-1.748-1.046-.933-1.752-2.085-1.958-2.437-.206-.352-.022-.543.154-.718.158-.158.352-.412.528-.618.176-.206.234-.352.352-.587.118-.234.06-.44-.03-.617-.088-.176-.792-1.908-1.085-2.613z" fill="white"/>
+        </svg>
+    </a>
+    @endif
+
     <script src="/js/app.js"></script>
     @stack('scripts')
+
+    {{-- Cookie Consent Script --}}
+    <script>
+        // Check if user has already made a choice
+        window.addEventListener('DOMContentLoaded', function() {
+            const cookieConsent = localStorage.getItem('cookieConsent');
+            if (!cookieConsent) {
+                document.getElementById('cookie-consent').style.display = 'block';
+            }
+        });
+
+        function acceptCookies() {
+            localStorage.setItem('cookieConsent', 'accepted');
+            document.getElementById('cookie-consent').style.display = 'none';
+        }
+
+        function declineCookies() {
+            localStorage.setItem('cookieConsent', 'declined');
+            document.getElementById('cookie-consent').style.display = 'none';
+        }
+    </script>
+
+    {{-- Dark Mode Script --}}
+    <script>
+        // Check for saved dark mode preference
+        window.addEventListener('DOMContentLoaded', function() {
+            const darkMode = localStorage.getItem('darkMode');
+            if (darkMode === 'enabled') {
+                document.body.classList.add('dark-mode');
+            }
+        });
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            if (document.body.classList.contains('dark-mode')) {
+                localStorage.setItem('darkMode', 'enabled');
+            } else {
+                localStorage.setItem('darkMode', 'disabled');
+            }
+        }
+    </script>
+
+    <style>
+        /* Cookie Consent Banner */
+        .cookie-consent {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #1a1a1a;
+            color: #fff;
+            padding: 1.25rem;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+            z-index: 9999;
+        }
+        .cookie-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .cookie-content p {
+            margin: 0;
+            flex: 1;
+            font-size: 0.9rem;
+        }
+        .cookie-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* WhatsApp Float Button */
+        .whatsapp-float {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: #25D366;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
+            z-index: 1000;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .whatsapp-float:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(37, 211, 102, 0.5);
+        }
+
+        /* Dark Mode Toggle Button */
+        .dark-mode-toggle {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            color: inherit;
+            transition: transform 0.3s ease;
+        }
+        .dark-mode-toggle:hover {
+            transform: rotate(180deg);
+        }
+
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background: #1a1a1a;
+            color: #e0e0e0;
+        }
+        body.dark-mode .navbar {
+            background: #2a2a2a;
+            border-bottom-color: #3a3a3a;
+        }
+        body.dark-mode .card {
+            background: #2a2a2a;
+            border-color: #3a3a3a;
+        }
+        body.dark-mode .footer {
+            background: #2a2a2a;
+            border-top-color: #3a3a3a;
+        }
+
+        @media (max-width: 768px) {
+            .cookie-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .cookie-buttons {
+                width: 100%;
+            }
+            .cookie-buttons button {
+                flex: 1;
+            }
+            .whatsapp-float {
+                bottom: 80px;
+            }
+        }
+    </style>
 </body>
 </html>

@@ -39,6 +39,8 @@ class OrderService
                 'delivery_fee' => $deliveryFee,
                 'order_number' => Order::generateOrderNumber(),
                 'idempotency_key' => $data['idempotency_key'] ?? null,
+                'promo_code_id' => $data['promo_code_id'] ?? null,
+                'discount_amount' => $data['discount_amount'] ?? 0,
             ]);
 
             foreach ($data['items'] as $item) {

@@ -81,6 +81,10 @@
                     <textarea name="message" class="form-control" rows="5" placeholder="How can we help you?" required>{{ old('message') }}</textarea>
                     @error('message')<div class="form-error">{{ $message }}</div>@enderror
                 </div>
+                {{-- Honeypot anti-spam --}}
+                <div style="position:absolute;left:-9999px;" aria-hidden="true">
+                    <input type="text" name="website" tabindex="-1" autocomplete="off">
+                </div>
                 <button type="submit" class="btn btn-primary btn-lg btn-block">Send Message</button>
             </form>
         </div>
