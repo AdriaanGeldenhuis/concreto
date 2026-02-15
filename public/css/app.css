@@ -366,7 +366,6 @@ tr:last-child td { border-bottom:none; }
 }
 .product-card:hover { transform:translateY(-4px); box-shadow:var(--shadow-md), 0 0 15px var(--primary-glow); border-color:rgba(249,115,22,0.3); border-left-color:var(--primary); color:inherit; }
 .product-card-img {
-    margin:0.625rem; border-radius:var(--radius);
     overflow:hidden; background:#242424;
     aspect-ratio:4/3; display:flex; align-items:center; justify-content:center;
 }
