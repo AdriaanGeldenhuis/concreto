@@ -526,8 +526,8 @@ tr:last-child td { border-bottom:none; }
 /* ============================================
    Signature Pad
    ============================================ */
-.signature-pad-wrapper { border:2px solid rgba(255,255,255,0.1); border-radius:var(--radius); background:rgba(0,0,0,0.3); touch-action:none; overflow:hidden; }
-.signature-pad-wrapper canvas { width:100%; height:200px; display:block; }
+.signature-pad-wrapper { border:2px solid rgba(255,255,255,0.15); border-radius:var(--radius); background:rgba(0,0,0,0.4); touch-action:none; overflow:hidden; }
+.signature-pad-wrapper canvas { width:100%; height:250px; display:block; cursor:crosshair; }
 
 /* ============================================
    Pagination
@@ -568,7 +568,7 @@ tr:last-child td { border-bottom:none; }
 .flex-wrap { flex-wrap:wrap; } .flex-col { flex-direction:column; }
 .items-center { align-items:center; } .items-start { align-items:flex-start; }
 .justify-between { justify-content:space-between; } .justify-center { justify-content:center; } .justify-end { justify-content:flex-end; }
-.flex-1 { flex:1; } .w-full { width:100%; } .hidden { display:none; } .visible { display:block; } .overflow-hidden { overflow:hidden; }
+.flex-1 { flex:1; } .w-full { width:100%; } .hidden { display:none; } .d-none { display:none !important; } .visible { display:block; } .overflow-hidden { overflow:hidden; }
 
 /* ============================================
    Filters bar

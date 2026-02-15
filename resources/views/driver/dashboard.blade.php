@@ -24,7 +24,7 @@
                     </div>
                     <form method="POST" action="{{ route('driver.clock-out') }}">
                         @csrf
-                        <button type="submit" class="btn btn-danger">Clock Out</button>
+                        <button type="submit" class="btn btn-danger btn-lg" style="min-height:50px;">Clock Out</button>
                     </form>
                 </div>
                 @if(isset($lastOffloadTime))
@@ -40,7 +40,7 @@
                     </div>
                     <form method="POST" action="{{ route('driver.clock-in') }}">
                         @csrf
-                        <button type="submit" class="btn btn-success">Clock In</button>
+                        <button type="submit" class="btn btn-success btn-lg" style="min-height:50px;">Clock In</button>
                     </form>
                 </div>
             @endif

@@ -92,8 +92,8 @@
                     <div class="info-row">
                         <span class="label">Phone</span>
                         <span class="value">
-                            <a href="tel:{{ $order->customer->user->phone }}" class="btn btn-sm btn-outline" style="min-height:44px;">
-                                &#128222; {{ $order->customer->user->phone }}
+                            <a href="tel:{{ $order->customer->user->phone }}" class="btn btn-sm btn-success" style="min-height:44px;">
+                                &#128222; Call {{ $order->customer->user->phone }}
                             </a>
                         </span>
                     </div>

@@ -15,7 +15,9 @@
         <link href="{{ $siteSettings['google_font_url'] }}" rel="stylesheet">
     @endif
     <link rel="stylesheet" href="/css/app.css">
-    <link rel="icon" type="image/png" href="/assets/logo/concreto.webp">
+    @if(empty($siteSettings['site_favicon']))
+        <link rel="icon" type="image/png" href="/assets/logo/concreto.webp">
+    @endif
     @if(isset($siteSettings))
     <style>
         :root {
@@ -68,6 +70,7 @@
                 @endif
                 <span>@yield('portal-name', 'Portal')</span>
             </a>
+            <button class="navbar-toggle" aria-label="Toggle menu">&#9776;</button>
             <div class="navbar-links">
                 @yield('nav-links')
                 <form method="POST" action="{{ route('logout') }}" style="display:inline">

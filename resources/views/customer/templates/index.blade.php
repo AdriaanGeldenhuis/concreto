@@ -152,22 +152,10 @@
 
 @section('bottom-nav')
 <nav class="bottom-nav">
-    <a href="{{ route('customer.dashboard') }}">
-        <span class="nav-icon">&#127968;</span>
-        <span>Home</span>
-    </a>
-    <a href="{{ route('customer.orders.index') }}">
-        <span class="nav-icon">&#128230;</span>
-        <span>Orders</span>
-    </a>
-    <a href="{{ route('customer.templates.index') }}" class="active">
-        <span class="nav-icon">&#128220;</span>
-        <span>Templates</span>
-    </a>
-    <a href="{{ route('products') }}">
-        <span class="nav-icon">&#128722;</span>
-        <span>Shop</span>
-    </a>
+    <a href="{{ route('customer.dashboard') }}"><span class="nav-icon">&#9632;</span>Dashboard</a>
+    <a href="{{ route('customer.orders.index') }}"><span class="nav-icon">&#9744;</span>Orders</a>
+    <a href="{{ route('customer.invoices.index') }}"><span class="nav-icon">&#9993;</span>Invoices</a>
+    <a href="{{ route('customer.addresses.index') }}"><span class="nav-icon">&#9786;</span>Account</a>
 </nav>
 @endsection
 
