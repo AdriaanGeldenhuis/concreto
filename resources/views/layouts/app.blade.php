@@ -151,7 +151,6 @@
                         @else
                             <img src="/assets/logo/concreto.webp" alt="Concreto">
                         @endif
-                        <span>{{ $siteSettings['company_name'] ?? 'Concreto' }}</span>
                     </div>
                     <p>{{ $siteSettings['footer_about'] ?? 'Quality building materials delivered to your site.' }}</p>
                     <div class="footer-social">
