@@ -2,7 +2,23 @@
 @section('title', 'Home')
 @section('content')
     <section class="hero">
-        <div class="container">
+        @if(!empty($siteSettings['bg_image_desktop']))
+            <img src="{{ url('media/' . $siteSettings['bg_image_desktop']) }}" alt="" class="hero-bg hero-bg--desktop">
+        @endif
+        @if(!empty($siteSettings['bg_image_tablet']))
+            <img src="{{ url('media/' . $siteSettings['bg_image_tablet']) }}" alt="" class="hero-bg hero-bg--tablet">
+        @elseif(!empty($siteSettings['bg_image_desktop']))
+            <img src="{{ url('media/' . $siteSettings['bg_image_desktop']) }}" alt="" class="hero-bg hero-bg--tablet">
+        @endif
+        @if(!empty($siteSettings['bg_image_mobile']))
+            <img src="{{ url('media/' . $siteSettings['bg_image_mobile']) }}" alt="" class="hero-bg hero-bg--mobile">
+        @elseif(!empty($siteSettings['bg_image_desktop']))
+            <img src="{{ url('media/' . $siteSettings['bg_image_desktop']) }}" alt="" class="hero-bg hero-bg--mobile">
+        @endif
+        @if(!empty($siteSettings['bg_image_desktop']))
+            <div class="hero-overlay"></div>
+        @endif
+        <div class="{{ !empty($siteSettings['bg_image_desktop']) ? 'hero-content' : 'container' }}">
             <h1>{{ $siteSettings['hero_title'] ?? 'Quality Building Materials, Delivered' }}</h1>
             <p>{{ $siteSettings['hero_subtitle'] ?? 'Sand, stone, and construction supplies delivered directly to your site. Order online and track your delivery in real-time.' }}</p>
             <div class="d-flex gap-2 justify-center flex-wrap">

@@ -60,7 +60,8 @@
         .hero-bg { display:block; width:100%; height:auto; }
         .hero-bg--tablet, .hero-bg--mobile { display:none; }
         .hero-overlay { position:absolute; inset:0; background: {{ $siteSettings['bg_overlay_color'] ?? '#000000' }}; opacity: {{ ($siteSettings['bg_overlay_opacity'] ?? 70) / 100 }}; }
-        .hero-content { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:1; padding:2rem; }
+        .hero-content { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:1; padding:2rem; text-align:center; color:#fff; }
+        .hero-content h1, .hero-content p { text-shadow:0 2px 8px rgba(0,0,0,0.5); }
         @if(!empty($siteSettings['bg_image_tablet']))
         @media (max-width: 991px) {
             .hero-bg--desktop { display:none; }
