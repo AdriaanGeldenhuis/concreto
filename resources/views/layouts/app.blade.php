@@ -138,8 +138,8 @@
             </a>
             <button class="navbar-toggle" aria-label="Toggle menu">&#9776;</button>
             <div class="navbar-links">
-                <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}">Home</a>
                 <button class="dark-mode-toggle" aria-label="Toggle dark mode" onclick="toggleDarkMode()">&#9789;</button>
+                <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}">Home</a>
                 <a href="{{ route('products') }}" class="{{ request()->routeIs('products*') ? 'active' : '' }}">Products</a>
                 <a href="{{ route('contact') }}" class="{{ request()->routeIs('contact') ? 'active' : '' }}">Contact</a>
                 <a href="{{ route('cart.index') }}" class="cart-link {{ request()->routeIs('cart*') ? 'active' : '' }}">
