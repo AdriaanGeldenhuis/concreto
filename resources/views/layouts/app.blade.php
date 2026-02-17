@@ -137,8 +137,8 @@
                 @endif
             </a>
             <button class="navbar-toggle" aria-label="Toggle menu">&#9776;</button>
-            <button class="dark-mode-toggle" aria-label="Toggle dark mode" onclick="toggleDarkMode()">&#9789;</button>
             <div class="navbar-links">
+                <button class="dark-mode-toggle" aria-label="Toggle dark mode" onclick="toggleDarkMode()">&#9789;</button>
                 <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}">Home</a>
                 <a href="{{ route('products') }}" class="{{ request()->routeIs('products*') ? 'active' : '' }}">Products</a>
                 <a href="{{ route('contact') }}" class="{{ request()->routeIs('contact') ? 'active' : '' }}">Contact</a>
