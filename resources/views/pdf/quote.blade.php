@@ -4,8 +4,6 @@
     <meta charset="utf-8">
     <style>
         body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 12px; color: #333; margin: 0; padding: 20px; }
-        .header { display: flex; justify-content: space-between; margin-bottom: 30px; border-bottom: 3px solid {{ $settings['primary_color'] ?? '#e67e22' }}; padding-bottom: 15px; }
-        .company-info { }
         .company-name { font-size: 20px; font-weight: bold; color: {{ $settings['primary_color'] ?? '#e67e22' }}; margin-bottom: 5px; }
         .quote-title { font-size: 24px; font-weight: bold; text-align: right; color: #333; }
         .quote-number { font-size: 14px; color: #666; text-align: right; }
@@ -90,10 +88,10 @@
                         <td class="label">Date:</td>
                         <td>{{ $quote->created_at->format('d M Y') }}</td>
                     </tr>
-                    @if($quote->expiry_date)
+                    @if($quote->expires_at)
                     <tr>
                         <td class="label">Valid Until:</td>
-                        <td><strong>{{ $quote->expiry_date->format('d M Y') }}</strong></td>
+                        <td><strong>{{ $quote->expires_at->format('d M Y') }}</strong></td>
                     </tr>
                     @endif
                 </table>
@@ -101,9 +99,9 @@
         </tr>
     </table>
 
-    @if($quote->expiry_date && $quote->expiry_date->isFuture())
+    @if($quote->expires_at && $quote->expires_at->isFuture())
     <div class="expiry-box">
-        <strong>This quote is valid until {{ $quote->expiry_date->format('d M Y') }}</strong> ({{ $quote->expiry_date->diffForHumans() }})
+        <strong>This quote is valid until {{ $quote->expires_at->format('d M Y') }}</strong> ({{ $quote->expires_at->diffForHumans() }})
     </div>
     @endif
 
@@ -120,8 +118,8 @@
         <tbody>
             @foreach($quote->items as $item)
             <tr>
-                <td>{{ $item->product_name }}</td>
-                <td>{{ $item->unit }}</td>
+                <td>{{ $item->product->name ?? '-' }}</td>
+                <td>{{ $item->product->unit ?? '-' }}</td>
                 <td class="number">{{ $item->qty }}</td>
                 <td class="number">R{{ number_format($item->unit_price, 2) }}</td>
                 <td class="number">R{{ number_format($item->line_total, 2) }}</td>
@@ -153,7 +151,7 @@
     <div style="margin-top: 30px; clear: both;">
         <div class="section-title">Terms & Conditions</div>
         <ul style="font-size: 10px; color: #666; line-height: 1.6;">
-            <li>This quotation is valid for {{ $quote->expiry_date ? $quote->expiry_date->diffInDays($quote->created_at) . ' days' : '30 days' }} from the date of issue.</li>
+            <li>This quotation is valid for {{ $quote->expires_at ? $quote->expires_at->diffInDays($quote->created_at) . ' days' : '30 days' }} from the date of issue.</li>
             <li>Prices are subject to change without notice after the expiry date.</li>
             <li>Delivery fees may vary based on location and order size.</li>
             <li>Payment terms: As per agreement or COD for new customers.</li>

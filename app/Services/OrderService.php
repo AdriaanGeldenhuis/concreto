@@ -68,12 +68,13 @@ class OrderService
 
             foreach ($data['items'] as $item) {
                 $product = Product::findOrFail($item['product_id']);
+                $unitPrice = $item['unit_price'] ?? $product->price;
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $product->id,
                     'qty' => $item['qty'],
-                    'unit_price' => $product->price,
-                    'line_total' => round($product->price * $item['qty'], 2),
+                    'unit_price' => $unitPrice,
+                    'line_total' => round($unitPrice * $item['qty'], 2),
                 ]);
             }
 

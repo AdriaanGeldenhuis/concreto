@@ -22,14 +22,14 @@
         }
         .header {
             text-align: center;
-            border-bottom: 3px solid {{ $siteSettings['primary_color'] ?? '#e67e22' }};
+            border-bottom: 3px solid {{ $settings['primary_color'] ?? '#e67e22' }};
             padding-bottom: 20px;
             margin-bottom: 30px;
         }
         .company-name {
             font-size: 24px;
             font-weight: bold;
-            color: {{ $siteSettings['primary_color'] ?? '#e67e22' }};
+            color: {{ $settings['primary_color'] ?? '#e67e22' }};
             margin-bottom: 5px;
         }
         .quote-title {
@@ -47,7 +47,7 @@
         .section-title {
             font-size: 16px;
             font-weight: bold;
-            color: {{ $siteSettings['primary_color'] ?? '#e67e22' }};
+            color: {{ $settings['primary_color'] ?? '#e67e22' }};
             margin-bottom: 10px;
             border-bottom: 1px solid #eee;
             padding-bottom: 5px;
@@ -85,12 +85,12 @@
             font-size: 18px;
             font-weight: bold;
             border-top: 2px solid #333;
-            color: {{ $siteSettings['primary_color'] ?? '#e67e22' }};
+            color: {{ $settings['primary_color'] ?? '#e67e22' }};
         }
         .btn {
             display: inline-block;
             padding: 12px 30px;
-            background: {{ $siteSettings['primary_color'] ?? '#e67e22' }};
+            background: {{ $settings['primary_color'] ?? '#e67e22' }};
             color: #ffffff;
             text-decoration: none;
             border-radius: 5px;
@@ -115,12 +115,12 @@
 <body>
     <div class="container">
         <div class="header">
-            <div class="company-name">{{ $siteSettings['company_name'] ?? 'Concreto' }}</div>
+            <div class="company-name">{{ $settings['company_name'] ?? 'Concreto' }}</div>
             <div class="quote-title">Quotation</div>
             <div class="quote-number">{{ $quote->quote_number }}</div>
         </div>
 
-        <p>Dear {{ $quote->customer_name }},</p>
+        <p>Dear {{ $quote->customer->user->name ?? 'Customer' }},</p>
         <p>Thank you for your interest in our products. Please find your quotation details below:</p>
 
         <div class="section">
@@ -138,8 +138,8 @@
                 <tbody>
                     @foreach($quote->items as $item)
                     <tr>
-                        <td>{{ $item->product_name }}</td>
-                        <td>{{ $item->unit }}</td>
+                        <td>{{ $item->product->name ?? '-' }}</td>
+                        <td>{{ $item->product->unit ?? '-' }}</td>
                         <td class="text-right">{{ $item->qty }}</td>
                         <td class="text-right">R{{ number_format($item->unit_price, 2) }}</td>
                         <td class="text-right">R{{ number_format($item->line_total, 2) }}</td>
@@ -163,11 +163,11 @@
                         @endif
                         <tr>
                             <td>VAT (15%)</td>
-                            <td class="text-right">R{{ number_format($vat, 2) }}</td>
+                            <td class="text-right">R{{ number_format($quote->vat, 2) }}</td>
                         </tr>
                         <tr class="total-row">
                             <td><strong>Grand Total</strong></td>
-                            <td class="text-right"><strong>R{{ number_format($grandTotal, 2) }}</strong></td>
+                            <td class="text-right"><strong>R{{ number_format($quote->total, 2) }}</strong></td>
                         </tr>
                     </table>
                 </div>
@@ -181,10 +181,10 @@
         </div>
         @endif
 
-        @if($quote->expiry_date)
+        @if($quote->expires_at)
         <div class="section">
             <p style="color: #666; font-size: 14px;">
-                <strong>Valid until:</strong> {{ $quote->expiry_date->format('d M Y') }}
+                <strong>Valid until:</strong> {{ $quote->expires_at->format('d M Y') }}
             </p>
         </div>
         @endif
@@ -196,9 +196,9 @@
         <p>If you have any questions about this quote, please don't hesitate to contact us.</p>
 
         <div class="footer">
-            <p>{{ $siteSettings['company_name'] ?? 'Concreto' }}</p>
-            <p>{{ $siteSettings['contact_email'] ?? '' }} | {{ $siteSettings['contact_phone'] ?? '' }}</p>
-            <p>{{ $siteSettings['contact_address'] ?? '' }}</p>
+            <p>{{ $settings['company_name'] ?? 'Concreto' }}</p>
+            <p>{{ $settings['contact_email'] ?? '' }} | {{ $settings['contact_phone'] ?? '' }}</p>
+            <p>{{ $settings['contact_address'] ?? '' }}</p>
         </div>
     </div>
 </body>

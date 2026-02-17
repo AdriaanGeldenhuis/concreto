@@ -163,9 +163,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff', 
     Route::put('/customers/{customer}/contact', [Admin\CustomerController::class, 'updateContact'])->name('customers.update-contact');
 
     Route::get('/quotes', [Admin\QuoteController::class, 'index'])->name('quotes.index');
+    Route::get('/quotes/export', [Admin\QuoteController::class, 'export'])->name('quotes.export');
     Route::get('/quotes/create', [Admin\QuoteController::class, 'create'])->name('quotes.create');
     Route::post('/quotes', [Admin\QuoteController::class, 'store'])->name('quotes.store');
     Route::get('/quotes/{quote}', [Admin\QuoteController::class, 'show'])->name('quotes.show');
+    Route::get('/quotes/{quote}/edit', [Admin\QuoteController::class, 'edit'])->name('quotes.edit');
+    Route::put('/quotes/{quote}', [Admin\QuoteController::class, 'update'])->name('quotes.update');
     Route::post('/quotes/{quote}/send', [Admin\QuoteController::class, 'send'])->name('quotes.send');
     Route::get('/quotes/{quote}/pdf', [Admin\QuoteController::class, 'downloadPdf'])->name('quotes.pdf');
     Route::post('/quotes/{quote}/convert', [Admin\QuoteController::class, 'convertToOrder'])->name('quotes.convert');
