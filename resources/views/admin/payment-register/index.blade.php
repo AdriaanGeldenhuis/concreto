@@ -150,7 +150,7 @@
                                     @endif
                                 </td>
                                 <td>
-                                    @if($payment->order?->customer?.user)
+                                    @if($payment->order?->customer?->user)
                                         <a href="{{ route('admin.customers.show', $payment->order->customer) }}">
                                             {{ $payment->order->customer->user->name }}
                                         </a>
