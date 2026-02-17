@@ -10,7 +10,7 @@ class BankAccountController extends Controller
 {
     public function index()
     {
-        $accounts = BankAccount::withCount('transactions')
+        $accounts = BankAccount::withCount(['transactions', 'importBatches'])
             ->withMax('importBatches', 'created_at')
             ->orderBy('is_primary', 'desc')
             ->orderBy('account_name')

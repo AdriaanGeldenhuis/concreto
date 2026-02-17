@@ -44,6 +44,14 @@ class BankReconciliationController extends Controller
             $query->whereRaw('ABS(amount) <= ?', [$request->amount_max]);
         }
 
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('description', 'like', "%{$search}%")
+                  ->orWhere('reference', 'like', "%{$search}%");
+            });
+        }
+
         // Tab-specific filtering
         $transactions = match ($tab) {
             'review' => (clone $query)->where('reconciliation_status', 'matched')
@@ -259,11 +267,14 @@ class BankReconciliationController extends Controller
             });
         }
 
+        // Order by amount closeness when amount is provided, show exact + near matches
         if ($amount) {
-            $query->whereRaw('ABS(amount - ?) < 0.01', [$amount]);
+            $query->orderByRaw('ABS(amount - ?) ASC', [$amount]);
+        } else {
+            $query->orderBy('created_at', 'desc');
         }
 
-        $payments = $query->orderBy('created_at', 'desc')->limit(20)->get();
+        $payments = $query->limit(20)->get();
 
         return response()->json($payments->map(fn($p) => [
             'id' => $p->id,

@@ -90,7 +90,7 @@
             <a href="{{ route('admin.email-templates.index') }}" class="{{ request()->routeIs('admin.email-templates*') ? 'active' : '' }}">&#9993; Email Templates</a>
             <div class="sidebar-section">Banking</div>
             <a href="{{ route('admin.bank-accounts.index') }}" class="{{ request()->routeIs('admin.bank-accounts*') ? 'active' : '' }}">&#127974; Bank Accounts</a>
-            <a href="{{ route('admin.bank-reconciliation.index') }}" class="{{ request()->routeIs('admin.bank-reconciliation.index') ? 'active' : '' }}">&#128260; Reconciliation</a>
+            <a href="{{ route('admin.bank-reconciliation.index') }}" class="{{ request()->routeIs('admin.bank-reconciliation.index') || request()->routeIs('admin.bank-reconciliation.match*') || request()->routeIs('admin.bank-reconciliation.auto*') || request()->routeIs('admin.bank-reconciliation.search*') ? 'active' : '' }}">&#128260; Reconciliation</a>
             <a href="{{ route('admin.bank-reconciliation.statement') }}" class="{{ request()->routeIs('admin.bank-reconciliation.statement*') ? 'active' : '' }}">&#128209; Recon Statement</a>
             <a href="{{ route('admin.bank-reconciliation.rules.index') }}" class="{{ request()->routeIs('admin.bank-reconciliation.rules*') ? 'active' : '' }}">&#128295; Recon Rules</a>
             <div class="sidebar-section">Finance</div>
