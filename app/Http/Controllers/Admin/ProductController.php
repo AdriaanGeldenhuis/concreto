@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
+use App\Models\BulkPricingTier;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Request;
@@ -49,6 +50,10 @@ class ProductController extends Controller
 
         unset($data['image']);
         $product = Product::create($data);
+
+        // Save bulk pricing tiers
+        $this->saveBulkTiers($product, $request->input('tiers', []));
+
         AuditLog::log('created', 'Product', $product->id);
 
         return redirect()->route('admin.products.index')->with('success', 'Product created.');
@@ -56,6 +61,7 @@ class ProductController extends Controller
 
     public function edit(Product $product)
     {
+        $product->load('bulkPricingTiers');
         $categories = Category::where('is_active', true)->orderBy('name')->get();
         return view('admin.products.form', compact('product', 'categories'));
     }
@@ -86,6 +92,10 @@ class ProductController extends Controller
 
         unset($data['image']);
         $product->update($data);
+
+        // Save bulk pricing tiers
+        $this->saveBulkTiers($product, $request->input('tiers', []));
+
         AuditLog::log('updated', 'Product', $product->id);
 
         return redirect()->route('admin.products.index')->with('success', 'Product updated.');
@@ -96,5 +106,22 @@ class ProductController extends Controller
         AuditLog::log('deleted', 'Product', $product->id, ['name' => $product->name]);
         $product->delete();
         return back()->with('success', 'Product deleted.');
+    }
+
+    private function saveBulkTiers(Product $product, array $tiers): void
+    {
+        // Delete existing tiers and recreate
+        $product->bulkPricingTiers()->delete();
+
+        foreach ($tiers as $tier) {
+            if (empty($tier['min_qty']) || empty($tier['price'])) continue;
+
+            BulkPricingTier::create([
+                'product_id' => $product->id,
+                'min_qty' => $tier['min_qty'],
+                'max_qty' => !empty($tier['max_qty']) ? $tier['max_qty'] : null,
+                'price' => $tier['price'],
+            ]);
+        }
     }
 }
