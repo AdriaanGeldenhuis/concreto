@@ -57,12 +57,17 @@
                         <option value="staff" {{ old('role', $user->role ?? '') == 'staff' ? 'selected' : '' }}>Staff</option>
                         <option value="admin" {{ old('role', $user->role ?? '') == 'admin' ? 'selected' : '' }}>Admin</option>
                     </select>
-                    <div class="form-hint">Admins have full access. Staff can manage orders and products. Drivers can view assigned deliveries.</div>
+                    <div class="form-hint">Admins have full access. Staff can view/manage orders, quotes, customers, and reports but cannot access settings, user management, driver salary, promo codes, or financial exports.</div>
                 </div>
                 <div class="form-check">
                     <input type="checkbox" name="is_active" value="1" id="is_active" {{ old('is_active', $user->is_active ?? true) ? 'checked' : '' }}>
                     <label for="is_active">Active</label>
                 </div>
+                <div class="form-check" style="margin-top: 0.5rem;">
+                    <input type="checkbox" name="two_factor_enabled" value="1" id="two_factor_enabled" {{ old('two_factor_enabled', $user->two_factor_enabled ?? false) ? 'checked' : '' }}>
+                    <label for="two_factor_enabled">Enable Two-Factor Authentication (email code on login)</label>
+                </div>
+                <div class="form-hint">Staff and admin roles should have 2FA enabled. When enabled, a 6-digit code is emailed on each login.</div>
             </div>
         </div>
 

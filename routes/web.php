@@ -59,6 +59,13 @@ Route::middleware(['guest', 'throttle:login'])->group(function () {
 });
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
 
+// Two-Factor Authentication
+Route::middleware('auth')->group(function () {
+    Route::get('/two-factor/challenge', [\App\Http\Controllers\Auth\TwoFactorController::class, 'challenge'])->name('two-factor.challenge');
+    Route::post('/two-factor/verify', [\App\Http\Controllers\Auth\TwoFactorController::class, 'verify'])->name('two-factor.verify');
+    Route::post('/two-factor/resend', [\App\Http\Controllers\Auth\TwoFactorController::class, 'resend'])->name('two-factor.resend');
+});
+
 // Customer portal
 Route::prefix('customer')->name('customer.')->middleware(['auth', 'role:customer'])->group(function () {
     Route::get('/', [Customer\DashboardController::class, 'index'])->name('dashboard');
@@ -123,7 +130,7 @@ Route::prefix('driver')->name('driver.')->middleware(['auth', 'role:driver'])->g
 });
 
 // Admin backend
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff', 'staff.permission'])->group(function () {
     Route::get('/', [Admin\DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/orders', [Admin\OrderController::class, 'index'])->name('orders.index');
