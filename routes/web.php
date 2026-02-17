@@ -259,6 +259,32 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff', 
 
     // Reconciliation Rules
     Route::resource('bank-reconciliation/rules', Admin\BankReconciliationRuleController::class, ['as' => 'bank-reconciliation'])->except(['show']);
+
+    // Recurring Orders
+    Route::get('/recurring-orders', [Admin\RecurringOrderController::class, 'index'])->name('recurring-orders.index');
+    Route::get('/recurring-orders/export', [Admin\RecurringOrderController::class, 'export'])->name('recurring-orders.export');
+    Route::get('/recurring-orders/{recurringOrder}', [Admin\RecurringOrderController::class, 'show'])->name('recurring-orders.show');
+    Route::post('/recurring-orders/{recurringOrder}/pause', [Admin\RecurringOrderController::class, 'pause'])->name('recurring-orders.pause');
+    Route::post('/recurring-orders/{recurringOrder}/resume', [Admin\RecurringOrderController::class, 'resume'])->name('recurring-orders.resume');
+    Route::put('/recurring-orders/{recurringOrder}/frequency', [Admin\RecurringOrderController::class, 'updateFrequency'])->name('recurring-orders.update-frequency');
+
+    // Order Templates
+    Route::get('/order-templates', [Admin\OrderTemplateController::class, 'index'])->name('order-templates.index');
+    Route::get('/order-templates/{orderTemplate}', [Admin\OrderTemplateController::class, 'show'])->name('order-templates.show');
+    Route::delete('/order-templates/{orderTemplate}', [Admin\OrderTemplateController::class, 'destroy'])->name('order-templates.destroy');
+
+    // Notification & Email Logs
+    Route::get('/notification-logs', [Admin\NotificationLogController::class, 'index'])->name('notification-logs.index');
+    Route::get('/notification-logs/export', [Admin\NotificationLogController::class, 'export'])->name('notification-logs.export');
+
+    // Invoice Reminders
+    Route::get('/invoice-reminders', [Admin\InvoiceReminderController::class, 'index'])->name('invoice-reminders.index');
+    Route::post('/invoice-reminders/{invoice}/send', [Admin\InvoiceReminderController::class, 'send'])->name('invoice-reminders.send');
+    Route::post('/invoice-reminders/send-bulk', [Admin\InvoiceReminderController::class, 'sendBulk'])->name('invoice-reminders.send-bulk');
+
+    // Staff Permissions
+    Route::get('/staff-permissions', [Admin\StaffPermissionController::class, 'index'])->name('staff-permissions.index');
+    Route::put('/staff-permissions/{user}', [Admin\StaffPermissionController::class, 'update'])->name('staff-permissions.update');
 });
 
 // Health check (no auth)

@@ -99,9 +99,15 @@
             <a href="{{ route('admin.vat-report.index') }}" class="{{ request()->routeIs('admin.vat-report*') ? 'active' : '' }}">&#128200; VAT Report</a>
             <a href="{{ route('admin.profit-loss.index') }}" class="{{ request()->routeIs('admin.profit-loss*') ? 'active' : '' }}">&#128178; Profit & Loss</a>
             <a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports*') ? 'active' : '' }}">&#128202; Reports</a>
+            <div class="sidebar-section">Automation</div>
+            <a href="{{ route('admin.recurring-orders.index') }}" class="{{ request()->routeIs('admin.recurring-orders*') ? 'active' : '' }}">&#128260; Recurring Orders</a>
+            <a href="{{ route('admin.order-templates.index') }}" class="{{ request()->routeIs('admin.order-templates*') ? 'active' : '' }}">&#128203; Order Templates</a>
+            <a href="{{ route('admin.invoice-reminders.index') }}" class="{{ request()->routeIs('admin.invoice-reminders*') ? 'active' : '' }}">&#128276; Invoice Reminders</a>
             <div class="sidebar-section">System</div>
             <a href="{{ route('admin.settings.index') }}" class="{{ request()->routeIs('admin.settings*') ? 'active' : '' }}">&#9881; Settings</a>
             <a href="{{ route('admin.audit-logs.index') }}" class="{{ request()->routeIs('admin.audit-logs*') ? 'active' : '' }}">&#9201; Audit Log</a>
+            <a href="{{ route('admin.notification-logs.index') }}" class="{{ request()->routeIs('admin.notification-logs*') ? 'active' : '' }}">&#128172; Notification Logs</a>
+            <a href="{{ route('admin.staff-permissions.index') }}" class="{{ request()->routeIs('admin.staff-permissions*') ? 'active' : '' }}">&#128274; Staff Permissions</a>
             <div style="padding: 1rem 1.25rem; margin-top: auto; border-top: 1px solid rgba(255,255,255,0.08);">
                 <a href="{{ route('home') }}" style="margin-bottom: 0.25rem;">&#8592; View Site</a>
                 <form method="POST" action="{{ route('logout') }}">
