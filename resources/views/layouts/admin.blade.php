@@ -87,7 +87,8 @@
             <div class="sidebar-section">Communication</div>
             <a href="{{ route('admin.messages.index') }}" class="{{ request()->routeIs('admin.messages*') ? 'active' : '' }}">&#9993; Messages</a>
             <a href="{{ route('admin.email-templates.index') }}" class="{{ request()->routeIs('admin.email-templates*') ? 'active' : '' }}">&#9993; Email Templates</a>
-            <div class="sidebar-section">Reports</div>
+            <div class="sidebar-section">Finance</div>
+            <a href="{{ route('admin.accounts-receivable.index') }}" class="{{ request()->routeIs('admin.accounts-receivable*') ? 'active' : '' }}">&#128176; Accounts Receivable</a>
             <a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports*') ? 'active' : '' }}">&#128202; Reports</a>
             <div class="sidebar-section">System</div>
             <a href="{{ route('admin.settings.index') }}" class="{{ request()->routeIs('admin.settings*') ? 'active' : '' }}">&#9881; Settings</a>

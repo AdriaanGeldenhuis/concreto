@@ -177,6 +177,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff'])
     Route::put('/delivery-areas/{deliveryArea}', [Admin\DeliveryAreaController::class, 'update'])->name('delivery-areas.update');
     Route::delete('/delivery-areas/{deliveryArea}', [Admin\DeliveryAreaController::class, 'destroy'])->name('delivery-areas.destroy');
 
+    // Accounts Receivable
+    Route::get('/accounts-receivable', [Admin\AccountsReceivableController::class, 'index'])->name('accounts-receivable.index');
+    Route::get('/accounts-receivable/export', [Admin\AccountsReceivableController::class, 'export'])->name('accounts-receivable.export');
+    Route::get('/accounts-receivable/{customer}/statement', [Admin\AccountsReceivableController::class, 'statement'])->name('accounts-receivable.statement');
+    Route::post('/accounts-receivable/{customer}/email-statement', [Admin\AccountsReceivableController::class, 'emailStatement'])->name('accounts-receivable.email-statement');
+
     // Reports & Export
     Route::get('/reports', [Admin\ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/export', [Admin\ReportController::class, 'export'])->name('reports.export');
