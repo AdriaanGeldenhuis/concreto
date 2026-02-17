@@ -114,7 +114,10 @@
                 <div class="why-choose-item" style="--i:0">
                     <div class="why-choose-card">
                         <div class="why-choose-icon-wrap">
-                            <div class="why-choose-circle"><img src="/assets/WhyChooseUs deliveryImage.webp" alt="Fast Delivery"></div>
+                            <div class="why-choose-circle">
+                                {{-- Truck / delivery icon --}}
+                                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                            </div>
                             <span class="why-choose-number">01</span>
                         </div>
                         <h3>Fast Delivery</h3>
@@ -125,7 +128,10 @@
                 <div class="why-choose-item" style="--i:1">
                     <div class="why-choose-card">
                         <div class="why-choose-icon-wrap">
-                            <div class="why-choose-circle"><img src="/assets/whyChooseUs FairPricing.webp" alt="Fair Pricing"></div>
+                            <div class="why-choose-circle">
+                                {{-- Price tag icon --}}
+                                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                            </div>
                             <span class="why-choose-number">02</span>
                         </div>
                         <h3>Fair Pricing</h3>
@@ -136,7 +142,10 @@
                 <div class="why-choose-item" style="--i:2">
                     <div class="why-choose-card">
                         <div class="why-choose-icon-wrap">
-                            <div class="why-choose-circle"><img src="/assets/WhyChooseUs QualityMaterials.webp" alt="Quality Materials"></div>
+                            <div class="why-choose-circle">
+                                {{-- Shield / quality icon --}}
+                                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+                            </div>
                             <span class="why-choose-number">03</span>
                         </div>
                         <h3>Quality Materials</h3>
@@ -147,7 +156,10 @@
                 <div class="why-choose-item" style="--i:3">
                     <div class="why-choose-card">
                         <div class="why-choose-icon-wrap">
-                            <div class="why-choose-circle"><img src="/assets/WhyChooseUs ExpertSupport.webp" alt="Expert Support"></div>
+                            <div class="why-choose-circle">
+                                {{-- Headset / support icon --}}
+                                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+                            </div>
                             <span class="why-choose-number">04</span>
                         </div>
                         <h3>Expert Support</h3>

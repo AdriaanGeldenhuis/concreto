@@ -796,10 +796,19 @@ tr:last-child td { border-bottom:none; }
 .why-choose-circle img {
     width:100%; height:100%; object-fit:cover; border-radius:50%;
 }
+.why-choose-circle svg {
+    color:var(--primary); transition:color 0.4s ease, filter 0.4s ease;
+    filter:drop-shadow(0 0 8px rgba(249,115,22,0.3));
+}
+.why-choose-card:hover .why-choose-circle svg {
+    color:#fff;
+    filter:drop-shadow(0 0 14px rgba(249,115,22,0.5));
+}
 .why-choose-card:hover .why-choose-circle {
     transform:scale(1.08);
     box-shadow:0 8px 32px rgba(249,115,22,0.25);
     border-color:rgba(249,115,22,0.5);
+    background:linear-gradient(145deg, rgba(249,115,22,0.3) 0%, rgba(249,115,22,0.1) 100%);
 }
 .why-choose-number {
     position:absolute; top:-4px; right:-8px;
