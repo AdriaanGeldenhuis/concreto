@@ -73,6 +73,7 @@
             <div class="sidebar-section">Catalog</div>
             <a href="{{ route('admin.products.index') }}" class="{{ request()->routeIs('admin.products*') ? 'active' : '' }}">&#9733; Products</a>
             <a href="{{ route('admin.categories.index') }}" class="{{ request()->routeIs('admin.categories*') ? 'active' : '' }}">&#9776; Categories</a>
+            <a href="{{ route('admin.product-analytics.index') }}" class="{{ request()->routeIs('admin.product-analytics*') ? 'active' : '' }}">&#128200; Product Analytics</a>
             <div class="sidebar-section">People</div>
             <a href="{{ route('admin.customers.index') }}" class="{{ request()->routeIs('admin.customers*') ? 'active' : '' }}">&#9786; Customers</a>
             <a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users*') ? 'active' : '' }}">&#9998; Users</a>

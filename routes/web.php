@@ -144,8 +144,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff', 
     Route::post('/orders/{order}/resend-invoice', [Admin\OrderController::class, 'resendInvoice'])->name('orders.resend-invoice');
     Route::post('/orders/{order}/record-payment', [Admin\OrderController::class, 'recordPayment'])->name('orders.record-payment');
     Route::post('/orders/{order}/refund', [Admin\OrderController::class, 'refund'])->name('orders.refund');
+    Route::post('/orders/bulk-assign-driver', [Admin\OrderController::class, 'bulkAssignDriver'])->name('orders.bulk-assign-driver');
+    Route::post('/orders/bulk-update-status', [Admin\OrderController::class, 'bulkUpdateStatus'])->name('orders.bulk-update-status');
 
     Route::resource('products', Admin\ProductController::class)->except(['show']);
+    Route::get('/product-analytics', [Admin\ProductAnalyticsController::class, 'index'])->name('product-analytics.index');
     Route::resource('categories', Admin\CategoryController::class)->except(['show', 'create', 'edit']);
 
     Route::get('/customers', [Admin\CustomerController::class, 'index'])->name('customers.index');

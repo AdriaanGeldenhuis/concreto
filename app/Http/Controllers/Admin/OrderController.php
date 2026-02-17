@@ -58,7 +58,6 @@ class OrderController extends Controller
             return back()->withInput()->with('error', $e->getMessage());
         }
 
-        // If admin pre-selected a driver, assign immediately
         if ($request->filled('driver_id')) {
             try {
                 $this->orderService->assignDriver($order, $request->driver_id);
@@ -95,10 +94,35 @@ class OrderController extends Controller
             });
         }
 
+        // Advanced filters
+        if ($request->filled('driver_id')) {
+            $query->where('driver_id', $request->driver_id);
+        }
+        if ($request->filled('payment_status')) {
+            if ($request->payment_status === 'paid') {
+                $query->whereHas('payments', fn($q) => $q->where('status', 'completed'));
+            } elseif ($request->payment_status === 'unpaid') {
+                $query->whereDoesntHave('payments', fn($q) => $q->where('status', 'completed'));
+            }
+        }
+        if ($request->filled('from')) {
+            $query->whereDate('created_at', '>=', $request->from);
+        }
+        if ($request->filled('to')) {
+            $query->whereDate('created_at', '<=', $request->to);
+        }
+        if ($request->filled('min_total')) {
+            $query->where('total', '>=', $request->min_total);
+        }
+        if ($request->filled('max_total')) {
+            $query->where('total', '<=', $request->max_total);
+        }
+
         $orders = $query->orderBy('created_at', 'desc')->paginate(20);
         $statuses = Order::STATUSES;
+        $drivers = User::where('role', 'driver')->where('is_active', true)->orderBy('name')->get();
 
-        return view('admin.orders.index', compact('orders', 'statuses'));
+        return view('admin.orders.index', compact('orders', 'statuses', 'drivers'));
     }
 
     public function show(Order $order)
@@ -212,7 +236,6 @@ class OrderController extends Controller
             'provider' => $request->provider,
         ]);
 
-        // If the order is pending payment and the amount covers the total, mark as placed
         if ($order->status === 'PENDING_PAYMENT') {
             $totalPaid = $order->payments()->where('status', 'completed')->sum('amount');
             if ($totalPaid >= (float) $order->total) {
@@ -251,7 +274,6 @@ class OrderController extends Controller
             'reason' => $request->reason,
         ]);
 
-        // Optionally update order status to REFUNDED
         if ($request->boolean('mark_refunded') && $order->canTransitionTo('REFUNDED')) {
             $order->update(['status' => 'REFUNDED']);
         } elseif ($request->boolean('mark_refunded')) {
@@ -259,5 +281,71 @@ class OrderController extends Controller
         }
 
         return back()->with('success', 'Refund of R' . number_format($request->amount, 2) . ' processed.');
+    }
+
+    public function bulkAssignDriver(Request $request)
+    {
+        $request->validate([
+            'order_ids' => 'required|array|min:1',
+            'order_ids.*' => 'exists:orders,id',
+            'driver_id' => 'required|exists:users,id',
+        ]);
+
+        $driver = User::findOrFail($request->driver_id);
+        if ($driver->role !== 'driver') {
+            return back()->with('error', 'Selected user is not a driver.');
+        }
+
+        $assigned = 0;
+        $failed = 0;
+
+        foreach ($request->order_ids as $orderId) {
+            $order = Order::find($orderId);
+            try {
+                $this->orderService->assignDriver($order, $driver->id);
+                $assigned++;
+            } catch (\Exception $e) {
+                $failed++;
+            }
+        }
+
+        AuditLog::log('bulk_assign_driver', 'Order', null, [
+            'driver_id' => $driver->id,
+            'assigned' => $assigned,
+            'failed' => $failed,
+        ]);
+
+        return back()->with('success', "Bulk assign: {$assigned} orders assigned to {$driver->name}" . ($failed > 0 ? ", {$failed} failed" : '') . '.');
+    }
+
+    public function bulkUpdateStatus(Request $request)
+    {
+        $request->validate([
+            'order_ids' => 'required|array|min:1',
+            'order_ids.*' => 'exists:orders,id',
+            'status' => 'required|in:' . implode(',', Order::STATUSES),
+            'reason' => 'nullable|string|max:1000',
+        ]);
+
+        $updated = 0;
+        $failed = 0;
+
+        foreach ($request->order_ids as $orderId) {
+            $order = Order::find($orderId);
+            try {
+                $this->orderService->updateStatus($order, $request->status, $request->reason);
+                $updated++;
+            } catch (\Exception $e) {
+                $failed++;
+            }
+        }
+
+        AuditLog::log('bulk_status_update', 'Order', null, [
+            'status' => $request->status,
+            'updated' => $updated,
+            'failed' => $failed,
+        ]);
+
+        return back()->with('success', "Bulk update: {$updated} orders updated to {$request->status}" . ($failed > 0 ? ", {$failed} couldn't transition" : '') . '.');
     }
 }
