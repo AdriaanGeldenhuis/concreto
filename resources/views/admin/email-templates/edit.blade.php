@@ -1,40 +1,35 @@
 @extends('layouts.admin')
+@section('title', 'Edit Email Template')
 
 @section('content')
-<div class="container-fluid py-4">
-    <div class="row">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3 class="text-light">Edit Email Template: {{ $label }}</h3>
-                <a href="{{ route('admin.email-templates.index') }}" class="btn btn-secondary">Back to Templates</a>
-            </div>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">Edit Template: {{ $label }}</h1>
+            <small class="text-muted">Template key: <code>{{ $key }}</code>. This is a Blade template file that supports HTML and Blade directives.</small>
         </div>
+        <a href="{{ route('admin.email-templates.index') }}" class="btn btn-secondary">Back to Templates</a>
     </div>
 
     <div class="row">
-        <div class="col-12">
-            <div class="card bg-dark text-light">
-                <div class="card-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Template: <code>{{ $key }}</code></h5>
-                    </div>
-                </div>
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header"><h5 class="mb-0">Template Content</h5></div>
                 <div class="card-body">
                     <form action="{{ route('admin.email-templates.update') }}" method="POST">
                         @csrf
                         <input type="hidden" name="template" value="{{ $key }}">
 
                         <div class="mb-3">
-                            <label for="content" class="form-label">Template Content</label>
                             <textarea
-                                class="form-control bg-dark text-light border-secondary font-monospace"
+                                class="form-control font-monospace"
                                 id="content"
                                 name="content"
-                                rows="25"
-                                style="font-size: 0.875rem;"
+                                rows="28"
+                                style="font-size: 0.8125rem; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);"
                                 required>{{ $content }}</textarea>
-                            <small class="form-text text-muted">
-                                This is a Blade template file. You can use HTML, Blade directives, and template variables.
+                            <small class="text-muted mt-1 d-block">
+                                A backup of the previous version is saved automatically before each update.
                             </small>
                         </div>
 
@@ -46,38 +41,47 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card bg-dark text-light">
-                <div class="card-header">
-                    <h6 class="mb-0">Template Variables Guide</h6>
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header"><h5 class="mb-0">Blade Syntax</h5></div>
+                <div class="card-body" style="font-size: 0.85rem;">
+                    <ul class="mb-0">
+                        <li class="mb-1"><code>@{{ $variable }}</code> - Echo variable (escaped)</li>
+                        <li class="mb-1"><code>{!! $html !!}</code> - Echo raw HTML</li>
+                        <li class="mb-1"><code>@@if($condition) ... @@endif</code> - Conditional</li>
+                        <li class="mb-1"><code>@@foreach($items as $item) ... @@endforeach</code> - Loop</li>
+                        <li class="mb-1"><code>@@include('partial')</code> - Include partial</li>
+                        <li class="mb-1"><code>number_format($val, 2)</code> - Format number</li>
+                    </ul>
                 </div>
-                <div class="card-body">
-                    <p class="small text-muted">Common Blade syntax and variables:</p>
+            </div>
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6 class="text-light">Blade Directives:</h6>
-                            <ul class="small font-monospace">
-                                <li><code>@{{ $variable }}</code> - Echo variable</li>
-                                <li><code>@@if($condition) ... @@endif</code> - Conditional</li>
-                                <li><code>@@foreach($items as $item) ... @@endforeach</code> - Loop</li>
-                                <li><code>@@include('partial')</code> - Include partial</li>
-                            </ul>
-                        </div>
-                        <div class="col-md-6">
-                            <h6 class="text-light">Common Variables:</h6>
-                            <ul class="small font-monospace">
-                                <li><code>@{{ $user->name }}</code> - User's name</li>
-                                <li><code>@{{ $order->id }}</code> - Order ID</li>
-                                <li><code>@{{ $order->total }}</code> - Order total</li>
-                                <li><code>@{{ $quote->id }}</code> - Quote ID</li>
-                                <li><code>@{{ config('app.name') }}</code> - App name</li>
-                            </ul>
-                        </div>
-                    </div>
+            <div class="card mt-3">
+                <div class="card-header"><h5 class="mb-0">Available Variables</h5></div>
+                <div class="card-body" style="font-size: 0.85rem;">
+                    <h6>Customer</h6>
+                    <ul>
+                        <li><code>$user->name</code></li>
+                        <li><code>$user->email</code></li>
+                    </ul>
+                    <h6>Order</h6>
+                    <ul>
+                        <li><code>$order->order_number</code></li>
+                        <li><code>$order->total</code></li>
+                        <li><code>$order->status</code></li>
+                    </ul>
+                    <h6>Invoice</h6>
+                    <ul>
+                        <li><code>$invoice->invoice_no</code></li>
+                        <li><code>$invoice->total_incl</code></li>
+                    </ul>
+                    <h6>System</h6>
+                    <ul class="mb-0">
+                        <li><code>config('app.name')</code></li>
+                        <li><code>$siteSettings['company_name']</code></li>
+                        <li><code>$siteSettings['contact_phone']</code></li>
+                    </ul>
                 </div>
             </div>
         </div>
