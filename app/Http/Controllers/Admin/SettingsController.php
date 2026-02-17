@@ -76,6 +76,7 @@ class SettingsController extends Controller
             AuditLog::log('updated', 'Setting', null, $changed);
         }
 
-        return back()->with('success', 'Settings saved.');
+        return back()->with('success', 'Settings saved.')
+            ->with('_active_tab', $request->input('_active_tab', 'branding'));
     }
 }

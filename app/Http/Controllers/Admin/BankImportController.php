@@ -17,6 +17,8 @@ class BankImportController extends Controller
 
     public function show(BankAccount $bankAccount)
     {
+        $bankAccount->load('importBatches');
+
         return view('admin.bank-accounts.import', compact('bankAccount'));
     }
 

@@ -4,9 +4,13 @@
 @section('content')
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">Bank Reconciliation Statement</h1>
+        <div>
+            <h1 class="h3 mb-1">Bank Reconciliation Statement</h1>
+            <small class="text-muted">Compare bank balance against system book balance to identify discrepancies.</small>
+        </div>
         <div class="d-flex gap-2">
             @if($statement)
+                <button onclick="window.print();" class="btn btn-secondary">Print</button>
                 <a href="{{ route('admin.bank-reconciliation.statement.export', ['account' => $accountId, 'from' => $from, 'to' => $to]) }}" class="btn btn-primary">
                     Export CSV
                 </a>
@@ -18,7 +22,7 @@
     <!-- Period Selector -->
     <div class="card mb-4">
         <div class="card-body">
-            <form method="GET" action="{{ route('admin.bank-reconciliation.statement') }}" class="row g-3">
+            <form method="GET" action="{{ route('admin.bank-reconciliation.statement') }}" class="row g-3 align-items-end">
                 <div class="col-md-3">
                     <label class="form-label">Bank Account *</label>
                     <select name="account" class="form-select" required>
@@ -36,7 +40,7 @@
                     <label class="form-label">To</label>
                     <input type="date" name="to" class="form-control" value="{{ $to }}">
                 </div>
-                <div class="col-md-3 d-flex align-items-end">
+                <div class="col-md-3">
                     <button type="submit" class="btn btn-primary">Generate</button>
                 </div>
             </form>
@@ -44,12 +48,30 @@
     </div>
 
     @if($statement)
+        {{-- Account header --}}
+        <div class="card mb-4">
+            <div class="card-body py-2" style="font-size: 0.9rem;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>{{ $statement['account']->account_name }}</strong>
+                        &middot; {{ $statement['account']->bank_name }}
+                        &middot; {{ ucfirst($statement['account']->account_type) }}
+                        &middot; {{ $statement['account']->display_account_number }}
+                    </div>
+                    <small class="text-muted">
+                        Generated {{ now()->format('d M Y H:i') }}
+                    </small>
+                </div>
+            </div>
+        </div>
+
         <div class="row mb-4">
             <div class="col-md-3">
                 <div class="card">
                     <div class="card-body">
                         <small class="text-muted d-block">Bank Balance</small>
                         <h4 class="mb-0">R {{ number_format($statement['closing_bank_balance'], 2) }}</h4>
+                        <small class="text-muted">Per statement</small>
                     </div>
                 </div>
             </div>
@@ -58,6 +80,7 @@
                     <div class="card-body">
                         <small class="text-muted d-block">Book Balance</small>
                         <h4 class="mb-0">R {{ number_format($statement['book_balance'], 2) }}</h4>
+                        <small class="text-muted">Per system</small>
                     </div>
                 </div>
             </div>
@@ -76,6 +99,9 @@
                         <h4 class="mb-0 fw-bold {{ $statement['difference'] == 0 ? 'text-success' : 'text-danger' }}">
                             R {{ number_format($statement['difference'], 2) }}
                         </h4>
+                        <small class="{{ $statement['difference'] == 0 ? 'text-success' : 'text-danger' }}">
+                            {{ $statement['difference'] == 0 ? 'Balanced' : 'Unreconciled' }}
+                        </small>
                     </div>
                 </div>
             </div>
@@ -84,7 +110,7 @@
         <!-- Statement Table -->
         <div class="card mb-4">
             <div class="card-header">
-                <h5 class="mb-0">Reconciliation Statement — {{ $statement['account']->account_name }}</h5>
+                <h5 class="mb-0">Reconciliation Statement</h5>
                 <small class="text-muted">
                     Period: {{ \Carbon\Carbon::parse($from)->format('d M Y') }} to {{ \Carbon\Carbon::parse($to)->format('d M Y') }}
                 </small>
@@ -162,7 +188,7 @@
                         @else
                             <tr style="background: #f8d7da;">
                                 <td colspan="2" class="text-center text-danger">
-                                    <small>There are unreconciled items. Review unmatched transactions.</small>
+                                    <small>There are unreconciled items. <a href="{{ route('admin.bank-reconciliation.index', ['account' => $accountId, 'from' => $from, 'to' => $to]) }}">Review unmatched transactions</a>.</small>
                                 </td>
                             </tr>
                         @endif
@@ -173,7 +199,9 @@
     @else
         <div class="card">
             <div class="card-body text-center py-5">
-                <p class="text-muted">Select a bank account and date range to generate a reconciliation statement.</p>
+                <div style="font-size: 3rem; opacity: 0.3; margin-bottom: 1rem;">&#128209;</div>
+                <h5 class="text-muted">No statement generated</h5>
+                <p class="text-muted">Select a bank account and date range above, then click Generate.</p>
             </div>
         </div>
     @endif

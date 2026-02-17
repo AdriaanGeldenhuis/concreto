@@ -4,7 +4,10 @@
 @section('content')
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">Reconciliation Rules</h1>
+        <div>
+            <h1 class="h3 mb-1">Reconciliation Rules</h1>
+            <small class="text-muted">Define rules to auto-categorise or auto-exclude recurring bank transactions like fees, salaries, and transfers.</small>
+        </div>
         <a href="{{ route('admin.bank-reconciliation.index') }}" class="btn btn-secondary">Back to Reconciliation</a>
     </div>
 
@@ -56,7 +59,7 @@
                     <div class="col-md-3">
                         <label class="form-label">Category *</label>
                         <select name="category" class="form-select" required>
-                            @foreach(['bank_fee' => 'Bank Fee', 'salary' => 'Salary', 'supplier' => 'Supplier', 'yoco_settlement' => 'Yoco Settlement', 'transfer' => 'Transfer', 'other' => 'Other'] as $val => $label)
+                            @foreach(['bank_fee' => 'Bank Fee', 'salary' => 'Salary', 'supplier' => 'Supplier', 'yoco_settlement' => 'Yoco Settlement', 'transfer' => 'Transfer', 'petty_cash' => 'Petty Cash', 'tax' => 'Tax / SARS', 'insurance' => 'Insurance', 'other' => 'Other'] as $val => $label)
                                 <option value="{{ $val }}" {{ old('category') === $val ? 'selected' : '' }}>{{ $label }}</option>
                             @endforeach
                         </select>
@@ -79,7 +82,12 @@
 
     <!-- Existing Rules -->
     <div class="card">
-        <div class="card-header"><h5 class="mb-0">Active Rules ({{ $rules->count() }})</h5></div>
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Active Rules ({{ $rules->count() }})</h5>
+            @if($rules->isNotEmpty())
+                <small class="text-muted">Rules are applied in order during auto-matching.</small>
+            @endif
+        </div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover mb-0" style="font-size: 0.875rem;">
@@ -102,11 +110,11 @@
                                 <td class="fw-bold">{{ $rule->name }}</td>
                                 <td>{{ $rule->bankAccount?->account_name ?? 'All' }}</td>
                                 <td>
-                                    <span class="badge bg-secondary">{{ $rule->match_field }}</span>
-                                    <small class="text-muted">{{ $rule->match_type }}</small>
+                                    <span class="badge bg-secondary">{{ ucfirst($rule->match_field) }}</span>
+                                    <small class="text-muted">{{ str_replace('_', ' ', $rule->match_type) }}</small>
                                 </td>
-                                <td><code>{{ $rule->match_value }}</code></td>
-                                <td><span class="badge bg-info">{{ str_replace('_', ' ', $rule->category) }}</span></td>
+                                <td><code>{{ Str::limit($rule->match_value, 30) }}</code></td>
+                                <td><span class="badge bg-info">{{ ucwords(str_replace('_', ' ', $rule->category)) }}</span></td>
                                 <td>
                                     @php
                                         $actionColors = ['categorise' => 'primary', 'exclude' => 'warning', 'match_customer' => 'success'];
@@ -115,26 +123,30 @@
                                         {{ ucfirst(str_replace('_', ' ', $rule->auto_action)) }}
                                     </span>
                                 </td>
-                                <td class="text-center">{{ number_format($rule->times_applied) }}x</td>
+                                <td class="text-center">
+                                    <span class="{{ $rule->times_applied > 0 ? 'fw-bold' : 'text-muted' }}">
+                                        {{ number_format($rule->times_applied) }}x
+                                    </span>
+                                </td>
                                 <td class="text-center">
                                     <span class="badge bg-{{ $rule->is_active ? 'success' : 'secondary' }}">
                                         {{ $rule->is_active ? 'Yes' : 'No' }}
                                     </span>
                                 </td>
-                                <td class="text-end">
+                                <td class="text-end text-nowrap">
                                     <a href="{{ route('admin.bank-reconciliation.rules.edit', $rule) }}" class="btn btn-secondary btn-sm">Edit</a>
                                     <form method="POST" action="{{ route('admin.bank-reconciliation.rules.destroy', $rule) }}" class="d-inline"
-                                          onsubmit="return confirm('Delete this rule?');">
+                                          onsubmit="return confirm('Delete the rule \'{{ $rule->name }}\'? This cannot be undone.');">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm">Del</button>
+                                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                                     </form>
                                 </td>
                             </tr>
                         @empty
                             <tr>
                                 <td colspan="9" class="text-center text-muted py-4">
-                                    No rules configured. Add a rule above to auto-categorise recurring transactions.
+                                    No rules configured yet. Add a rule above to auto-categorise or exclude recurring bank transactions during auto-matching.
                                 </td>
                             </tr>
                         @endforelse
@@ -148,19 +160,20 @@
     <div class="card mt-4">
         <div class="card-header"><h5 class="mb-0">Suggested Rules</h5></div>
         <div class="card-body" style="font-size: 0.9rem;">
+            <p class="text-muted mb-3">Here are common rules for South African banks. Use them as a starting point:</p>
             <div class="row">
                 <div class="col-md-6">
                     <ul class="mb-0">
-                        <li><strong>Bank fees:</strong> Description contains "MONTHLY SERVICE FEE" or "ADMIN FEE" → category: bank_fee, action: exclude</li>
-                        <li><strong>Salaries:</strong> Description contains "SALARY" → category: salary, action: exclude</li>
-                        <li><strong>Yoco settlements:</strong> Description contains "YOCO" or Reference starts with "YOCO" → category: yoco_settlement, action: categorise</li>
+                        <li class="mb-2"><strong>Bank fees:</strong> Description <em>contains</em> "MONTHLY SERVICE FEE" or "ADMIN FEE" &rarr; Bank Fee, Auto-Exclude</li>
+                        <li class="mb-2"><strong>Salaries:</strong> Description <em>contains</em> "SALARY" &rarr; Salary, Auto-Exclude</li>
+                        <li class="mb-2"><strong>Yoco settlements:</strong> Description <em>contains</em> "YOCO" &rarr; Yoco Settlement, Categorise</li>
                     </ul>
                 </div>
                 <div class="col-md-6">
                     <ul class="mb-0">
-                        <li><strong>Own transfers:</strong> Description contains "TRANSFER" → category: transfer, action: exclude</li>
-                        <li><strong>Card fees:</strong> Description contains "CARD FEE" → category: bank_fee, action: exclude</li>
-                        <li><strong>Cash deposits:</strong> Description contains "CASH DEP" → category: customer_payment, action: categorise</li>
+                        <li class="mb-2"><strong>Own transfers:</strong> Description <em>contains</em> "TRANSFER" &rarr; Transfer, Auto-Exclude</li>
+                        <li class="mb-2"><strong>Card fees:</strong> Description <em>contains</em> "CARD FEE" &rarr; Bank Fee, Auto-Exclude</li>
+                        <li class="mb-2"><strong>Cash deposits:</strong> Description <em>contains</em> "CASH DEP" &rarr; Categorise only (review manually)</li>
                     </ul>
                 </div>
             </div>

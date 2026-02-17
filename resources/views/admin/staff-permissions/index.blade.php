@@ -4,23 +4,62 @@
 @section('content')
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">Staff Permissions</h1>
+        <div>
+            <h1 class="h3 mb-1">Staff Permissions</h1>
+            <small class="text-muted">Control which areas of the admin panel each staff member can access. Admin users always have full access.</small>
+        </div>
     </div>
 
     @if($staffUsers->isEmpty())
         <div class="card">
             <div class="card-body text-center py-5">
                 <h4 class="text-muted">No Active Staff Users</h4>
-                <p class="text-muted">Create staff users in <a href="{{ route('admin.users.index') }}">User Management</a> to manage their permissions here.</p>
+                <p class="text-muted mb-0">Create staff users in <a href="{{ route('admin.users.index') }}">User Management</a> to manage their permissions here.</p>
             </div>
         </div>
     @else
+        {{-- Summary --}}
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body py-2">
+                        <small class="text-muted d-block">Staff Members</small>
+                        <h5 class="mb-0">{{ $staffUsers->count() }}</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body py-2">
+                        <small class="text-muted d-block">Custom Permissions</small>
+                        <h5 class="mb-0">{{ $staffUsers->filter(fn($s) => !empty($s->custom_permissions))->count() }}</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body py-2">
+                        <small class="text-muted d-block">Using Defaults</small>
+                        <h5 class="mb-0">{{ $staffUsers->filter(fn($s) => empty($s->custom_permissions))->count() }}</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body py-2">
+                        <small class="text-muted d-block">Permission Groups</small>
+                        <h5 class="mb-0">{{ count($permissionGroups) }}</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="card mb-3">
-            <div class="card-body">
-                <p class="text-muted mb-0">
-                    Manage which areas each staff member can access. Admin users always have full access.
-                    Staff members without custom permissions use the default permission set (highlighted below).
-                </p>
+            <div class="card-body py-2">
+                <small class="text-muted">
+                    Staff members without custom permissions use the default permission set (marked with <span class="text-success">&#10003;</span> below).
+                    Use the <strong>all</strong> / <strong>none</strong> links to quickly toggle groups.
+                </small>
             </div>
         </div>
 
@@ -56,12 +95,12 @@
                                     <div class="border rounded p-3">
                                         <h6 class="fw-bold mb-2">
                                             {{ $groupName }}
-                                            <button type="button" class="btn btn-sm btn-link p-0 ms-2 select-all-btn" data-group="{{ $loop->index }}">all</button>
-                                            <button type="button" class="btn btn-sm btn-link p-0 ms-1 select-none-btn" data-group="{{ $loop->index }}">none</button>
+                                            <button type="button" class="btn btn-sm btn-link p-0 ms-2 select-all-btn" data-group="s{{ $staff->id }}-{{ $loop->index }}">all</button>
+                                            <button type="button" class="btn btn-sm btn-link p-0 ms-1 select-none-btn" data-group="s{{ $staff->id }}-{{ $loop->index }}">none</button>
                                         </h6>
                                         @foreach($routes as $route => $label)
                                             <div class="form-check">
-                                                <input class="form-check-input group-{{ $loop->parent->index }}"
+                                                <input class="form-check-input group-s{{ $staff->id }}-{{ $loop->parent->index }}"
                                                        type="checkbox"
                                                        name="permissions[]"
                                                        value="{{ $route }}"
@@ -100,14 +139,14 @@
 <script>
 document.querySelectorAll('.select-all-btn').forEach(btn => {
     btn.addEventListener('click', function() {
-        const group = this.dataset.group;
-        document.querySelectorAll('.group-' + group).forEach(cb => cb.checked = true);
+        const g = this.dataset.group;
+        this.closest('.card').querySelectorAll('.group-' + g).forEach(cb => cb.checked = true);
     });
 });
 document.querySelectorAll('.select-none-btn').forEach(btn => {
     btn.addEventListener('click', function() {
-        const group = this.dataset.group;
-        document.querySelectorAll('.group-' + group).forEach(cb => cb.checked = false);
+        const g = this.dataset.group;
+        this.closest('.card').querySelectorAll('.group-' + g).forEach(cb => cb.checked = false);
     });
 });
 </script>

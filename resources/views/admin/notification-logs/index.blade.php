@@ -4,37 +4,54 @@
 @section('content')
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">Notification & Email Logs</h1>
+        <div>
+            <h1 class="h3 mb-1">Notification & Email Logs</h1>
+            <small class="text-muted">Monitor all outgoing notifications, emails, and payment webhook events. Use filters to investigate delivery issues.</small>
+        </div>
     </div>
 
     <!-- Stats -->
     <div class="row mb-4">
-        <div class="col-md-2">
+        <div class="col-md-3">
             <div class="card">
-                <div class="card-body text-center">
-                    <h6 class="text-muted mb-1">Notifications</h6>
-                    <h4 class="mb-0">{{ number_format($stats['notif_total']) }}</h4>
+                <div class="card-body py-2">
+                    <small class="text-muted d-block">Notifications</small>
+                    <h5 class="mb-0">{{ number_format($stats['notif_total']) }}</h5>
                     <small class="text-success">{{ $stats['notif_sent'] }} sent</small> &middot;
                     <small class="text-danger">{{ $stats['notif_failed'] }} failed</small>
                 </div>
             </div>
         </div>
-        <div class="col-md-2">
+        <div class="col-md-3">
             <div class="card">
-                <div class="card-body text-center">
-                    <h6 class="text-muted mb-1">Emails</h6>
-                    <h4 class="mb-0">{{ number_format($stats['email_total']) }}</h4>
+                <div class="card-body py-2">
+                    <small class="text-muted d-block">Emails</small>
+                    <h5 class="mb-0">{{ number_format($stats['email_total']) }}</h5>
                     <small class="text-success">{{ $stats['email_sent'] }} sent</small> &middot;
                     <small class="text-danger">{{ $stats['email_failed'] }} failed</small>
                 </div>
             </div>
         </div>
-        <div class="col-md-2">
+        <div class="col-md-3">
             <div class="card">
-                <div class="card-body text-center">
-                    <h6 class="text-muted mb-1">Payment Events</h6>
-                    <h4 class="mb-0">{{ number_format($stats['events_total']) }}</h4>
+                <div class="card-body py-2">
+                    <small class="text-muted d-block">Payment Events</small>
+                    <h5 class="mb-0">{{ number_format($stats['events_total']) }}</h5>
                     <small class="text-success">{{ $stats['events_processed'] }} processed</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body py-2">
+                    <small class="text-muted d-block">Overall Success Rate</small>
+                    @php
+                        $totalSent = $stats['notif_sent'] + $stats['email_sent'] + $stats['events_processed'];
+                        $totalAll = $stats['notif_total'] + $stats['email_total'] + $stats['events_total'];
+                        $rate = $totalAll > 0 ? round(($totalSent / $totalAll) * 100, 1) : 100;
+                    @endphp
+                    <h5 class="mb-0 {{ $rate >= 95 ? 'text-success' : ($rate >= 80 ? 'text-warning' : 'text-danger') }}">{{ $rate }}%</h5>
+                    <small class="text-muted">{{ number_format($totalSent) }} / {{ number_format($totalAll) }}</small>
                 </div>
             </div>
         </div>
@@ -290,7 +307,9 @@
                                 </td>
                                 <td>
                                     @if($event->payload)
-                                        <button class="btn btn-sm btn-outline-secondary" onclick="alert(JSON.stringify({{ json_encode($event->payload) }}, null, 2))">View</button>
+                                        <button class="btn btn-sm btn-outline-secondary payload-btn"
+                                                data-payload="{{ e(json_encode($event->payload, JSON_PRETTY_PRINT)) }}"
+                                                data-event-type="{{ e($event->event_type) }}">View</button>
                                     @else
                                         -
                                     @endif
@@ -309,4 +328,35 @@
     @endif
     @endif
 </div>
+
+{{-- Payload Viewer Modal --}}
+<div class="modal fade" id="payloadModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Event Payload: <code id="payloadEventType"></code></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <pre id="payloadContent" class="mb-0 p-3 rounded" style="background: rgba(0,0,0,0.15); max-height: 500px; overflow: auto; font-size: 0.8125rem;"></pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="navigator.clipboard.writeText(document.getElementById('payloadContent').textContent)">Copy to Clipboard</button>
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+document.querySelectorAll('.payload-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.getElementById('payloadEventType').textContent = this.dataset.eventType;
+        document.getElementById('payloadContent').textContent = this.dataset.payload;
+        new bootstrap.Modal(document.getElementById('payloadModal')).show();
+    });
+});
+</script>
+@endpush
 @endsection

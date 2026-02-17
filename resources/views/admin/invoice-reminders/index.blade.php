@@ -4,33 +4,45 @@
 @section('content')
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">Invoice Reminders</h1>
+        <div>
+            <h1 class="h3 mb-1">Invoice Reminders</h1>
+            <small class="text-muted">Track and send payment reminders for overdue invoices. Reminders are emailed to the customer on file.</small>
+        </div>
     </div>
 
     <!-- Stats -->
     <div class="row mb-4">
         <div class="col-md-3">
             <div class="card">
-                <div class="card-body">
-                    <h6 class="text-muted mb-2">Total Reminders Sent</h6>
-                    <h3 class="mb-0">{{ $totalReminders }}</h3>
+                <div class="card-body py-2">
+                    <small class="text-muted d-block">Total Reminders Sent</small>
+                    <h5 class="mb-0">{{ $totalReminders }}</h5>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card">
-                <div class="card-body">
-                    <h6 class="text-muted mb-2">Sent This Month</h6>
-                    <h3 class="mb-0">{{ $thisMonth }}</h3>
+                <div class="card-body py-2">
+                    <small class="text-muted d-block">Sent This Month</small>
+                    <h5 class="mb-0">{{ $thisMonth }}</h5>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card" style="border-left: 4px solid var(--danger, #e74a3b);">
-                <div class="card-body">
-                    <h6 class="text-muted mb-2">Overdue (No Recent Reminder)</h6>
-                    <h3 class="mb-0 text-danger">{{ $overdueCount }}</h3>
+                <div class="card-body py-2">
+                    <small class="text-muted d-block">Overdue (No Recent Reminder)</small>
+                    <h5 class="mb-0 text-danger">{{ $overdueCount }}</h5>
                     <small class="text-muted">7+ days since last reminder</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body py-2">
+                    <small class="text-muted d-block">Total Overdue Value</small>
+                    <h5 class="mb-0">R {{ number_format($overdueInvoices->sum(fn($inv) => $inv->order?->total ?? 0), 2) }}</h5>
+                    <small class="text-muted">across {{ $overdueInvoices->count() }} invoices</small>
                 </div>
             </div>
         </div>
@@ -99,30 +111,32 @@
 
     <!-- Reminder History -->
     <div class="card mb-3">
-        <div class="card-header"><h5 class="mb-0">Reminder History</h5></div>
-        <div class="card-body">
-            <form method="GET" class="row g-3">
+        <div class="card-body py-2">
+            <form method="GET" class="row g-2 align-items-end">
                 <div class="col-md-3">
-                    <label class="form-label">Search</label>
-                    <input type="text" name="search" class="form-control" placeholder="Invoice number or customer..." value="{{ request('search') }}">
+                    <label class="form-label mb-1" style="font-size: 0.85rem;">Search</label>
+                    <input type="text" name="search" class="form-control form-control-sm" placeholder="Invoice number or customer..." value="{{ request('search') }}">
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label">From</label>
-                    <input type="date" name="from" class="form-control" value="{{ request('from') }}">
+                    <label class="form-label mb-1" style="font-size: 0.85rem;">From</label>
+                    <input type="date" name="from" class="form-control form-control-sm" value="{{ request('from') }}">
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label">To</label>
-                    <input type="date" name="to" class="form-control" value="{{ request('to') }}">
+                    <label class="form-label mb-1" style="font-size: 0.85rem;">To</label>
+                    <input type="date" name="to" class="form-control form-control-sm" value="{{ request('to') }}">
                 </div>
-                <div class="col-md-3 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary">Filter</button>
-                    <a href="{{ route('admin.invoice-reminders.index') }}" class="btn btn-secondary ms-2">Reset</a>
+                <div class="col-md-3 d-flex gap-1">
+                    <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                    @if(request()->hasAny(['search', 'from', 'to']))
+                        <a href="{{ route('admin.invoice-reminders.index') }}" class="btn btn-secondary btn-sm">Clear</a>
+                    @endif
                 </div>
             </form>
         </div>
     </div>
 
     <div class="card">
+        <div class="card-header"><h5 class="mb-0">Reminder History</h5></div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover mb-0">
