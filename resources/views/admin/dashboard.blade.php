@@ -6,22 +6,48 @@
         <span class="text-muted text-small">{{ now()->format('l, d F Y') }}</span>
     </div>
 
+    {{-- Date Range Selector --}}
+    <div class="card mb-2">
+        <div class="card-body" style="padding:0.75rem 1rem;">
+            <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                <span class="text-muted" style="font-size:0.8125rem;">Period:</span>
+                <a href="{{ route('admin.dashboard', ['range' => 'today']) }}" class="btn btn-sm {{ $range === 'today' ? 'btn-primary' : 'btn-ghost' }}">Today</a>
+                <a href="{{ route('admin.dashboard', ['range' => '7d']) }}" class="btn btn-sm {{ $range === '7d' ? 'btn-primary' : 'btn-ghost' }}">7 Days</a>
+                <a href="{{ route('admin.dashboard', ['range' => '30d']) }}" class="btn btn-sm {{ $range === '30d' ? 'btn-primary' : 'btn-ghost' }}">30 Days</a>
+                <form method="GET" style="display:inline-flex; gap:0.25rem; align-items:center; margin-left:0.5rem;">
+                    <input type="hidden" name="range" value="custom">
+                    <input type="date" name="from" class="form-control" style="width:auto; font-size:0.8125rem; padding:0.25rem 0.5rem;" value="{{ $range === 'custom' ? $from->format('Y-m-d') : '' }}">
+                    <span class="text-muted">-</span>
+                    <input type="date" name="to" class="form-control" style="width:auto; font-size:0.8125rem; padding:0.25rem 0.5rem;" value="{{ $range === 'custom' ? $to->format('Y-m-d') : '' }}">
+                    <button type="submit" class="btn btn-sm btn-primary">Go</button>
+                </form>
+                <span class="badge badge-secondary" style="margin-left:auto;">{{ $rangeLabel }}</span>
+            </div>
+        </div>
+    </div>
+
     <div class="stats-grid">
         <div class="stat-card">
-            <div class="stat-value">{{ $stats['total_orders'] }}</div>
-            <div class="stat-label">Total Orders</div>
+            <div class="stat-value">{{ $stats['period_orders'] }}</div>
+            <div class="stat-label">Orders ({{ $rangeLabel }})</div>
+            @if($ordersChange !== null)
+                <small class="{{ $ordersChange >= 0 ? 'text-success' : 'text-danger' }}">{{ $ordersChange >= 0 ? '+' : '' }}{{ $ordersChange }}% vs prev</small>
+            @endif
         </div>
         <div class="stat-card">
             <div class="stat-value">{{ $stats['active_orders'] }}</div>
             <div class="stat-label">Active Orders</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value">{{ $stats['today_deliveries'] }}</div>
-            <div class="stat-label">Today's Deliveries</div>
+            <div class="stat-value">{{ $stats['period_deliveries'] }}</div>
+            <div class="stat-label">Deliveries ({{ $rangeLabel }})</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value">R{{ number_format($stats['today_revenue'], 2) }}</div>
-            <div class="stat-label">Today's Revenue</div>
+            <div class="stat-value">R{{ number_format($stats['period_revenue'], 2) }}</div>
+            <div class="stat-label">Revenue ({{ $rangeLabel }})</div>
+            @if($revenueChange !== null)
+                <small class="{{ $revenueChange >= 0 ? 'text-success' : 'text-danger' }}">{{ $revenueChange >= 0 ? '+' : '' }}{{ $revenueChange }}% vs prev</small>
+            @endif
         </div>
         <div class="stat-card">
             <div class="stat-value">R{{ number_format($stats['month_revenue'], 2) }}</div>
@@ -43,6 +69,12 @@
             <div class="stat-value">{{ $stats['low_stock_count'] }}</div>
             <div class="stat-label">Low Stock Items</div>
         </div>
+        @if(isset($unreconciledCount) && $unreconciledCount > 0)
+        <a href="{{ route('admin.bank-reconciliation.index') }}" class="stat-card" style="text-decoration: none; border-left: 3px solid var(--warning, #f6c23e);">
+            <div class="stat-value">{{ $unreconciledCount }}</div>
+            <div class="stat-label">Unreconciled Transactions</div>
+        </a>
+        @endif
     </div>
 
     <div class="card mb-3">
@@ -74,7 +106,7 @@
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
         <div class="card">
             <div class="card-header">
-                <span>Weekly Revenue</span>
+                <span>Revenue Chart</span>
             </div>
             <div class="card-body">
                 <div style="display: flex; align-items: flex-end; justify-content: space-around; height: 200px; gap: 0.5rem; padding: 1rem 0;">

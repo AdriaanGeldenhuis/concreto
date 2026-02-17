@@ -73,6 +73,7 @@
             <div class="sidebar-section">Catalog</div>
             <a href="{{ route('admin.products.index') }}" class="{{ request()->routeIs('admin.products*') ? 'active' : '' }}">&#9733; Products</a>
             <a href="{{ route('admin.categories.index') }}" class="{{ request()->routeIs('admin.categories*') ? 'active' : '' }}">&#9776; Categories</a>
+            <a href="{{ route('admin.product-analytics.index') }}" class="{{ request()->routeIs('admin.product-analytics*') ? 'active' : '' }}">&#128200; Product Analytics</a>
             <div class="sidebar-section">People</div>
             <a href="{{ route('admin.customers.index') }}" class="{{ request()->routeIs('admin.customers*') ? 'active' : '' }}">&#9786; Customers</a>
             <a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users*') ? 'active' : '' }}">&#9998; Users</a>
@@ -87,6 +88,11 @@
             <div class="sidebar-section">Communication</div>
             <a href="{{ route('admin.messages.index') }}" class="{{ request()->routeIs('admin.messages*') ? 'active' : '' }}">&#9993; Messages</a>
             <a href="{{ route('admin.email-templates.index') }}" class="{{ request()->routeIs('admin.email-templates*') ? 'active' : '' }}">&#9993; Email Templates</a>
+            <div class="sidebar-section">Banking</div>
+            <a href="{{ route('admin.bank-accounts.index') }}" class="{{ request()->routeIs('admin.bank-accounts*') ? 'active' : '' }}">&#127974; Bank Accounts</a>
+            <a href="{{ route('admin.bank-reconciliation.index') }}" class="{{ request()->routeIs('admin.bank-reconciliation.index') ? 'active' : '' }}">&#128260; Reconciliation</a>
+            <a href="{{ route('admin.bank-reconciliation.statement') }}" class="{{ request()->routeIs('admin.bank-reconciliation.statement*') ? 'active' : '' }}">&#128209; Recon Statement</a>
+            <a href="{{ route('admin.bank-reconciliation.rules.index') }}" class="{{ request()->routeIs('admin.bank-reconciliation.rules*') ? 'active' : '' }}">&#128295; Recon Rules</a>
             <div class="sidebar-section">Finance</div>
             <a href="{{ route('admin.accounts-receivable.index') }}" class="{{ request()->routeIs('admin.accounts-receivable*') ? 'active' : '' }}">&#128176; Accounts Receivable</a>
             <a href="{{ route('admin.invoices.index') }}" class="{{ request()->routeIs('admin.invoices*') ? 'active' : '' }}">&#128196; Invoice Register</a>
@@ -94,9 +100,15 @@
             <a href="{{ route('admin.vat-report.index') }}" class="{{ request()->routeIs('admin.vat-report*') ? 'active' : '' }}">&#128200; VAT Report</a>
             <a href="{{ route('admin.profit-loss.index') }}" class="{{ request()->routeIs('admin.profit-loss*') ? 'active' : '' }}">&#128178; Profit & Loss</a>
             <a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports*') ? 'active' : '' }}">&#128202; Reports</a>
+            <div class="sidebar-section">Automation</div>
+            <a href="{{ route('admin.recurring-orders.index') }}" class="{{ request()->routeIs('admin.recurring-orders*') ? 'active' : '' }}">&#128260; Recurring Orders</a>
+            <a href="{{ route('admin.order-templates.index') }}" class="{{ request()->routeIs('admin.order-templates*') ? 'active' : '' }}">&#128203; Order Templates</a>
+            <a href="{{ route('admin.invoice-reminders.index') }}" class="{{ request()->routeIs('admin.invoice-reminders*') ? 'active' : '' }}">&#128276; Invoice Reminders</a>
             <div class="sidebar-section">System</div>
             <a href="{{ route('admin.settings.index') }}" class="{{ request()->routeIs('admin.settings*') ? 'active' : '' }}">&#9881; Settings</a>
             <a href="{{ route('admin.audit-logs.index') }}" class="{{ request()->routeIs('admin.audit-logs*') ? 'active' : '' }}">&#9201; Audit Log</a>
+            <a href="{{ route('admin.notification-logs.index') }}" class="{{ request()->routeIs('admin.notification-logs*') ? 'active' : '' }}">&#128172; Notification Logs</a>
+            <a href="{{ route('admin.staff-permissions.index') }}" class="{{ request()->routeIs('admin.staff-permissions*') ? 'active' : '' }}">&#128274; Staff Permissions</a>
             <div style="padding: 1rem 1.25rem; margin-top: auto; border-top: 1px solid rgba(255,255,255,0.08);">
                 <a href="{{ route('home') }}" style="margin-bottom: 0.25rem;">&#8592; View Site</a>
                 <form method="POST" action="{{ route('logout') }}">

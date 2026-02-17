@@ -10,7 +10,7 @@ class PaymentRegisterController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Payment::with(['order.customer.user', 'order.invoice']);
+        $query = Payment::with(['order.customer.user', 'order.invoice', 'bankTransaction']);
 
         if ($request->filled('search')) {
             $search = $request->search;

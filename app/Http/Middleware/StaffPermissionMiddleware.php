@@ -9,11 +9,11 @@ use Symfony\Component\HttpFoundation\Response;
 class StaffPermissionMiddleware
 {
     /**
-     * Routes that staff members CAN access.
+     * Default routes that staff members CAN access.
+     * Used as fallback when no custom permissions are set per user.
      * Admin users bypass this check entirely.
-     * Everything not listed here is admin-only.
      */
-    private const STAFF_ALLOWED_ROUTES = [
+    private const DEFAULT_STAFF_ROUTES = [
         // Dashboard
         'admin.dashboard',
 
@@ -75,6 +75,10 @@ class StaffPermissionMiddleware
         'admin.payment-register.index',
         'admin.vat-report.index',
         'admin.profit-loss.index',
+
+        // Bank Reconciliation (view only for staff)
+        'admin.bank-reconciliation.index',
+        'admin.bank-reconciliation.statement',
     ];
 
     public function handle(Request $request, Closure $next): Response
@@ -94,7 +98,13 @@ class StaffPermissionMiddleware
         if ($user->role === 'staff') {
             $routeName = $request->route()?->getName();
 
-            if ($routeName && !in_array($routeName, self::STAFF_ALLOWED_ROUTES, true)) {
+            // Use custom permissions if set, otherwise fall back to defaults
+            $customPermissions = json_decode($user->staff_permissions ?? '[]', true);
+            $allowedRoutes = !empty($customPermissions)
+                ? $customPermissions
+                : self::DEFAULT_STAFF_ROUTES;
+
+            if ($routeName && !in_array($routeName, $allowedRoutes, true)) {
                 abort(403, 'You do not have permission to access this area. Contact your administrator.');
             }
         }

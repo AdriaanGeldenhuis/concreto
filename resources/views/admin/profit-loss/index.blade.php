@@ -140,6 +140,12 @@
                         <td style="padding-left: 2rem;">Refunds Issued</td>
                         <td class="text-end text-danger">- R {{ number_format($totalRefunds, 2) }} <small>({{ $refundCount }})</small></td>
                     </tr>
+                    @if(isset($totalBankFees) && $totalBankFees > 0)
+                    <tr>
+                        <td style="padding-left: 2rem;">Bank Fees & Charges</td>
+                        <td class="text-end text-danger">- R {{ number_format($totalBankFees, 2) }}</td>
+                    </tr>
+                    @endif
                     <tr class="fw-bold" style="border-top: 1px solid #dee2e6;">
                         <td style="padding-left: 2rem;">Total Operating Expenses</td>
                         <td class="text-end text-danger">- R {{ number_format($totalOpex, 2) }}</td>

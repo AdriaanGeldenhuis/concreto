@@ -144,8 +144,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff', 
     Route::post('/orders/{order}/resend-invoice', [Admin\OrderController::class, 'resendInvoice'])->name('orders.resend-invoice');
     Route::post('/orders/{order}/record-payment', [Admin\OrderController::class, 'recordPayment'])->name('orders.record-payment');
     Route::post('/orders/{order}/refund', [Admin\OrderController::class, 'refund'])->name('orders.refund');
+    Route::post('/orders/bulk-assign-driver', [Admin\OrderController::class, 'bulkAssignDriver'])->name('orders.bulk-assign-driver');
+    Route::post('/orders/bulk-update-status', [Admin\OrderController::class, 'bulkUpdateStatus'])->name('orders.bulk-update-status');
 
     Route::resource('products', Admin\ProductController::class)->except(['show']);
+    Route::get('/product-analytics', [Admin\ProductAnalyticsController::class, 'index'])->name('product-analytics.index');
     Route::resource('categories', Admin\CategoryController::class)->except(['show', 'create', 'edit']);
 
     Route::get('/customers', [Admin\CustomerController::class, 'index'])->name('customers.index');
@@ -215,6 +218,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff', 
 
     // Promo Codes
     Route::get('/promo-codes', [Admin\PromoCodeController::class, 'index'])->name('promo-codes.index');
+    Route::get('/promo-codes/{promoCode}', [Admin\PromoCodeController::class, 'show'])->name('promo-codes.show');
     Route::post('/promo-codes', [Admin\PromoCodeController::class, 'store'])->name('promo-codes.store');
     Route::put('/promo-codes/{promoCode}', [Admin\PromoCodeController::class, 'update'])->name('promo-codes.update');
     Route::delete('/promo-codes/{promoCode}', [Admin\PromoCodeController::class, 'destroy'])->name('promo-codes.destroy');
@@ -229,12 +233,64 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff', 
     Route::get('/reviews', [Admin\ReviewController::class, 'index'])->name('reviews.index');
     Route::post('/reviews/{review}/approve', [Admin\ReviewController::class, 'approve'])->name('reviews.approve');
     Route::post('/reviews/{review}/reject', [Admin\ReviewController::class, 'reject'])->name('reviews.reject');
+    Route::post('/reviews/{review}/reply', [Admin\ReviewController::class, 'reply'])->name('reviews.reply');
+    Route::post('/reviews/bulk-approve', [Admin\ReviewController::class, 'bulkApprove'])->name('reviews.bulk-approve');
     Route::delete('/reviews/{review}', [Admin\ReviewController::class, 'destroy'])->name('reviews.destroy');
 
     // Email Templates
     Route::get('/email-templates', [Admin\EmailTemplateController::class, 'index'])->name('email-templates.index');
     Route::get('/email-templates/edit', [Admin\EmailTemplateController::class, 'edit'])->name('email-templates.edit');
     Route::post('/email-templates', [Admin\EmailTemplateController::class, 'update'])->name('email-templates.update');
+
+    // Bank Account Management
+    Route::resource('bank-accounts', Admin\BankAccountController::class)->except(['show']);
+
+    // Bank Statement Import
+    Route::get('bank-accounts/{bankAccount}/import', [Admin\BankImportController::class, 'show'])->name('bank-accounts.import.show');
+    Route::post('bank-accounts/{bankAccount}/import/preview', [Admin\BankImportController::class, 'preview'])->name('bank-accounts.import.preview');
+    Route::post('bank-accounts/{bankAccount}/import/confirm', [Admin\BankImportController::class, 'confirm'])->name('bank-accounts.import.confirm');
+    Route::post('bank-accounts/{bankAccount}/import/save-mapping', [Admin\BankImportController::class, 'saveMapping'])->name('bank-accounts.import.save-mapping');
+
+    // Bank Reconciliation
+    Route::get('bank-reconciliation', [Admin\BankReconciliationController::class, 'index'])->name('bank-reconciliation.index');
+    Route::post('bank-reconciliation/{bankTransaction}/match', [Admin\BankReconciliationController::class, 'match'])->name('bank-reconciliation.match');
+    Route::post('bank-reconciliation/{bankTransaction}/unmatch', [Admin\BankReconciliationController::class, 'unmatch'])->name('bank-reconciliation.unmatch');
+    Route::post('bank-reconciliation/{bankTransaction}/exclude', [Admin\BankReconciliationController::class, 'exclude'])->name('bank-reconciliation.exclude');
+    Route::post('bank-reconciliation/{bankTransaction}/categorise', [Admin\BankReconciliationController::class, 'categorise'])->name('bank-reconciliation.categorise');
+    Route::post('bank-reconciliation/{bankTransaction}/create-payment', [Admin\BankReconciliationController::class, 'createPayment'])->name('bank-reconciliation.create-payment');
+    Route::post('bank-reconciliation/auto-match', [Admin\BankReconciliationController::class, 'runAutoMatch'])->name('bank-reconciliation.auto-match');
+    Route::get('bank-reconciliation/search-payments', [Admin\BankReconciliationController::class, 'searchPayments'])->name('bank-reconciliation.search-payments');
+    Route::get('bank-reconciliation/statement', [Admin\BankReconciliationController::class, 'statement'])->name('bank-reconciliation.statement');
+    Route::get('bank-reconciliation/statement/export', [Admin\BankReconciliationController::class, 'exportStatement'])->name('bank-reconciliation.statement.export');
+
+    // Reconciliation Rules
+    Route::resource('bank-reconciliation/rules', Admin\BankReconciliationRuleController::class, ['as' => 'bank-reconciliation'])->except(['show']);
+
+    // Recurring Orders
+    Route::get('/recurring-orders', [Admin\RecurringOrderController::class, 'index'])->name('recurring-orders.index');
+    Route::get('/recurring-orders/export', [Admin\RecurringOrderController::class, 'export'])->name('recurring-orders.export');
+    Route::get('/recurring-orders/{recurringOrder}', [Admin\RecurringOrderController::class, 'show'])->name('recurring-orders.show');
+    Route::post('/recurring-orders/{recurringOrder}/pause', [Admin\RecurringOrderController::class, 'pause'])->name('recurring-orders.pause');
+    Route::post('/recurring-orders/{recurringOrder}/resume', [Admin\RecurringOrderController::class, 'resume'])->name('recurring-orders.resume');
+    Route::put('/recurring-orders/{recurringOrder}/frequency', [Admin\RecurringOrderController::class, 'updateFrequency'])->name('recurring-orders.update-frequency');
+
+    // Order Templates
+    Route::get('/order-templates', [Admin\OrderTemplateController::class, 'index'])->name('order-templates.index');
+    Route::get('/order-templates/{orderTemplate}', [Admin\OrderTemplateController::class, 'show'])->name('order-templates.show');
+    Route::delete('/order-templates/{orderTemplate}', [Admin\OrderTemplateController::class, 'destroy'])->name('order-templates.destroy');
+
+    // Notification & Email Logs
+    Route::get('/notification-logs', [Admin\NotificationLogController::class, 'index'])->name('notification-logs.index');
+    Route::get('/notification-logs/export', [Admin\NotificationLogController::class, 'export'])->name('notification-logs.export');
+
+    // Invoice Reminders
+    Route::get('/invoice-reminders', [Admin\InvoiceReminderController::class, 'index'])->name('invoice-reminders.index');
+    Route::post('/invoice-reminders/{invoice}/send', [Admin\InvoiceReminderController::class, 'send'])->name('invoice-reminders.send');
+    Route::post('/invoice-reminders/send-bulk', [Admin\InvoiceReminderController::class, 'sendBulk'])->name('invoice-reminders.send-bulk');
+
+    // Staff Permissions
+    Route::get('/staff-permissions', [Admin\StaffPermissionController::class, 'index'])->name('staff-permissions.index');
+    Route::put('/staff-permissions/{user}', [Admin\StaffPermissionController::class, 'update'])->name('staff-permissions.update');
 });
 
 // Health check (no auth)

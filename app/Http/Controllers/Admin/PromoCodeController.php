@@ -5,14 +5,66 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\PromoCode;
+use App\Models\PromoCodeUsage;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PromoCodeController extends Controller
 {
     public function index()
     {
-        $promoCodes = PromoCode::orderBy('created_at', 'desc')->paginate(20);
-        return view('admin.promo-codes.index', compact('promoCodes'));
+        $promoCodes = PromoCode::withCount('usage')
+            ->withSum('usage', 'discount_applied')
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+
+        // Analytics
+        $stats = [
+            'total_codes' => PromoCode::count(),
+            'active_codes' => PromoCode::where('is_active', true)->count(),
+            'total_uses' => PromoCodeUsage::count(),
+            'total_discount' => PromoCodeUsage::sum('discount_applied'),
+            'avg_discount' => round(PromoCodeUsage::avg('discount_applied') ?? 0, 2),
+        ];
+
+        // Top 5 most used codes
+        $topCodes = PromoCode::withCount('usage')
+            ->withSum('usage', 'discount_applied')
+            ->having('usage_count', '>', 0)
+            ->orderByDesc('usage_count')
+            ->take(5)
+            ->get();
+
+        // Monthly usage trend (last 6 months)
+        $monthlyUsage = PromoCodeUsage::select(
+                DB::raw("DATE_FORMAT(created_at, '%Y-%m') as month"),
+                DB::raw('COUNT(*) as uses'),
+                DB::raw('SUM(discount_applied) as total_discount')
+            )
+            ->where('created_at', '>=', now()->subMonths(6))
+            ->groupBy('month')
+            ->orderBy('month')
+            ->get();
+
+        return view('admin.promo-codes.index', compact('promoCodes', 'stats', 'topCodes', 'monthlyUsage'));
+    }
+
+    public function show(PromoCode $promoCode)
+    {
+        $promoCode->loadCount('usage');
+        $usage = PromoCodeUsage::with(['customer.user', 'order'])
+            ->where('promo_code_id', $promoCode->id)
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+
+        $usageStats = [
+            'total_uses' => $promoCode->usage()->count(),
+            'total_discount' => $promoCode->usage()->sum('discount_applied'),
+            'unique_customers' => $promoCode->usage()->distinct('customer_id')->count('customer_id'),
+            'avg_discount' => round($promoCode->usage()->avg('discount_applied') ?? 0, 2),
+        ];
+
+        return view('admin.promo-codes.show', compact('promoCode', 'usage', 'usageStats'));
     }
 
     public function store(Request $request)
