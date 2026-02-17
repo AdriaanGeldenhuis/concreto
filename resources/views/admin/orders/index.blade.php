@@ -4,7 +4,10 @@
     <div class="page-header">
         <h1>Orders</h1>
         <span class="badge badge-secondary">{{ $orders->total() }} total</span>
-        <a href="{{ route('admin.orders.create') }}" class="btn btn-primary btn-sm" style="margin-left: auto;">+ Create Order</a>
+        <div style="margin-left: auto; display:flex; gap:0.5rem;">
+            <a href="{{ route('admin.orders.export', request()->query()) }}" class="btn btn-outline btn-sm">Export CSV</a>
+            <a href="{{ route('admin.orders.create') }}" class="btn btn-primary btn-sm">+ Create Order</a>
+        </div>
     </div>
 
     <div class="card mb-2">
@@ -49,8 +52,16 @@
                     <input type="date" name="to" class="form-control" value="{{ request('to') }}">
                 </div>
                 <div class="form-group">
+                    <label class="form-label">Min Total</label>
+                    <input type="number" step="0.01" name="min_total" class="form-control" placeholder="R 0.00" value="{{ request('min_total') }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Max Total</label>
+                    <input type="number" step="0.01" name="max_total" class="form-control" placeholder="R 99999" value="{{ request('max_total') }}">
+                </div>
+                <div class="form-group">
                     <button type="submit" class="btn btn-primary btn-sm">Filter</button>
-                    @if(request()->hasAny(['status', 'search', 'driver_id', 'payment_status', 'from', 'to']))
+                    @if(request()->hasAny(['status', 'search', 'driver_id', 'payment_status', 'from', 'to', 'min_total', 'max_total']))
                         <a href="{{ route('admin.orders.index') }}" class="btn btn-ghost btn-sm">Clear</a>
                     @endif
                 </div>

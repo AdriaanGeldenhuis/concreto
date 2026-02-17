@@ -122,18 +122,45 @@
                 </div>
             </div>
 
-            {{-- Delivery Address --}}
-            @if($order->deliveryAddress)
+            {{-- Delivery Details --}}
             <div class="card">
-                <div class="card-header">Delivery Address</div>
+                <div class="card-header">Delivery Details</div>
                 <div class="card-body">
-                    <p class="mb-0">{{ $order->deliveryAddress->full_address }}</p>
+                    @if($order->deliveryAddress)
+                    <div class="info-row">
+                        <span class="label">Address</span>
+                        <span class="value">{{ $order->deliveryAddress->full_address }}</span>
+                    </div>
+                    @endif
+                    @if($order->scheduled_date)
+                    <div class="info-row">
+                        <span class="label">Scheduled Date</span>
+                        <span class="value">{{ $order->scheduled_date->format('d M Y') }}</span>
+                    </div>
+                    @endif
+                    @if($order->scheduled_time_window)
+                    <div class="info-row">
+                        <span class="label">Time Window</span>
+                        <span class="value">{{ $order->scheduled_time_window }}</span>
+                    </div>
+                    @endif
+                    @if($order->notes)
+                    <div class="info-row">
+                        <span class="label">Notes</span>
+                        <span class="value">{{ $order->notes }}</span>
+                    </div>
+                    @endif
+                    @if($order->promoCode)
+                    <div class="info-row">
+                        <span class="label">Promo Code</span>
+                        <span class="value"><span class="badge badge-success">{{ $order->promoCode->code }}</span></span>
+                    </div>
+                    @endif
                 </div>
             </div>
-            @endif
 
             {{-- Proof of Delivery --}}
-            @if($order->proof_of_delivery)
+            @if($order->proofOfDelivery)
             <div class="card">
                 <div class="card-header">
                     <span>Proof of Delivery</span>
@@ -141,10 +168,18 @@
                 </div>
                 <div class="card-body">
                     <div class="pod-display">
-                        <img src="{{ $order->proof_of_delivery }}" alt="Proof of delivery signature" class="signature-img">
+                        @if($order->proofOfDelivery->signature_path)
+                            <img src="{{ asset('storage/' . $order->proofOfDelivery->signature_path) }}" alt="Proof of delivery signature" class="signature-img">
+                        @endif
+                        @if($order->proofOfDelivery->photo_path)
+                            <img src="{{ asset('storage/' . $order->proofOfDelivery->photo_path) }}" alt="Delivery photo" class="signature-img" style="margin-top:0.5rem;">
+                        @endif
                     </div>
-                    @if($order->delivered_at)
-                        <p class="text-small text-muted mt-1">Delivered {{ $order->delivered_at->format('d M Y \a\t H:i') }}</p>
+                    @if($order->proofOfDelivery->signed_by)
+                        <p class="text-small text-muted mt-1">Signed by: {{ $order->proofOfDelivery->signed_by }}</p>
+                    @endif
+                    @if($order->proofOfDelivery->created_at)
+                        <p class="text-small text-muted">Delivered {{ $order->proofOfDelivery->created_at->format('d M Y \a\t H:i') }}</p>
                     @endif
                 </div>
             </div>
@@ -273,14 +308,27 @@
 
             {{-- Refund --}}
             @if(in_array($order->status, ['DELIVERED', 'PLACED', 'ASSIGNED', 'ACCEPTED', 'LOADED', 'CANCELLED']))
+            @php
+                $totalPaid = $order->payments->where('status', 'completed')->where('amount', '>', 0)->sum('amount');
+                $totalRefunded = abs($order->payments->where('status', 'completed')->filter(fn($p) => $p->amount < 0)->sum('amount'));
+                $maxRefundable = max(0, $totalPaid - $totalRefunded);
+            @endphp
             <div class="card">
-                <div class="card-header">Process Refund</div>
+                <div class="card-header">
+                    <span>Process Refund</span>
+                    @if($totalPaid > 0)
+                        <span class="badge badge-info">Paid: R{{ number_format($totalPaid, 2) }}</span>
+                    @endif
+                </div>
                 <div class="card-body">
+                    @if($maxRefundable <= 0)
+                        <p class="text-muted">No refundable amount available (total paid: R{{ number_format($totalPaid, 2) }}, already refunded: R{{ number_format($totalRefunded, 2) }}).</p>
+                    @else
                     <form method="POST" action="{{ route('admin.orders.refund', $order) }}">
                         @csrf
                         <div class="form-group">
-                            <label>Refund Amount (R)</label>
-                            <input type="number" step="0.01" name="amount" class="form-control" value="{{ $order->total }}" required>
+                            <label>Refund Amount (R) <span class="text-muted" style="font-size:0.8rem;">(max: R{{ number_format($maxRefundable, 2) }})</span></label>
+                            <input type="number" step="0.01" name="amount" class="form-control" value="{{ $maxRefundable }}" max="{{ $maxRefundable }}" min="0.01" required>
                         </div>
                         <div class="form-group">
                             <label>Reason</label>
@@ -291,9 +339,39 @@
                         </div>
                         <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Process this refund?')">Process Refund</button>
                     </form>
+                    @endif
                 </div>
             </div>
             @endif
+
+            {{-- Force Status Override --}}
+            <div class="card">
+                <div class="card-header">
+                    <span>Force Status Override</span>
+                    <span class="badge badge-warning">Admin Only</span>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted" style="font-size:0.8rem; margin-bottom:0.75rem;">Bypass normal status transitions. A reason is required and will be recorded in the audit trail.</p>
+                    <form method="POST" action="{{ route('admin.orders.force-status', $order) }}">
+                        @csrf
+                        <div class="form-group">
+                            <label>New Status</label>
+                            <select name="status" class="form-control">
+                                @foreach(\App\Models\Order::STATUSES as $s)
+                                    @if($s !== $order->status)
+                                    <option value="{{ $s }}">{{ ucwords(str_replace('_', ' ', $s)) }}</option>
+                                    @endif
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Reason (required)</label>
+                            <textarea name="reason" class="form-control" rows="2" required placeholder="Why is this override needed?"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-warning btn-sm" onclick="return confirm('Force override status? This bypasses normal transition rules.')">Force Update</button>
+                    </form>
+                </div>
+            </div>
 
             {{-- Actions --}}
             <div class="card">
@@ -307,9 +385,10 @@
                             </button>
                         </form>
                         @if(!in_array($order->status, ['CANCELLED', 'REFUNDED', 'DELIVERED']))
-                        <form method="POST" action="{{ route('admin.orders.cancel', $order) }}">
+                        <form method="POST" action="{{ route('admin.orders.cancel', $order) }}" id="cancel-form">
                             @csrf
-                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to cancel this order?')">
+                            <input type="hidden" name="reason" id="cancel-reason-value">
+                            <button type="button" class="btn btn-danger btn-sm" onclick="promptCancel()">
                                 Cancel Order
                             </button>
                         </form>
@@ -317,6 +396,64 @@
                     </div>
                 </div>
             </div>
+
+            {{-- Order Timeline / Audit History --}}
+            @if(isset($auditLogs) && $auditLogs->count())
+            <div class="card">
+                <div class="card-header">
+                    <span>Order Timeline</span>
+                    <span class="badge badge-secondary">{{ $auditLogs->count() }} events</span>
+                </div>
+                <div class="card-body" style="padding:0;">
+                    <div style="max-height:400px; overflow-y:auto;">
+                        @foreach($auditLogs as $log)
+                        <div style="padding:0.75rem 1rem; border-bottom:1px solid var(--border, #e5e7eb); font-size:0.85rem;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <span class="font-semibold">{{ ucwords(str_replace('_', ' ', $log->action)) }}</span>
+                                <span class="text-muted" style="font-size:0.75rem;">{{ $log->created_at->format('d M Y H:i') }}</span>
+                            </div>
+                            <div class="text-muted" style="font-size:0.8rem;">
+                                @if($log->actor)
+                                    By {{ $log->actor->name }} ({{ $log->actor_role }})
+                                @else
+                                    System
+                                @endif
+                            </div>
+                            @if($log->meta)
+                                <div style="font-size:0.75rem; margin-top:0.25rem; color:var(--text-secondary, #6b7280);">
+                                    @if(isset($log->meta['from']) && isset($log->meta['to']))
+                                        {{ str_replace('_', ' ', $log->meta['from']) }} &rarr; {{ str_replace('_', ' ', $log->meta['to']) }}
+                                    @endif
+                                    @if(isset($log->meta['reason']))
+                                        <br>Reason: {{ $log->meta['reason'] }}
+                                    @endif
+                                    @if(isset($log->meta['driver_id']))
+                                        <br>Driver ID: {{ $log->meta['driver_id'] }}
+                                    @endif
+                                    @if(isset($log->meta['amount']))
+                                        <br>Amount: R{{ number_format($log->meta['amount'], 2) }}
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+            @endif
         </div>
     </div>
+
+@push('scripts')
+<script>
+function promptCancel() {
+    var reason = prompt('Reason for cancellation (optional):');
+    if (reason === null) return; // user clicked Cancel on prompt
+    document.getElementById('cancel-reason-value').value = reason;
+    if (confirm('Are you sure you want to cancel this order?')) {
+        document.getElementById('cancel-form').submit();
+    }
+}
+</script>
+@endpush
 @endsection

@@ -16,6 +16,8 @@ class Payment extends Model
         'amount',
         'status',
         'metadata',
+        'notes',
+        'recorded_by',
         'bank_transaction_id',
         'reconciled_at',
     ];

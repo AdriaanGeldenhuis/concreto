@@ -138,6 +138,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff', 
     Route::get('/', [Admin\DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/orders', [Admin\OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/export', [Admin\OrderController::class, 'export'])->name('orders.export');
     Route::get('/orders/create', [Admin\OrderController::class, 'create'])->name('orders.create');
     Route::post('/orders', [Admin\OrderController::class, 'store'])->name('orders.store');
     Route::get('/orders/{order}', [Admin\OrderController::class, 'show'])->name('orders.show');
