@@ -103,29 +103,57 @@
     </section>
     @endif
 
-    <section class="section">
+    <section class="section why-choose-section">
         <div class="container">
-            <h2 class="section-title">Why Choose Us?</h2>
+            <div class="why-choose-header">
+                <span class="why-choose-badge">Why Us</span>
+                <h2 class="section-title">Built Different</h2>
+                <p class="why-choose-subtitle">Four reasons contractors and homeowners trust Concreto for every project.</p>
+            </div>
             <div class="why-choose-grid">
-                <div class="why-choose-item">
-                    <div class="why-choose-circle"><img src="/assets/WhyChooseUs deliveryImage.webp" alt="Fast Delivery"></div>
-                    <h3>Fast Delivery</h3>
-                    <p>Same-day and next-day delivery. Track your driver in real-time.</p>
+                <div class="why-choose-item" style="--i:0">
+                    <div class="why-choose-card">
+                        <div class="why-choose-icon-wrap">
+                            <div class="why-choose-circle"><img src="/assets/WhyChooseUs deliveryImage.webp" alt="Fast Delivery"></div>
+                            <span class="why-choose-number">01</span>
+                        </div>
+                        <h3>Fast Delivery</h3>
+                        <p>Same-day and next-day delivery. Track your driver in real-time.</p>
+                        <div class="why-choose-shine"></div>
+                    </div>
                 </div>
-                <div class="why-choose-item">
-                    <div class="why-choose-circle"><img src="/assets/whyChooseUs FairPricing.webp" alt="Fair Pricing"></div>
-                    <h3>Fair Pricing</h3>
-                    <p>Competitive prices with no hidden fees.</p>
+                <div class="why-choose-item" style="--i:1">
+                    <div class="why-choose-card">
+                        <div class="why-choose-icon-wrap">
+                            <div class="why-choose-circle"><img src="/assets/whyChooseUs FairPricing.webp" alt="Fair Pricing"></div>
+                            <span class="why-choose-number">02</span>
+                        </div>
+                        <h3>Fair Pricing</h3>
+                        <p>Competitive prices with no hidden fees.</p>
+                        <div class="why-choose-shine"></div>
+                    </div>
                 </div>
-                <div class="why-choose-item">
-                    <div class="why-choose-circle"><img src="/assets/WhyChooseUs QualityMaterials.webp" alt="Quality Materials"></div>
-                    <h3>Quality Materials</h3>
-                    <p>Premium sand, stone, and building supplies.</p>
+                <div class="why-choose-item" style="--i:2">
+                    <div class="why-choose-card">
+                        <div class="why-choose-icon-wrap">
+                            <div class="why-choose-circle"><img src="/assets/WhyChooseUs QualityMaterials.webp" alt="Quality Materials"></div>
+                            <span class="why-choose-number">03</span>
+                        </div>
+                        <h3>Quality Materials</h3>
+                        <p>Premium sand, stone, and building supplies.</p>
+                        <div class="why-choose-shine"></div>
+                    </div>
                 </div>
-                <div class="why-choose-item">
-                    <div class="why-choose-circle"><img src="/assets/WhyChooseUs ExpertSupport.webp" alt="Expert Support"></div>
-                    <h3>Expert Support</h3>
-                    <p>Dedicated team for orders, quotes, and advice.</p>
+                <div class="why-choose-item" style="--i:3">
+                    <div class="why-choose-card">
+                        <div class="why-choose-icon-wrap">
+                            <div class="why-choose-circle"><img src="/assets/WhyChooseUs ExpertSupport.webp" alt="Expert Support"></div>
+                            <span class="why-choose-number">04</span>
+                        </div>
+                        <h3>Expert Support</h3>
+                        <p>Dedicated team for orders, quotes, and advice.</p>
+                        <div class="why-choose-shine"></div>
+                    </div>
                 </div>
             </div>
         </div>
