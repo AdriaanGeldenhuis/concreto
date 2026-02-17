@@ -68,7 +68,7 @@ class OpsController extends Controller
             'orders_delivered' => Order::where('status', 'DELIVERED')->whereDate('updated_at', today())->count(),
             'orders_in_transit' => Order::where('status', 'IN_TRANSIT')->count(),
             'active_drivers' => User::where('role', 'driver')->where('is_active', true)
-                ->whereHas('driverShifts', fn($q) => $q->whereDate('date', today())->whereNotNull('clock_in')->whereNull('clock_out'))
+                ->whereHas('driverShifts', fn($q) => $q->whereDate('clock_in', today())->whereNotNull('clock_in')->whereNull('clock_out'))
                 ->count(),
             'revenue_today' => (float) Order::where('status', 'DELIVERED')->whereDate('updated_at', today())->sum('total'),
         ];
