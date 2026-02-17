@@ -196,6 +196,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff'])
     Route::get('/vat-report', [Admin\VatReportController::class, 'index'])->name('vat-report.index');
     Route::get('/vat-report/export', [Admin\VatReportController::class, 'export'])->name('vat-report.export');
 
+    // Profit & Loss
+    Route::get('/profit-loss', [Admin\ProfitLossController::class, 'index'])->name('profit-loss.index');
+    Route::get('/profit-loss/export', [Admin\ProfitLossController::class, 'export'])->name('profit-loss.export');
+
     // Reports & Export
     Route::get('/reports', [Admin\ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/export', [Admin\ReportController::class, 'export'])->name('reports.export');

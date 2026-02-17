@@ -92,6 +92,7 @@
             <a href="{{ route('admin.invoices.index') }}" class="{{ request()->routeIs('admin.invoices*') ? 'active' : '' }}">&#128196; Invoice Register</a>
             <a href="{{ route('admin.payment-register.index') }}" class="{{ request()->routeIs('admin.payment-register*') ? 'active' : '' }}">&#128179; Payment Register</a>
             <a href="{{ route('admin.vat-report.index') }}" class="{{ request()->routeIs('admin.vat-report*') ? 'active' : '' }}">&#128200; VAT Report</a>
+            <a href="{{ route('admin.profit-loss.index') }}" class="{{ request()->routeIs('admin.profit-loss*') ? 'active' : '' }}">&#128178; Profit & Loss</a>
             <a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports*') ? 'active' : '' }}">&#128202; Reports</a>
             <div class="sidebar-section">System</div>
             <a href="{{ route('admin.settings.index') }}" class="{{ request()->routeIs('admin.settings*') ? 'active' : '' }}">&#9881; Settings</a>
