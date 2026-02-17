@@ -95,12 +95,12 @@
                                     <div class="border rounded p-3">
                                         <h6 class="fw-bold mb-2">
                                             {{ $groupName }}
-                                            <button type="button" class="btn btn-sm btn-link p-0 ms-2 select-all-btn" data-group="{{ $loop->index }}">all</button>
-                                            <button type="button" class="btn btn-sm btn-link p-0 ms-1 select-none-btn" data-group="{{ $loop->index }}">none</button>
+                                            <button type="button" class="btn btn-sm btn-link p-0 ms-2 select-all-btn" data-group="s{{ $staff->id }}-{{ $loop->index }}">all</button>
+                                            <button type="button" class="btn btn-sm btn-link p-0 ms-1 select-none-btn" data-group="s{{ $staff->id }}-{{ $loop->index }}">none</button>
                                         </h6>
                                         @foreach($routes as $route => $label)
                                             <div class="form-check">
-                                                <input class="form-check-input group-{{ $loop->parent->index }}"
+                                                <input class="form-check-input group-s{{ $staff->id }}-{{ $loop->parent->index }}"
                                                        type="checkbox"
                                                        name="permissions[]"
                                                        value="{{ $route }}"
@@ -139,14 +139,14 @@
 <script>
 document.querySelectorAll('.select-all-btn').forEach(btn => {
     btn.addEventListener('click', function() {
-        const group = this.dataset.group;
-        document.querySelectorAll('.group-' + group).forEach(cb => cb.checked = true);
+        const g = this.dataset.group;
+        this.closest('.card').querySelectorAll('.group-' + g).forEach(cb => cb.checked = true);
     });
 });
 document.querySelectorAll('.select-none-btn').forEach(btn => {
     btn.addEventListener('click', function() {
-        const group = this.dataset.group;
-        document.querySelectorAll('.group-' + group).forEach(cb => cb.checked = false);
+        const g = this.dataset.group;
+        this.closest('.card').querySelectorAll('.group-' + g).forEach(cb => cb.checked = false);
     });
 });
 </script>

@@ -26,7 +26,7 @@
                                 id="content"
                                 name="content"
                                 rows="28"
-                                style="font-size: 0.8125rem; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);"
+                                style="font-size: 0.8125rem;"
                                 required>{{ $content }}</textarea>
                             <small class="text-muted mt-1 d-block">
                                 A backup of the previous version is saved automatically before each update.

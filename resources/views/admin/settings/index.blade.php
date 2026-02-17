@@ -1,6 +1,7 @@
 @extends('layouts.admin')
 @section('title', 'Settings')
 @section('content')
+<div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1 class="h3 mb-1">Site Settings</h1>
@@ -206,13 +207,13 @@
                         <label class="form-label">Warning</label>
                         <input type="color" name="settings[warning_color]" class="form-control" value="{{ $siteSettings['warning_color'] ?? '#f59e0b' }}" style="height:45px;">
                         <input type="hidden" name="groups[warning_color]" value="theme">
-                        <small class="text-muted">{{ $siteSettings['warning_color'] ?? '#f59e0b' }}</small>
+                        <small class="text-muted">{{ $siteSettings['warning_color'] ?? '#f59e0b' }} &middot; Alerts, pending states</small>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Info</label>
                         <input type="color" name="settings[info_color]" class="form-control" value="{{ $siteSettings['info_color'] ?? '#3b82f6' }}" style="height:45px;">
                         <input type="hidden" name="groups[info_color]" value="theme">
-                        <small class="text-muted">{{ $siteSettings['info_color'] ?? '#3b82f6' }}</small>
+                        <small class="text-muted">{{ $siteSettings['info_color'] ?? '#3b82f6' }} &middot; Notices, informational</small>
                     </div>
                 </div>
             </div>
@@ -409,9 +410,10 @@
         </div>
 
         <div class="d-flex gap-2 mt-2 mb-4">
-            <button type="submit" class="btn btn-primary btn-lg">Save All Settings</button>
+            <button type="submit" class="btn btn-primary">Save All Settings</button>
         </div>
     </form>
+</div>
 
 @push('scripts')
 <script>

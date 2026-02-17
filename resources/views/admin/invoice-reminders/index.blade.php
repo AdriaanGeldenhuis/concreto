@@ -111,30 +111,32 @@
 
     <!-- Reminder History -->
     <div class="card mb-3">
-        <div class="card-header"><h5 class="mb-0">Reminder History</h5></div>
-        <div class="card-body">
-            <form method="GET" class="row g-3">
+        <div class="card-body py-2">
+            <form method="GET" class="row g-2 align-items-end">
                 <div class="col-md-3">
-                    <label class="form-label">Search</label>
-                    <input type="text" name="search" class="form-control" placeholder="Invoice number or customer..." value="{{ request('search') }}">
+                    <label class="form-label mb-1" style="font-size: 0.85rem;">Search</label>
+                    <input type="text" name="search" class="form-control form-control-sm" placeholder="Invoice number or customer..." value="{{ request('search') }}">
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label">From</label>
-                    <input type="date" name="from" class="form-control" value="{{ request('from') }}">
+                    <label class="form-label mb-1" style="font-size: 0.85rem;">From</label>
+                    <input type="date" name="from" class="form-control form-control-sm" value="{{ request('from') }}">
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label">To</label>
-                    <input type="date" name="to" class="form-control" value="{{ request('to') }}">
+                    <label class="form-label mb-1" style="font-size: 0.85rem;">To</label>
+                    <input type="date" name="to" class="form-control form-control-sm" value="{{ request('to') }}">
                 </div>
-                <div class="col-md-3 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary">Filter</button>
-                    <a href="{{ route('admin.invoice-reminders.index') }}" class="btn btn-secondary ms-2">Reset</a>
+                <div class="col-md-3 d-flex gap-1">
+                    <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                    @if(request()->hasAny(['search', 'from', 'to']))
+                        <a href="{{ route('admin.invoice-reminders.index') }}" class="btn btn-secondary btn-sm">Clear</a>
+                    @endif
                 </div>
             </form>
         </div>
     </div>
 
     <div class="card">
+        <div class="card-header"><h5 class="mb-0">Reminder History</h5></div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover mb-0">

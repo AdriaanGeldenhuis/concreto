@@ -307,7 +307,9 @@
                                 </td>
                                 <td>
                                     @if($event->payload)
-                                        <button class="btn btn-sm btn-outline-secondary" onclick="showPayload({{ json_encode(json_encode($event->payload, JSON_PRETTY_PRINT)) }}, '{{ $event->event_type }}')">View</button>
+                                        <button class="btn btn-sm btn-outline-secondary payload-btn"
+                                                data-payload="{{ e(json_encode($event->payload, JSON_PRETTY_PRINT)) }}"
+                                                data-event-type="{{ e($event->event_type) }}">View</button>
                                     @else
                                         -
                                     @endif
@@ -348,11 +350,13 @@
 
 @push('scripts')
 <script>
-function showPayload(json, eventType) {
-    document.getElementById('payloadEventType').textContent = eventType;
-    document.getElementById('payloadContent').textContent = json;
-    new bootstrap.Modal(document.getElementById('payloadModal')).show();
-}
+document.querySelectorAll('.payload-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.getElementById('payloadEventType').textContent = this.dataset.eventType;
+        document.getElementById('payloadContent').textContent = this.dataset.payload;
+        new bootstrap.Modal(document.getElementById('payloadModal')).show();
+    });
+});
 </script>
 @endpush
 @endsection

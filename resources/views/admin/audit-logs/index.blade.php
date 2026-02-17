@@ -72,9 +72,13 @@
                             </td>
                             <td>{{ $log->entity }}</td>
                             <td class="text-muted">{{ $log->entity_id ?? '-' }}</td>
-                            <td style="max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:0.8rem;" title="{{ $log->meta ? json_encode($log->meta) : '' }}">
+                            <td style="max-width:300px; font-size:0.8rem;">
                                 @if($log->meta)
-                                    <code class="text-muted">{{ json_encode($log->meta) }}</code>
+                                    <button class="btn btn-sm btn-outline-secondary audit-detail-btn"
+                                            data-meta="{{ e(json_encode($log->meta, JSON_PRETTY_PRINT)) }}"
+                                            data-action="{{ e($log->action) }}"
+                                            data-entity="{{ e($log->entity) }}"
+                                            data-entity-id="{{ e($log->entity_id ?? '-') }}">View</button>
                                 @else
                                     <span class="text-muted">-</span>
                                 @endif
@@ -97,4 +101,35 @@
         <div class="d-flex justify-content-center mt-3">{!! $logs->appends(request()->query())->links() !!}</div>
     @endif
 </div>
+
+{{-- Audit Detail Modal --}}
+<div class="modal fade" id="auditDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Audit Detail: <code id="auditDetailTitle"></code></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <pre id="auditDetailContent" class="mb-0 p-3 rounded" style="background: rgba(0,0,0,0.15); max-height: 500px; overflow: auto; font-size: 0.8125rem;"></pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="navigator.clipboard.writeText(document.getElementById('auditDetailContent').textContent)">Copy to Clipboard</button>
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+document.querySelectorAll('.audit-detail-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.getElementById('auditDetailTitle').textContent = this.dataset.action + ' ' + this.dataset.entity + ' #' + this.dataset.entityId;
+        document.getElementById('auditDetailContent').textContent = this.dataset.meta;
+        new bootstrap.Modal(document.getElementById('auditDetailModal')).show();
+    });
+});
+</script>
+@endpush
 @endsection
