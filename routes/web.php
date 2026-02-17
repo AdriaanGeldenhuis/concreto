@@ -192,6 +192,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff'])
     Route::get('/payment-register', [Admin\PaymentRegisterController::class, 'index'])->name('payment-register.index');
     Route::get('/payment-register/export', [Admin\PaymentRegisterController::class, 'export'])->name('payment-register.export');
 
+    // VAT Report
+    Route::get('/vat-report', [Admin\VatReportController::class, 'index'])->name('vat-report.index');
+    Route::get('/vat-report/export', [Admin\VatReportController::class, 'export'])->name('vat-report.export');
+
     // Reports & Export
     Route::get('/reports', [Admin\ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/export', [Admin\ReportController::class, 'export'])->name('reports.export');
