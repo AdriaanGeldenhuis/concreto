@@ -67,7 +67,7 @@
                 <div class="card-body">
                     <h6 class="text-muted mb-2">Operating Expenses</h6>
                     <h3 class="mb-0 text-danger">R {{ number_format($totalOpex, 2) }}</h3>
-                    <small class="text-muted">Wages + Refunds</small>
+                    <small class="text-muted">Wages + Diesel + Expenses + Refunds</small>
                 </div>
             </div>
         </div>
@@ -136,6 +136,28 @@
                             <td class="text-end"><small class="text-muted">R {{ number_format($dw->pay, 2) }}</small></td>
                         </tr>
                     @endforeach
+                    <tr>
+                        <td style="padding-left: 2rem;">Diesel / Fuel</td>
+                        <td class="text-end text-danger">- R {{ number_format($totalDiesel, 2) }} <small>({{ $dieselFills }} fills, {{ number_format($totalDieselLitres, 0) }}L)</small></td>
+                    </tr>
+                    @foreach($dieselByDriver as $dd)
+                        <tr>
+                            <td style="padding-left: 3rem;"><small class="text-muted">{{ $dd->name }} ({{ $dd->fills }} fills, {{ number_format($dd->litres, 0) }}L)</small></td>
+                            <td class="text-end"><small class="text-muted">R {{ number_format($dd->total, 2) }}</small></td>
+                        </tr>
+                    @endforeach
+                    @if($totalExpenses > 0)
+                    <tr>
+                        <td style="padding-left: 2rem;">General Expenses</td>
+                        <td class="text-end text-danger">- R {{ number_format($totalExpenses, 2) }}</td>
+                    </tr>
+                    @foreach($expensesByCategory as $ec)
+                        <tr>
+                            <td style="padding-left: 3rem;"><small class="text-muted"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:{{ $ec->color }};margin-right:4px;"></span>{{ $ec->name }} ({{ $ec->count }})</small></td>
+                            <td class="text-end"><small class="text-muted">R {{ number_format($ec->total, 2) }}</small></td>
+                        </tr>
+                    @endforeach
+                    @endif
                     <tr>
                         <td style="padding-left: 2rem;">Refunds Issued</td>
                         <td class="text-end text-danger">- R {{ number_format($totalRefunds, 2) }} <small>({{ $refundCount }})</small></td>

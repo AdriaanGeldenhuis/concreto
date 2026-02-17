@@ -81,4 +81,9 @@ class User extends Authenticatable
     {
         return $this->hasOne(DriverSalaryConfig::class, 'driver_id')->where('is_active', true);
     }
+
+    public function dieselLogs(): HasMany
+    {
+        return $this->hasMany(DieselLog::class, 'driver_id');
+    }
 }

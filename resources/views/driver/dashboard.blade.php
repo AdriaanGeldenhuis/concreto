@@ -5,6 +5,7 @@
 @section('nav-links')
     <a href="{{ route('driver.dashboard') }}" class="active">Dashboard</a>
     <a href="{{ route('driver.jobs.index') }}">All Jobs</a>
+    <a href="{{ route('driver.diesel.index') }}">Diesel</a>
 @endsection
 
 @section('content')
@@ -130,5 +131,6 @@
 <nav class="bottom-nav">
     <a href="{{ route('driver.dashboard') }}" class="active"><span class="nav-icon">&#9632;</span>Dashboard</a>
     <a href="{{ route('driver.jobs.index') }}"><span class="nav-icon">&#9744;</span>All Jobs</a>
+    <a href="{{ route('driver.diesel.index') }}"><span class="nav-icon">&#9981;</span>Diesel</a>
 </nav>
 @endsection

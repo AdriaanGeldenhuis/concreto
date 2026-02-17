@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\DieselLog;
 use App\Models\DriverSalaryConfig;
 use App\Models\DriverShift;
+use App\Models\Expense;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
@@ -107,6 +109,34 @@ class ProfitLossController extends Controller
             ];
         }
 
+        // Diesel / Fuel costs
+        $dieselCosts = DieselLog::whereBetween('fill_date', [$from, $to])
+            ->selectRaw('SUM(total_cost) as total, SUM(litres) as litres, COUNT(*) as fills')
+            ->first();
+
+        $totalDiesel = (float) ($dieselCosts->total ?? 0);
+        $totalDieselLitres = (float) ($dieselCosts->litres ?? 0);
+        $dieselFills = (int) ($dieselCosts->fills ?? 0);
+
+        // Diesel per driver breakdown
+        $dieselByDriver = DieselLog::whereBetween('fill_date', [$from, $to])
+            ->join('users', 'diesel_logs.driver_id', '=', 'users.id')
+            ->selectRaw('users.name, SUM(diesel_logs.total_cost) as total, SUM(diesel_logs.litres) as litres, COUNT(*) as fills')
+            ->groupBy('users.id', 'users.name')
+            ->orderByDesc('total')
+            ->get();
+
+        // General expenses
+        $expensesByCategory = Expense::whereBetween('expense_date', [$from, $to])
+            ->join('expense_categories', 'expenses.expense_category_id', '=', 'expense_categories.id')
+            ->selectRaw('expense_categories.name, expense_categories.color, SUM(expenses.amount) as total, SUM(expenses.vat_amount) as vat, COUNT(*) as count')
+            ->groupBy('expense_categories.id', 'expense_categories.name', 'expense_categories.color')
+            ->orderByDesc('total')
+            ->get();
+
+        $totalExpenses = (float) $expensesByCategory->sum('total');
+        $totalExpenseVat = (float) $expensesByCategory->sum('vat');
+
         // Refunds as expense
         $refunds = Payment::where('status', 'completed')
             ->where('amount', '<', 0)
@@ -129,7 +159,7 @@ class ProfitLossController extends Controller
         $totalBankFees = (float) $bankExpenses->sum('total');
 
         // Total operating expenses
-        $totalOpex = $totalDriverWages + $totalRefunds + $totalBankFees;
+        $totalOpex = $totalDriverWages + $totalDiesel + $totalExpenses + $totalRefunds + $totalBankFees;
 
         // === NET PROFIT ===
         $netProfit = $grossProfit - $totalOpex;
@@ -161,7 +191,10 @@ class ProfitLossController extends Controller
         return view('admin.profit-loss.index', compact(
             'totalRevenue', 'totalVat', 'totalDeliveryFees', 'totalDiscounts', 'totalIncVat', 'orderCount',
             'totalCogs', 'grossProfit', 'grossMarginPct',
-            'totalDriverWages', 'driverWageDetails', 'totalRefunds', 'refundCount', 'totalBankFees', 'totalOpex',
+            'totalDriverWages', 'driverWageDetails',
+            'totalDiesel', 'totalDieselLitres', 'dieselFills', 'dieselByDriver',
+            'totalExpenses', 'totalExpenseVat', 'expensesByCategory',
+            'totalRefunds', 'refundCount', 'totalBankFees', 'totalOpex',
             'netProfit', 'netMarginPct',
             'monthlyTrend',
             'from', 'to', 'period'
@@ -170,8 +203,6 @@ class ProfitLossController extends Controller
 
     public function export(Request $request)
     {
-        // Redirect to the index to get the data, then let the view handle it
-        // For simplicity, build CSV inline
         $from = $request->input('from', now()->startOfMonth()->format('Y-m-d'));
         $to = $request->input('to', now()->endOfMonth()->format('Y-m-d'));
         $fromDate = $from . ' 00:00:00';
@@ -183,10 +214,11 @@ class ProfitLossController extends Controller
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ];
 
-        return response()->stream(function () use ($fromDate, $toDate) {
+        return response()->stream(function () use ($from, $to, $fromDate, $toDate) {
             $handle = fopen('php://output', 'w');
 
             fputcsv($handle, ['Profit & Loss Statement']);
+            fputcsv($handle, ["Period: {$from} to {$to}"]);
             fputcsv($handle, []);
 
             // Revenue
@@ -241,13 +273,37 @@ class ProfitLossController extends Controller
             }
             fputcsv($handle, ['Total Driver Wages', $totalWages]);
 
+            // Diesel costs
+            $diesel = DieselLog::whereBetween('fill_date', [$from, $to])
+                ->selectRaw('SUM(total_cost) as total, SUM(litres) as litres')
+                ->first();
+            $totalDiesel = (float) ($diesel->total ?? 0);
+            fputcsv($handle, ['Diesel / Fuel', $totalDiesel]);
+
+            // General expenses
+            $expensesByCategory = Expense::whereBetween('expense_date', [$from, $to])
+                ->join('expense_categories', 'expenses.expense_category_id', '=', 'expense_categories.id')
+                ->selectRaw('expense_categories.name, SUM(expenses.amount) as total')
+                ->groupBy('expense_categories.id', 'expense_categories.name')
+                ->orderByDesc('total')
+                ->get();
+
+            $totalExpenses = 0;
+            foreach ($expensesByCategory as $ec) {
+                fputcsv($handle, ["  Expense: {$ec->name}", $ec->total]);
+                $totalExpenses += (float) $ec->total;
+            }
+            fputcsv($handle, ['Total General Expenses', $totalExpenses]);
+
             $refunds = Payment::where('status', 'completed')->where('amount', '<', 0)
                 ->whereBetween('created_at', [$fromDate, $toDate])->sum(\DB::raw('ABS(amount)'));
             fputcsv($handle, ['Refunds', $refunds]);
-            fputcsv($handle, ['Total Operating Expenses', $totalWages + $refunds]);
+
+            $totalOpex = $totalWages + $totalDiesel + $totalExpenses + $refunds;
+            fputcsv($handle, ['Total Operating Expenses', $totalOpex]);
             fputcsv($handle, []);
 
-            $netProfit = (($rev->subtotal ?? 0) - $cogs) - ($totalWages + $refunds);
+            $netProfit = (($rev->subtotal ?? 0) - $cogs) - $totalOpex;
             fputcsv($handle, ['NET PROFIT', $netProfit]);
 
             fclose($handle);
