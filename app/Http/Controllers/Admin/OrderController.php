@@ -46,13 +46,17 @@ class OrderController extends Controller
 
         $customer = Customer::findOrFail($request->customer_id);
 
-        $order = $this->orderService->createOrder($customer, [
-            'delivery_address_id' => $request->delivery_address_id,
-            'items' => $request->items,
-            'notes' => $request->notes,
-            'scheduled_date' => $request->scheduled_date,
-            'scheduled_time_window' => $request->scheduled_time_window,
-        ]);
+        try {
+            $order = $this->orderService->createOrder($customer, [
+                'delivery_address_id' => $request->delivery_address_id,
+                'items' => $request->items,
+                'notes' => $request->notes,
+                'scheduled_date' => $request->scheduled_date,
+                'scheduled_time_window' => $request->scheduled_time_window,
+            ]);
+        } catch (\InvalidArgumentException $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
 
         // If admin pre-selected a driver, assign immediately
         if ($request->filled('driver_id')) {
