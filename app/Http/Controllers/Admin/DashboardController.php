@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\BankTransaction;
 use App\Models\Customer;
 use App\Models\DriverLocation;
 use App\Models\Order;
@@ -60,6 +61,9 @@ class DashboardController extends Controller
                 return $driver;
             });
 
+        // Bank reconciliation stats
+        $unreconciledCount = BankTransaction::unmatched()->count();
+
         // Low stock products
         $lowStockProducts = Product::where('is_active', true)
             ->whereNotNull('stock_qty')
@@ -70,7 +74,7 @@ class DashboardController extends Controller
             ->get();
 
         return view('admin.dashboard', compact(
-            'stats', 'recentOrders', 'weeklyRevenue', 'activeDrivers', 'lowStockProducts'
+            'stats', 'recentOrders', 'weeklyRevenue', 'activeDrivers', 'lowStockProducts', 'unreconciledCount'
         ));
     }
 }

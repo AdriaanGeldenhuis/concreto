@@ -75,6 +75,10 @@ class StaffPermissionMiddleware
         'admin.payment-register.index',
         'admin.vat-report.index',
         'admin.profit-loss.index',
+
+        // Bank Reconciliation (view only for staff)
+        'admin.bank-reconciliation.index',
+        'admin.bank-reconciliation.statement',
     ];
 
     public function handle(Request $request, Closure $next): Response

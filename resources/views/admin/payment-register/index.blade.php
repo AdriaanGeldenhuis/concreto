@@ -112,6 +112,7 @@
                             <th>Customer</th>
                             <th class="text-end">Amount</th>
                             <th class="text-center">Status</th>
+                            <th class="text-center">Reconciled</th>
                             <th>Notes</th>
                         </tr>
                     </thead>
@@ -166,11 +167,18 @@
                                         {{ ucfirst($payment->status) }}
                                     </span>
                                 </td>
+                                <td class="text-center">
+                                    @if($payment->reconciled_at)
+                                        <span class="badge bg-success" title="Reconciled {{ $payment->reconciled_at->format('d M Y') }}">Reconciled</span>
+                                    @else
+                                        <span class="badge bg-warning">Unreconciled</span>
+                                    @endif
+                                </td>
                                 <td><small class="text-muted">{{ \Illuminate\Support\Str::limit($payment->notes ?? '', 40) }}</small></td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9" class="text-center text-muted py-4">No payments found.</td>
+                                <td colspan="10" class="text-center text-muted py-4">No payments found.</td>
                             </tr>
                         @endforelse
                     </tbody>

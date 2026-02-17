@@ -43,6 +43,12 @@
             <div class="stat-value">{{ $stats['low_stock_count'] }}</div>
             <div class="stat-label">Low Stock Items</div>
         </div>
+        @if(isset($unreconciledCount) && $unreconciledCount > 0)
+        <a href="{{ route('admin.bank-reconciliation.index') }}" class="stat-card" style="text-decoration: none; border-left: 3px solid var(--warning, #f6c23e);">
+            <div class="stat-value">{{ $unreconciledCount }}</div>
+            <div class="stat-label">Unreconciled Transactions</div>
+        </a>
+        @endif
     </div>
 
     <div class="card mb-3">

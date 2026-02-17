@@ -235,6 +235,30 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff', 
     Route::get('/email-templates', [Admin\EmailTemplateController::class, 'index'])->name('email-templates.index');
     Route::get('/email-templates/edit', [Admin\EmailTemplateController::class, 'edit'])->name('email-templates.edit');
     Route::post('/email-templates', [Admin\EmailTemplateController::class, 'update'])->name('email-templates.update');
+
+    // Bank Account Management
+    Route::resource('bank-accounts', Admin\BankAccountController::class)->except(['show']);
+
+    // Bank Statement Import
+    Route::get('bank-accounts/{bankAccount}/import', [Admin\BankImportController::class, 'show'])->name('bank-accounts.import.show');
+    Route::post('bank-accounts/{bankAccount}/import/preview', [Admin\BankImportController::class, 'preview'])->name('bank-accounts.import.preview');
+    Route::post('bank-accounts/{bankAccount}/import/confirm', [Admin\BankImportController::class, 'confirm'])->name('bank-accounts.import.confirm');
+    Route::post('bank-accounts/{bankAccount}/import/save-mapping', [Admin\BankImportController::class, 'saveMapping'])->name('bank-accounts.import.save-mapping');
+
+    // Bank Reconciliation
+    Route::get('bank-reconciliation', [Admin\BankReconciliationController::class, 'index'])->name('bank-reconciliation.index');
+    Route::post('bank-reconciliation/{bankTransaction}/match', [Admin\BankReconciliationController::class, 'match'])->name('bank-reconciliation.match');
+    Route::post('bank-reconciliation/{bankTransaction}/unmatch', [Admin\BankReconciliationController::class, 'unmatch'])->name('bank-reconciliation.unmatch');
+    Route::post('bank-reconciliation/{bankTransaction}/exclude', [Admin\BankReconciliationController::class, 'exclude'])->name('bank-reconciliation.exclude');
+    Route::post('bank-reconciliation/{bankTransaction}/categorise', [Admin\BankReconciliationController::class, 'categorise'])->name('bank-reconciliation.categorise');
+    Route::post('bank-reconciliation/{bankTransaction}/create-payment', [Admin\BankReconciliationController::class, 'createPayment'])->name('bank-reconciliation.create-payment');
+    Route::post('bank-reconciliation/auto-match', [Admin\BankReconciliationController::class, 'runAutoMatch'])->name('bank-reconciliation.auto-match');
+    Route::get('bank-reconciliation/search-payments', [Admin\BankReconciliationController::class, 'searchPayments'])->name('bank-reconciliation.search-payments');
+    Route::get('bank-reconciliation/statement', [Admin\BankReconciliationController::class, 'statement'])->name('bank-reconciliation.statement');
+    Route::get('bank-reconciliation/statement/export', [Admin\BankReconciliationController::class, 'exportStatement'])->name('bank-reconciliation.statement.export');
+
+    // Reconciliation Rules
+    Route::resource('bank-reconciliation/rules', Admin\BankReconciliationRuleController::class, ['as' => 'bank-reconciliation'])->except(['show']);
 });
 
 // Health check (no auth)

@@ -117,8 +117,19 @@ class ProfitLossController extends Controller
         $totalRefunds = (float) ($refunds->total ?? 0);
         $refundCount = (int) ($refunds->count ?? 0);
 
+        // Bank expenses (from categorised bank transactions)
+        $bankExpenses = \App\Models\BankTransaction::whereIn('category', ['bank_fee', 'bank_charge'])
+            ->whereIn('reconciliation_status', ['excluded', 'matched', 'manually_reconciled'])
+            ->where('type', 'debit')
+            ->whereBetween('transaction_date', [$from, $to])
+            ->selectRaw('category, SUM(ABS(amount)) as total, COUNT(*) as count')
+            ->groupBy('category')
+            ->get();
+
+        $totalBankFees = (float) $bankExpenses->sum('total');
+
         // Total operating expenses
-        $totalOpex = $totalDriverWages + $totalRefunds;
+        $totalOpex = $totalDriverWages + $totalRefunds + $totalBankFees;
 
         // === NET PROFIT ===
         $netProfit = $grossProfit - $totalOpex;
@@ -150,7 +161,7 @@ class ProfitLossController extends Controller
         return view('admin.profit-loss.index', compact(
             'totalRevenue', 'totalVat', 'totalDeliveryFees', 'totalDiscounts', 'totalIncVat', 'orderCount',
             'totalCogs', 'grossProfit', 'grossMarginPct',
-            'totalDriverWages', 'driverWageDetails', 'totalRefunds', 'refundCount', 'totalOpex',
+            'totalDriverWages', 'driverWageDetails', 'totalRefunds', 'refundCount', 'totalBankFees', 'totalOpex',
             'netProfit', 'netMarginPct',
             'monthlyTrend',
             'from', 'to', 'period'

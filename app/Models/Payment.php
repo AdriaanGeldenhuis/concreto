@@ -16,6 +16,8 @@ class Payment extends Model
         'amount',
         'status',
         'metadata',
+        'bank_transaction_id',
+        'reconciled_at',
     ];
 
     protected function casts(): array
@@ -23,6 +25,7 @@ class Payment extends Model
         return [
             'amount' => 'decimal:2',
             'metadata' => 'array',
+            'reconciled_at' => 'datetime',
         ];
     }
 
@@ -34,5 +37,15 @@ class Payment extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function bankTransaction(): BelongsTo
+    {
+        return $this->belongsTo(BankTransaction::class);
+    }
+
+    public function isReconciled(): bool
+    {
+        return $this->reconciled_at !== null;
     }
 }

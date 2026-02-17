@@ -87,6 +87,11 @@
             <div class="sidebar-section">Communication</div>
             <a href="{{ route('admin.messages.index') }}" class="{{ request()->routeIs('admin.messages*') ? 'active' : '' }}">&#9993; Messages</a>
             <a href="{{ route('admin.email-templates.index') }}" class="{{ request()->routeIs('admin.email-templates*') ? 'active' : '' }}">&#9993; Email Templates</a>
+            <div class="sidebar-section">Banking</div>
+            <a href="{{ route('admin.bank-accounts.index') }}" class="{{ request()->routeIs('admin.bank-accounts*') ? 'active' : '' }}">&#127974; Bank Accounts</a>
+            <a href="{{ route('admin.bank-reconciliation.index') }}" class="{{ request()->routeIs('admin.bank-reconciliation.index') ? 'active' : '' }}">&#128260; Reconciliation</a>
+            <a href="{{ route('admin.bank-reconciliation.statement') }}" class="{{ request()->routeIs('admin.bank-reconciliation.statement*') ? 'active' : '' }}">&#128209; Recon Statement</a>
+            <a href="{{ route('admin.bank-reconciliation.rules.index') }}" class="{{ request()->routeIs('admin.bank-reconciliation.rules*') ? 'active' : '' }}">&#128295; Recon Rules</a>
             <div class="sidebar-section">Finance</div>
             <a href="{{ route('admin.accounts-receivable.index') }}" class="{{ request()->routeIs('admin.accounts-receivable*') ? 'active' : '' }}">&#128176; Accounts Receivable</a>
             <a href="{{ route('admin.invoices.index') }}" class="{{ request()->routeIs('admin.invoices*') ? 'active' : '' }}">&#128196; Invoice Register</a>
