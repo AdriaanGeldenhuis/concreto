@@ -4,6 +4,7 @@
     <div class="page-header">
         <h1>Orders</h1>
         <span class="badge badge-secondary">{{ $orders->total() }} total</span>
+        <a href="{{ route('admin.orders.create') }}" class="btn btn-primary btn-sm" style="margin-left: auto;">+ Create Order</a>
     </div>
 
     <div class="card mb-2">

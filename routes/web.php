@@ -127,6 +127,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff'])
     Route::get('/', [Admin\DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/orders', [Admin\OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/create', [Admin\OrderController::class, 'create'])->name('orders.create');
+    Route::post('/orders', [Admin\OrderController::class, 'store'])->name('orders.store');
     Route::get('/orders/{order}', [Admin\OrderController::class, 'show'])->name('orders.show');
     Route::post('/orders/{order}/assign-driver', [Admin\OrderController::class, 'assignDriver'])->name('orders.assign-driver');
     Route::post('/orders/{order}/status', [Admin\OrderController::class, 'updateStatus'])->name('orders.update-status');
