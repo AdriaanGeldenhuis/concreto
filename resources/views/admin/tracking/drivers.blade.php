@@ -256,22 +256,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Driver data from server
-    var drivers = @json(
-        $activeDrivers->merge($idleDrivers)->filter(fn($d) => $d->last_location !== null)->map(fn($d) => [
-            'id'        => $d->id,
-            'name'      => $d->name,
-            'phone'     => $d->phone,
-            'lat'       => (float) $d->last_location->lat,
-            'lng'       => (float) $d->last_location->lng,
-            'speed'     => $d->last_location->speed ? round($d->last_location->speed) : 0,
-            'updated'   => $d->last_location->recorded_at->diffForHumans(),
-            'active'    => $d->active_order !== null,
-            'status'    => $d->active_order ? str_replace('_', ' ', $d->active_order->status) : 'Idle',
-            'order'     => $d->active_order ? $d->active_order->order_number : null,
-            'orderUrl'  => $d->active_order ? route('admin.orders.show', $d->active_order) : null,
-            'detailUrl' => route('admin.tracking.driver-detail', $d),
-        ])->values()
-    );
+    var drivers = @json($mapDrivers);
 
     // Default center: South Africa
     var defaultCenter = [-29.0, 25.0];
