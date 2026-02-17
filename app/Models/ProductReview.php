@@ -9,11 +9,12 @@ class ProductReview extends Model
 {
     protected $fillable = [
         'product_id', 'customer_id', 'order_id', 'rating', 'comment', 'is_approved',
+        'admin_reply', 'admin_reply_at',
     ];
 
     protected function casts(): array
     {
-        return ['is_approved' => 'boolean'];
+        return ['is_approved' => 'boolean', 'admin_reply_at' => 'datetime'];
     }
 
     public function product(): BelongsTo

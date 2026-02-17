@@ -218,6 +218,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff', 
 
     // Promo Codes
     Route::get('/promo-codes', [Admin\PromoCodeController::class, 'index'])->name('promo-codes.index');
+    Route::get('/promo-codes/{promoCode}', [Admin\PromoCodeController::class, 'show'])->name('promo-codes.show');
     Route::post('/promo-codes', [Admin\PromoCodeController::class, 'store'])->name('promo-codes.store');
     Route::put('/promo-codes/{promoCode}', [Admin\PromoCodeController::class, 'update'])->name('promo-codes.update');
     Route::delete('/promo-codes/{promoCode}', [Admin\PromoCodeController::class, 'destroy'])->name('promo-codes.destroy');
@@ -232,6 +233,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff', 
     Route::get('/reviews', [Admin\ReviewController::class, 'index'])->name('reviews.index');
     Route::post('/reviews/{review}/approve', [Admin\ReviewController::class, 'approve'])->name('reviews.approve');
     Route::post('/reviews/{review}/reject', [Admin\ReviewController::class, 'reject'])->name('reviews.reject');
+    Route::post('/reviews/{review}/reply', [Admin\ReviewController::class, 'reply'])->name('reviews.reply');
+    Route::post('/reviews/bulk-approve', [Admin\ReviewController::class, 'bulkApprove'])->name('reviews.bulk-approve');
     Route::delete('/reviews/{review}', [Admin\ReviewController::class, 'destroy'])->name('reviews.destroy');
 
     // Email Templates
