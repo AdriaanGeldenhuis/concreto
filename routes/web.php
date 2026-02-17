@@ -183,6 +183,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff'])
     Route::get('/accounts-receivable/{customer}/statement', [Admin\AccountsReceivableController::class, 'statement'])->name('accounts-receivable.statement');
     Route::post('/accounts-receivable/{customer}/email-statement', [Admin\AccountsReceivableController::class, 'emailStatement'])->name('accounts-receivable.email-statement');
 
+    // Invoice Register
+    Route::get('/invoices', [Admin\InvoiceController::class, 'index'])->name('invoices.index');
+    Route::get('/invoices/export', [Admin\InvoiceController::class, 'export'])->name('invoices.export');
+    Route::get('/invoices/{invoice}/download', [Admin\InvoiceController::class, 'download'])->name('invoices.download');
+
     // Reports & Export
     Route::get('/reports', [Admin\ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/export', [Admin\ReportController::class, 'export'])->name('reports.export');
