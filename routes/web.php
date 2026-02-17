@@ -188,6 +188,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff'])
     Route::get('/invoices/export', [Admin\InvoiceController::class, 'export'])->name('invoices.export');
     Route::get('/invoices/{invoice}/download', [Admin\InvoiceController::class, 'download'])->name('invoices.download');
 
+    // Payment Register
+    Route::get('/payment-register', [Admin\PaymentRegisterController::class, 'index'])->name('payment-register.index');
+    Route::get('/payment-register/export', [Admin\PaymentRegisterController::class, 'export'])->name('payment-register.export');
+
     // Reports & Export
     Route::get('/reports', [Admin\ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/export', [Admin\ReportController::class, 'export'])->name('reports.export');

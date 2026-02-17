@@ -90,6 +90,7 @@
             <div class="sidebar-section">Finance</div>
             <a href="{{ route('admin.accounts-receivable.index') }}" class="{{ request()->routeIs('admin.accounts-receivable*') ? 'active' : '' }}">&#128176; Accounts Receivable</a>
             <a href="{{ route('admin.invoices.index') }}" class="{{ request()->routeIs('admin.invoices*') ? 'active' : '' }}">&#128196; Invoice Register</a>
+            <a href="{{ route('admin.payment-register.index') }}" class="{{ request()->routeIs('admin.payment-register*') ? 'active' : '' }}">&#128179; Payment Register</a>
             <a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports*') ? 'active' : '' }}">&#128202; Reports</a>
             <div class="sidebar-section">System</div>
             <a href="{{ route('admin.settings.index') }}" class="{{ request()->routeIs('admin.settings*') ? 'active' : '' }}">&#9881; Settings</a>
