@@ -35,7 +35,25 @@ class TrackingController extends Controller
         $activeDrivers = $drivers->filter(fn($d) => $d->active_order !== null);
         $idleDrivers = $drivers->filter(fn($d) => $d->active_order === null);
 
-        return view('admin.tracking.drivers', compact('activeDrivers', 'idleDrivers'));
+        // Build map marker data for drivers with GPS
+        $mapDrivers = $drivers->filter(fn($d) => $d->last_location !== null)->map(function ($d) {
+            return [
+                'id'        => $d->id,
+                'name'      => $d->name,
+                'phone'     => $d->phone,
+                'lat'       => (float) $d->last_location->lat,
+                'lng'       => (float) $d->last_location->lng,
+                'speed'     => $d->last_location->speed ? round($d->last_location->speed) : 0,
+                'updated'   => $d->last_location->recorded_at->diffForHumans(),
+                'active'    => $d->active_order !== null,
+                'status'    => $d->active_order ? str_replace('_', ' ', $d->active_order->status) : 'Idle',
+                'order'     => $d->active_order ? $d->active_order->order_number : null,
+                'orderUrl'  => $d->active_order ? route('admin.orders.show', $d->active_order) : null,
+                'detailUrl' => route('admin.tracking.driver-detail', $d),
+            ];
+        })->values();
+
+        return view('admin.tracking.drivers', compact('activeDrivers', 'idleDrivers', 'mapDrivers'));
     }
 
     public function driverDetail(User $driver)

@@ -63,21 +63,27 @@
     </div>
 
     <div class="card">
-        <div class="card-header">Admin Notes / Reply</div>
+        <div class="card-header">Reply to {{ $contactMessage->name }}</div>
         <div class="card-body">
             <form method="POST" action="{{ route('admin.messages.reply', $contactMessage) }}">
                 @csrf
                 <div class="form-group">
-                    <textarea name="admin_notes" class="form-control" rows="4" placeholder="Add notes or record your reply...">{{ old('admin_notes', $contactMessage->admin_notes) }}</textarea>
+                    <label class="form-label">Your Reply</label>
+                    <textarea name="admin_notes" class="form-control" rows="5" placeholder="Type your reply to {{ $contactMessage->name }}...">{{ old('admin_notes', $contactMessage->admin_notes) }}</textarea>
                     @error('admin_notes')<div class="form-error">{{ $message }}</div>@enderror
                 </div>
-                <button type="submit" class="btn btn-primary">Save Notes & Mark as Replied</button>
+                <div class="form-check" style="margin-bottom: 1rem;">
+                    <input type="checkbox" name="send_email" value="1" id="send_email" checked>
+                    <label for="send_email">Send reply via email to {{ $contactMessage->email }}</label>
+                </div>
+                <button type="submit" class="btn btn-primary">Send Reply</button>
+                <small class="text-muted" style="margin-left: 0.5rem;">Uncheck the box above to save as internal notes only</small>
             </form>
         </div>
     </div>
 
     <div class="d-flex gap-1 mt-2">
-        <a href="mailto:{{ $contactMessage->email }}?subject=Re: {{ $contactMessage->type === 'quote_request' ? 'Your Quote Request' : 'Your Message' }} - {{ $siteSettings['company_name'] ?? 'Concreto' }}" class="btn btn-secondary">Email Reply</a>
+        <a href="mailto:{{ $contactMessage->email }}?subject=Re: {{ $contactMessage->type === 'quote_request' ? 'Your Quote Request' : 'Your Message' }} - {{ $siteSettings['company_name'] ?? 'Concreto' }}" class="btn btn-secondary">Open in Email Client</a>
         @if($contactMessage->phone)
         <a href="tel:{{ $contactMessage->phone }}" class="btn btn-outline">Call</a>
         @endif

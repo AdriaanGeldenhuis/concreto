@@ -26,6 +26,29 @@ class OrderService
                 }
             }
 
+            // Check credit limit for ACCOUNT customers
+            if ($customer->isAccount() && $customer->credit_limit > 0) {
+                // Estimate order total before creating
+                $estimatedSubtotal = 0;
+                foreach ($data['items'] as $item) {
+                    $product = Product::find($item['product_id']);
+                    if ($product) {
+                        $estimatedSubtotal += round($product->price * $item['qty'], 2);
+                    }
+                }
+                $estimatedTotal = round($estimatedSubtotal * 1.15, 2); // Rough estimate with VAT
+
+                $availableCredit = $customer->available_credit;
+                if ($availableCredit !== null && $estimatedTotal > $availableCredit) {
+                    throw new \InvalidArgumentException(
+                        "Order exceeds credit limit. Available credit: R" . number_format($availableCredit, 2)
+                        . ", estimated order total: R" . number_format($estimatedTotal, 2)
+                        . ". Credit limit: R" . number_format($customer->credit_limit, 2)
+                        . ", outstanding: R" . number_format($customer->outstanding_balance, 2) . "."
+                    );
+                }
+            }
+
             // Calculate delivery fee server-side if address is provided
             $deliveryFee = $this->calculateDeliveryFee($data['delivery_address_id'] ?? null);
 

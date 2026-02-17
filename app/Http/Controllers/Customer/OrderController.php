@@ -55,7 +55,11 @@ class OrderController extends Controller
             abort(403, 'Invalid delivery address.');
         }
 
-        $order = $this->orderService->createOrder($customer, $request->all());
+        try {
+            $order = $this->orderService->createOrder($customer, $request->all());
+        } catch (\InvalidArgumentException $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
 
         if ($order->status === 'PENDING_PAYMENT') {
             return redirect()->route('customer.orders.pay', $order);

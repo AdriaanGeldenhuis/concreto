@@ -46,6 +46,7 @@ class UserController extends Controller
         ]);
 
         $data['is_active'] = $request->boolean('is_active');
+        $data['two_factor_enabled'] = $request->boolean('two_factor_enabled');
         $user = User::create($data);
 
         if ($user->role === 'customer') {
@@ -77,6 +78,7 @@ class UserController extends Controller
         ]);
 
         $data['is_active'] = $request->boolean('is_active');
+        $data['two_factor_enabled'] = $request->boolean('two_factor_enabled');
         if (empty($data['password'])) {
             unset($data['password']);
         }

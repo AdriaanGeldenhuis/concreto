@@ -59,6 +59,13 @@ Route::middleware(['guest', 'throttle:login'])->group(function () {
 });
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
 
+// Two-Factor Authentication
+Route::middleware('auth')->group(function () {
+    Route::get('/two-factor/challenge', [\App\Http\Controllers\Auth\TwoFactorController::class, 'challenge'])->name('two-factor.challenge');
+    Route::post('/two-factor/verify', [\App\Http\Controllers\Auth\TwoFactorController::class, 'verify'])->name('two-factor.verify');
+    Route::post('/two-factor/resend', [\App\Http\Controllers\Auth\TwoFactorController::class, 'resend'])->name('two-factor.resend');
+});
+
 // Customer portal
 Route::prefix('customer')->name('customer.')->middleware(['auth', 'role:customer'])->group(function () {
     Route::get('/', [Customer\DashboardController::class, 'index'])->name('dashboard');
@@ -123,10 +130,12 @@ Route::prefix('driver')->name('driver.')->middleware(['auth', 'role:driver'])->g
 });
 
 // Admin backend
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff', 'staff.permission'])->group(function () {
     Route::get('/', [Admin\DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/orders', [Admin\OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/create', [Admin\OrderController::class, 'create'])->name('orders.create');
+    Route::post('/orders', [Admin\OrderController::class, 'store'])->name('orders.store');
     Route::get('/orders/{order}', [Admin\OrderController::class, 'show'])->name('orders.show');
     Route::post('/orders/{order}/assign-driver', [Admin\OrderController::class, 'assignDriver'])->name('orders.assign-driver');
     Route::post('/orders/{order}/status', [Admin\OrderController::class, 'updateStatus'])->name('orders.update-status');
@@ -176,6 +185,29 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff'])
     Route::post('/delivery-areas', [Admin\DeliveryAreaController::class, 'store'])->name('delivery-areas.store');
     Route::put('/delivery-areas/{deliveryArea}', [Admin\DeliveryAreaController::class, 'update'])->name('delivery-areas.update');
     Route::delete('/delivery-areas/{deliveryArea}', [Admin\DeliveryAreaController::class, 'destroy'])->name('delivery-areas.destroy');
+
+    // Accounts Receivable
+    Route::get('/accounts-receivable', [Admin\AccountsReceivableController::class, 'index'])->name('accounts-receivable.index');
+    Route::get('/accounts-receivable/export', [Admin\AccountsReceivableController::class, 'export'])->name('accounts-receivable.export');
+    Route::get('/accounts-receivable/{customer}/statement', [Admin\AccountsReceivableController::class, 'statement'])->name('accounts-receivable.statement');
+    Route::post('/accounts-receivable/{customer}/email-statement', [Admin\AccountsReceivableController::class, 'emailStatement'])->name('accounts-receivable.email-statement');
+
+    // Invoice Register
+    Route::get('/invoices', [Admin\InvoiceController::class, 'index'])->name('invoices.index');
+    Route::get('/invoices/export', [Admin\InvoiceController::class, 'export'])->name('invoices.export');
+    Route::get('/invoices/{invoice}/download', [Admin\InvoiceController::class, 'download'])->name('invoices.download');
+
+    // Payment Register
+    Route::get('/payment-register', [Admin\PaymentRegisterController::class, 'index'])->name('payment-register.index');
+    Route::get('/payment-register/export', [Admin\PaymentRegisterController::class, 'export'])->name('payment-register.export');
+
+    // VAT Report
+    Route::get('/vat-report', [Admin\VatReportController::class, 'index'])->name('vat-report.index');
+    Route::get('/vat-report/export', [Admin\VatReportController::class, 'export'])->name('vat-report.export');
+
+    // Profit & Loss
+    Route::get('/profit-loss', [Admin\ProfitLossController::class, 'index'])->name('profit-loss.index');
+    Route::get('/profit-loss/export', [Admin\ProfitLossController::class, 'export'])->name('profit-loss.export');
 
     // Reports & Export
     Route::get('/reports', [Admin\ReportController::class, 'index'])->name('reports.index');
