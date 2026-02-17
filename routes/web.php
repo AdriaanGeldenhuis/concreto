@@ -127,6 +127,10 @@ Route::prefix('driver')->name('driver.')->middleware(['auth', 'role:driver'])->g
     Route::get('/jobs/{order}/signature', [Driver\JobController::class, 'signatureForm'])->name('jobs.signature');
     Route::post('/jobs/{order}/signature', [Driver\JobController::class, 'storeSignature'])->name('jobs.signature.store');
     Route::post('/jobs/{order}/location', [Driver\JobController::class, 'updateLocation'])->name('jobs.location')->middleware('throttle:tracking');
+
+    // Diesel logging
+    Route::get('/diesel', [Driver\DieselController::class, 'index'])->name('diesel.index');
+    Route::post('/diesel', [Driver\DieselController::class, 'store'])->name('diesel.store');
 });
 
 // Admin backend
@@ -228,6 +232,33 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff', 
     Route::get('/drivers/{driver}/shifts', [Admin\DriverManagementController::class, 'shifts'])->name('drivers.shifts');
     Route::post('/drivers/{driver}/salary', [Admin\DriverManagementController::class, 'updateSalary'])->name('drivers.salary');
     Route::put('/drivers/shifts/{shift}', [Admin\DriverManagementController::class, 'editShift'])->name('drivers.shifts.edit');
+
+    // Vehicles
+    Route::resource('vehicles', Admin\VehicleController::class);
+
+    // Diesel / Fuel Logs
+    Route::get('/diesel', [Admin\DieselLogController::class, 'index'])->name('diesel.index');
+    Route::get('/diesel/create', [Admin\DieselLogController::class, 'create'])->name('diesel.create');
+    Route::post('/diesel', [Admin\DieselLogController::class, 'store'])->name('diesel.store');
+    Route::get('/diesel/export', [Admin\DieselLogController::class, 'export'])->name('diesel.export');
+    Route::get('/diesel/{diesel}/edit', [Admin\DieselLogController::class, 'edit'])->name('diesel.edit');
+    Route::put('/diesel/{diesel}', [Admin\DieselLogController::class, 'update'])->name('diesel.update');
+    Route::delete('/diesel/{diesel}', [Admin\DieselLogController::class, 'destroy'])->name('diesel.destroy');
+
+    // Expense Categories
+    Route::get('/expense-categories', [Admin\ExpenseCategoryController::class, 'index'])->name('expense-categories.index');
+    Route::post('/expense-categories', [Admin\ExpenseCategoryController::class, 'store'])->name('expense-categories.store');
+    Route::put('/expense-categories/{expenseCategory}', [Admin\ExpenseCategoryController::class, 'update'])->name('expense-categories.update');
+    Route::delete('/expense-categories/{expenseCategory}', [Admin\ExpenseCategoryController::class, 'destroy'])->name('expense-categories.destroy');
+
+    // Expenses
+    Route::get('/expenses', [Admin\ExpenseController::class, 'index'])->name('expenses.index');
+    Route::get('/expenses/create', [Admin\ExpenseController::class, 'create'])->name('expenses.create');
+    Route::post('/expenses', [Admin\ExpenseController::class, 'store'])->name('expenses.store');
+    Route::get('/expenses/export', [Admin\ExpenseController::class, 'export'])->name('expenses.export');
+    Route::get('/expenses/{expense}/edit', [Admin\ExpenseController::class, 'edit'])->name('expenses.edit');
+    Route::put('/expenses/{expense}', [Admin\ExpenseController::class, 'update'])->name('expenses.update');
+    Route::delete('/expenses/{expense}', [Admin\ExpenseController::class, 'destroy'])->name('expenses.destroy');
 
     // Reviews
     Route::get('/reviews', [Admin\ReviewController::class, 'index'])->name('reviews.index');

@@ -82,6 +82,11 @@
             <a href="{{ route('admin.ops.index') }}" class="{{ request()->routeIs('admin.ops*') ? 'active' : '' }}">&#9888; Operations Board</a>
             <a href="{{ route('admin.delivery-areas.index') }}" class="{{ request()->routeIs('admin.delivery-areas*') ? 'active' : '' }}">&#9873; Delivery Areas</a>
             <a href="{{ route('admin.drivers.index') }}" class="{{ request()->routeIs('admin.drivers*') ? 'active' : '' }}">&#128664; Driver Management</a>
+            <a href="{{ route('admin.vehicles.index') }}" class="{{ request()->routeIs('admin.vehicles*') ? 'active' : '' }}">&#128666; Vehicles</a>
+            <a href="{{ route('admin.diesel.index') }}" class="{{ request()->routeIs('admin.diesel*') ? 'active' : '' }}">&#9981; Diesel / Fuel</a>
+            <div class="sidebar-section">Expenses</div>
+            <a href="{{ route('admin.expenses.index') }}" class="{{ request()->routeIs('admin.expenses*') ? 'active' : '' }}">&#128181; Expenses</a>
+            <a href="{{ route('admin.expense-categories.index') }}" class="{{ request()->routeIs('admin.expense-categories*') ? 'active' : '' }}">&#128193; Expense Categories</a>
             <div class="sidebar-section">Marketing</div>
             <a href="{{ route('admin.promo-codes.index') }}" class="{{ request()->routeIs('admin.promo-codes*') ? 'active' : '' }}">&#127991; Promo Codes</a>
             <a href="{{ route('admin.reviews.index') }}" class="{{ request()->routeIs('admin.reviews*') ? 'active' : '' }}">&#9733; Reviews</a>
