@@ -2,249 +2,201 @@
 @section('title', 'Accounts Receivable')
 
 @section('content')
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">Accounts Receivable</h1>
-        <a href="{{ route('admin.accounts-receivable.export') }}" class="btn btn-primary">
-            Export CSV
-        </a>
-    </div>
+<div class="page-header">
+    <h1>Accounts Receivable</h1>
+    <a href="{{ route('admin.accounts-receivable.export') }}" class="btn btn-primary btn-sm">Export CSV</a>
+</div>
 
-    <!-- Summary Cards -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card">
-                <div class="card-body">
-                    <h6 class="text-muted mb-2">Total Outstanding</h6>
-                    <h3 class="mb-0">R {{ number_format($totalOutstanding, 2) }}</h3>
-                    <small class="text-muted">{{ $accountCount }} account{{ $accountCount !== 1 ? 's' : '' }} with balance</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card" style="border-left: 4px solid var(--danger, #e74a3b);">
-                <div class="card-body">
-                    <h6 class="text-muted mb-2">Total Overdue (30+ days)</h6>
-                    <h3 class="mb-0 text-danger">R {{ number_format($totalOverdue, 2) }}</h3>
-                    <small class="text-muted">{{ $overdueCount }} overdue account{{ $overdueCount !== 1 ? 's' : '' }}</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card">
-                <div class="card-body">
-                    <h6 class="text-muted mb-2">Current (0-30 days)</h6>
-                    <h3 class="mb-0">R {{ number_format($totalCurrent, 2) }}</h3>
-                    <small class="text-muted">Within terms</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card">
-                <div class="card-body">
-                    <h6 class="text-muted mb-2">90+ Days Overdue</h6>
-                    <h3 class="mb-0 {{ $totalOver90 > 0 ? 'text-danger' : '' }}">R {{ number_format($totalOver90, 2) }}</h3>
-                    <small class="text-muted">Needs urgent attention</small>
-                </div>
-            </div>
-        </div>
-    </div>
+{{-- Summary Cards --}}
+<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem;">
+    <div class="card"><div class="card-body" style="padding:0.75rem;">
+        <h6 class="text-muted mb-0" style="font-size:0.7rem; text-transform:uppercase;">Total Outstanding</h6>
+        <h3 class="mb-0" style="margin-top:0.25rem;">R{{ number_format($totalOutstanding, 2) }}</h3>
+        <small class="text-muted">{{ $accountCount }} account{{ $accountCount !== 1 ? 's' : '' }} with balance</small>
+    </div></div>
+    <div class="card" style="border-left:4px solid var(--danger, #e74c3c);"><div class="card-body" style="padding:0.75rem;">
+        <h6 class="text-muted mb-0" style="font-size:0.7rem; text-transform:uppercase;">Total Overdue (30+)</h6>
+        <h3 class="mb-0" style="margin-top:0.25rem; color:var(--danger, #e74c3c);">R{{ number_format($totalOverdue, 2) }}</h3>
+        <small class="text-muted">{{ $overdueCount }} overdue account{{ $overdueCount !== 1 ? 's' : '' }}</small>
+    </div></div>
+    <div class="card"><div class="card-body" style="padding:0.75rem;">
+        <h6 class="text-muted mb-0" style="font-size:0.7rem; text-transform:uppercase;">Current (0-30 days)</h6>
+        <h3 class="mb-0" style="margin-top:0.25rem;">R{{ number_format($totalCurrent, 2) }}</h3>
+        <small class="text-muted">Within terms</small>
+    </div></div>
+    <div class="card"><div class="card-body" style="padding:0.75rem;">
+        <h6 class="text-muted mb-0" style="font-size:0.7rem; text-transform:uppercase;">90+ Days Overdue</h6>
+        <h3 class="mb-0" style="margin-top:0.25rem; {{ $totalOver90 > 0 ? 'color:var(--danger, #e74c3c);' : '' }}">R{{ number_format($totalOver90, 2) }}</h3>
+        <small class="text-muted">Needs urgent attention</small>
+    </div></div>
+</div>
 
-    <!-- Ageing Summary Bar -->
-    @if($totalOutstanding > 0)
-    <div class="card mb-4">
-        <div class="card-header"><h5 class="mb-0">Ageing Summary</h5></div>
-        <div class="card-body">
-            <div class="row text-center">
-                <div class="col-md-3">
-                    <div class="p-2">
-                        <div class="text-muted mb-1">Current (0-30)</div>
-                        <h4>R {{ number_format($totalCurrent, 2) }}</h4>
-                        <div class="progress" style="height: 8px;">
-                            <div class="progress-bar bg-success" style="width: {{ $totalOutstanding > 0 ? ($totalCurrent / $totalOutstanding * 100) : 0 }}%"></div>
-                        </div>
-                    </div>
+{{-- Ageing Summary --}}
+@if($totalOutstanding > 0)
+<div class="card mb-2">
+    <div class="card-header">Ageing Summary</div>
+    <div class="card-body">
+        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:1rem; text-align:center;">
+            <div>
+                <div class="text-muted" style="margin-bottom:0.25rem; font-size:0.85rem;">Current (0-30)</div>
+                <h4 class="mb-0">R{{ number_format($totalCurrent, 2) }}</h4>
+                <div style="height:8px; background:rgba(255,255,255,0.05); border-radius:4px; margin-top:0.5rem; overflow:hidden;">
+                    <div style="height:100%; width:{{ $totalOutstanding > 0 ? ($totalCurrent / $totalOutstanding * 100) : 0 }}%; background:var(--success, #27ae60); border-radius:4px;"></div>
                 </div>
-                <div class="col-md-3">
-                    <div class="p-2">
-                        <div class="text-muted mb-1">31-60 Days</div>
-                        <h4>R {{ number_format($totalOver30, 2) }}</h4>
-                        <div class="progress" style="height: 8px;">
-                            <div class="progress-bar bg-warning" style="width: {{ $totalOutstanding > 0 ? ($totalOver30 / $totalOutstanding * 100) : 0 }}%"></div>
-                        </div>
-                    </div>
+            </div>
+            <div>
+                <div class="text-muted" style="margin-bottom:0.25rem; font-size:0.85rem;">31-60 Days</div>
+                <h4 class="mb-0">R{{ number_format($totalOver30, 2) }}</h4>
+                <div style="height:8px; background:rgba(255,255,255,0.05); border-radius:4px; margin-top:0.5rem; overflow:hidden;">
+                    <div style="height:100%; width:{{ $totalOutstanding > 0 ? ($totalOver30 / $totalOutstanding * 100) : 0 }}%; background:var(--warning, #e67e22); border-radius:4px;"></div>
                 </div>
-                <div class="col-md-3">
-                    <div class="p-2">
-                        <div class="text-muted mb-1">61-90 Days</div>
-                        <h4>R {{ number_format($totalOver60, 2) }}</h4>
-                        <div class="progress" style="height: 8px;">
-                            <div class="progress-bar bg-danger" style="width: {{ $totalOutstanding > 0 ? ($totalOver60 / $totalOutstanding * 100) : 0 }}%"></div>
-                        </div>
-                    </div>
+            </div>
+            <div>
+                <div class="text-muted" style="margin-bottom:0.25rem; font-size:0.85rem;">61-90 Days</div>
+                <h4 class="mb-0">R{{ number_format($totalOver60, 2) }}</h4>
+                <div style="height:8px; background:rgba(255,255,255,0.05); border-radius:4px; margin-top:0.5rem; overflow:hidden;">
+                    <div style="height:100%; width:{{ $totalOutstanding > 0 ? ($totalOver60 / $totalOutstanding * 100) : 0 }}%; background:var(--danger, #e74c3c); border-radius:4px;"></div>
                 </div>
-                <div class="col-md-3">
-                    <div class="p-2">
-                        <div class="text-muted mb-1">90+ Days</div>
-                        <h4 class="{{ $totalOver90 > 0 ? 'text-danger' : '' }}">R {{ number_format($totalOver90, 2) }}</h4>
-                        <div class="progress" style="height: 8px;">
-                            <div class="progress-bar bg-dark" style="width: {{ $totalOutstanding > 0 ? ($totalOver90 / $totalOutstanding * 100) : 0 }}%"></div>
-                        </div>
-                    </div>
+            </div>
+            <div>
+                <div class="text-muted" style="margin-bottom:0.25rem; font-size:0.85rem;">90+ Days</div>
+                <h4 class="mb-0" style="{{ $totalOver90 > 0 ? 'color:var(--danger, #e74c3c);' : '' }}">R{{ number_format($totalOver90, 2) }}</h4>
+                <div style="height:8px; background:rgba(255,255,255,0.05); border-radius:4px; margin-top:0.5rem; overflow:hidden;">
+                    <div style="height:100%; width:{{ $totalOutstanding > 0 ? ($totalOver90 / $totalOutstanding * 100) : 0 }}%; background:#555; border-radius:4px;"></div>
                 </div>
             </div>
         </div>
     </div>
-    @endif
+</div>
+@endif
 
-    <!-- Filters -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <form method="GET" action="{{ route('admin.accounts-receivable.index') }}" class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label">Search</label>
-                    <input type="text" name="search" class="form-control" placeholder="Customer, company..." value="{{ request('search') }}">
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Sort By</label>
-                    <select name="sort" class="form-select">
-                        <option value="outstanding_balance" {{ request('sort', 'outstanding_balance') === 'outstanding_balance' ? 'selected' : '' }}>Balance (High to Low)</option>
-                        <option value="days" {{ request('sort') === 'days' ? 'selected' : '' }}>Days Outstanding</option>
-                        <option value="name" {{ request('sort') === 'name' ? 'selected' : '' }}>Customer Name</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">&nbsp;</label>
-                    <div>
-                        <label class="form-check-label">
-                            <input type="checkbox" name="overdue" value="1" class="form-check-input" {{ request('overdue') ? 'checked' : '' }}>
-                            Overdue Only
-                        </label>
-                    </div>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">&nbsp;</label>
-                    <div>
-                        <label class="form-check-label">
-                            <input type="checkbox" name="show_zero" value="1" class="form-check-input" {{ request('show_zero') ? 'checked' : '' }}>
-                            Show Zero Balance
-                        </label>
-                    </div>
-                </div>
-                <div class="col-md-3 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary">Filter</button>
-                    <a href="{{ route('admin.accounts-receivable.index') }}" class="btn btn-secondary ms-2">Reset</a>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- AR Table -->
-    <div class="card">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>Customer</th>
-                            <th>Company</th>
-                            <th class="text-end">Credit Limit</th>
-                            <th class="text-end">Outstanding</th>
-                            <th class="text-end">Available Credit</th>
-                            <th class="text-center">Unpaid</th>
-                            <th class="text-center">Days</th>
-                            <th class="text-end">Current</th>
-                            <th class="text-end">31-60</th>
-                            <th class="text-end">61-90</th>
-                            <th class="text-end">90+</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($arData as $item)
-                            <tr class="{{ $item->is_overdue ? 'table-warning' : '' }} {{ $item->over90 > 0 ? 'table-danger' : '' }}">
-                                <td>
-                                    <a href="{{ route('admin.customers.show', $item->customer) }}">
-                                        {{ $item->customer->user->name ?? 'N/A' }}
-                                    </a>
-                                    <br><small class="text-muted">{{ $item->customer->user->email ?? '' }}</small>
-                                </td>
-                                <td>{{ $item->customer->company?->name ?? '-' }}</td>
-                                <td class="text-end">
-                                    @if($item->credit_limit > 0)
-                                        R {{ number_format($item->credit_limit, 2) }}
-                                    @else
-                                        <span class="text-muted">-</span>
-                                    @endif
-                                </td>
-                                <td class="text-end fw-bold {{ $item->outstanding_balance > 0 ? 'text-danger' : 'text-success' }}">
-                                    R {{ number_format($item->outstanding_balance, 2) }}
-                                </td>
-                                <td class="text-end">
-                                    @if($item->available_credit !== null)
-                                        <span class="{{ $item->available_credit <= 0 ? 'text-danger fw-bold' : '' }}">
-                                            R {{ number_format($item->available_credit, 2) }}
-                                        </span>
-                                    @else
-                                        <span class="text-muted">-</span>
-                                    @endif
-                                </td>
-                                <td class="text-center">{{ $item->unpaid_count }}</td>
-                                <td class="text-center">
-                                    @if($item->days_outstanding > 0)
-                                        <span class="badge bg-{{ $item->days_outstanding > 90 ? 'dark' : ($item->days_outstanding > 60 ? 'danger' : ($item->days_outstanding > 30 ? 'warning' : 'success')) }}">
-                                            {{ $item->days_outstanding }}d
-                                        </span>
-                                    @else
-                                        -
-                                    @endif
-                                </td>
-                                <td class="text-end">{{ $item->current > 0 ? 'R ' . number_format($item->current, 2) : '-' }}</td>
-                                <td class="text-end">{{ $item->over30 > 0 ? 'R ' . number_format($item->over30, 2) : '-' }}</td>
-                                <td class="text-end">{{ $item->over60 > 0 ? 'R ' . number_format($item->over60, 2) : '-' }}</td>
-                                <td class="text-end">{{ $item->over90 > 0 ? 'R ' . number_format($item->over90, 2) : '-' }}</td>
-                                <td>
-                                    <div class="btn-group btn-group-sm">
-                                        <a href="{{ route('admin.accounts-receivable.statement', ['customer' => $item->customer->id, 'from' => now()->subMonths(3)->format('Y-m-d'), 'to' => now()->format('Y-m-d')]) }}"
-                                           class="btn btn-outline-primary" title="Download Statement">
-                                            PDF
-                                        </a>
-                                        <form method="POST" action="{{ route('admin.accounts-receivable.email-statement', $item->customer) }}" style="display:inline;">
-                                            @csrf
-                                            <input type="hidden" name="from" value="{{ now()->subMonths(3)->format('Y-m-d') }}">
-                                            <input type="hidden" name="to" value="{{ now()->format('Y-m-d') }}">
-                                            <button type="submit" class="btn btn-outline-success" title="Email Statement" onclick="return confirm('Email statement to {{ $item->customer->user->email ?? 'customer' }}?')">
-                                                Email
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="12" class="text-center text-muted py-4">No accounts receivable data found.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                    @if($arData->count() > 0)
-                    <tfoot>
-                        <tr class="fw-bold" style="background: var(--primary-subtle, #f0f4ff);">
-                            <td colspan="3" class="text-end">TOTALS:</td>
-                            <td class="text-end text-danger">R {{ number_format($totalOutstanding, 2) }}</td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td class="text-end">R {{ number_format($totalCurrent, 2) }}</td>
-                            <td class="text-end">R {{ number_format($totalOver30, 2) }}</td>
-                            <td class="text-end">R {{ number_format($totalOver60, 2) }}</td>
-                            <td class="text-end">R {{ number_format($totalOver90, 2) }}</td>
-                            <td></td>
-                        </tr>
-                    </tfoot>
-                    @endif
-                </table>
+{{-- Filters --}}
+<div class="card mb-2">
+    <div class="card-body" style="padding:0.75rem;">
+        <form method="GET" action="{{ route('admin.accounts-receivable.index') }}" class="filters">
+            <div class="form-group" style="flex:2;">
+                <label class="form-label">Search</label>
+                <input type="text" name="search" class="form-control" placeholder="Customer, company..." value="{{ request('search') }}">
             </div>
-        </div>
+            <div class="form-group">
+                <label class="form-label">Sort By</label>
+                <select name="sort" class="form-control">
+                    <option value="outstanding_balance" {{ request('sort', 'outstanding_balance') === 'outstanding_balance' ? 'selected' : '' }}>Balance (High to Low)</option>
+                    <option value="days" {{ request('sort') === 'days' ? 'selected' : '' }}>Days Outstanding</option>
+                    <option value="name" {{ request('sort') === 'name' ? 'selected' : '' }}>Customer Name</option>
+                </select>
+            </div>
+            <div class="form-group" style="display:flex; align-items:flex-end; gap:0.75rem;">
+                <label style="display:flex; align-items:center; gap:0.35rem; cursor:pointer; white-space:nowrap;">
+                    <input type="checkbox" name="overdue" value="1" {{ request('overdue') ? 'checked' : '' }}>
+                    Overdue Only
+                </label>
+                <label style="display:flex; align-items:center; gap:0.35rem; cursor:pointer; white-space:nowrap;">
+                    <input type="checkbox" name="show_zero" value="1" {{ request('show_zero') ? 'checked' : '' }}>
+                    Show Zero
+                </label>
+            </div>
+            <div class="form-group" style="display:flex; align-items:flex-end; gap:0.35rem;">
+                <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                <a href="{{ route('admin.accounts-receivable.index') }}" class="btn btn-outline btn-sm">Reset</a>
+            </div>
+        </form>
     </div>
+</div>
+
+{{-- AR Table --}}
+<div class="card">
+    <div class="table-responsive"><table>
+        <thead><tr>
+            <th>Customer</th>
+            <th>Company</th>
+            <th class="text-right">Credit Limit</th>
+            <th class="text-right">Outstanding</th>
+            <th class="text-right">Available</th>
+            <th class="text-right">Unpaid</th>
+            <th class="text-right">Days</th>
+            <th class="text-right">Current</th>
+            <th class="text-right">31-60</th>
+            <th class="text-right">61-90</th>
+            <th class="text-right">90+</th>
+            <th>Actions</th>
+        </tr></thead>
+        <tbody>
+            @forelse($arData as $item)
+                <tr style="{{ $item->over90 > 0 ? 'background:rgba(231,76,60,0.05);' : ($item->is_overdue ? 'background:rgba(230,126,34,0.05);' : '') }}">
+                    <td>
+                        <a href="{{ route('admin.customers.show', $item->customer) }}">{{ $item->customer->user->name ?? 'N/A' }}</a>
+                        <br><small class="text-muted">{{ $item->customer->user->email ?? '' }}</small>
+                    </td>
+                    <td>{{ $item->customer->company?->name ?? '-' }}</td>
+                    <td class="text-right">
+                        @if($item->credit_limit > 0)
+                            R{{ number_format($item->credit_limit, 2) }}
+                        @else
+                            <span class="text-muted">-</span>
+                        @endif
+                    </td>
+                    <td class="text-right font-semibold" style="color:{{ $item->outstanding_balance > 0 ? 'var(--danger, #e74c3c)' : 'var(--success, #27ae60)' }};">
+                        R{{ number_format($item->outstanding_balance, 2) }}
+                    </td>
+                    <td class="text-right">
+                        @if($item->available_credit !== null)
+                            <span style="{{ $item->available_credit <= 0 ? 'color:var(--danger, #e74c3c); font-weight:600;' : '' }}">
+                                R{{ number_format($item->available_credit, 2) }}
+                            </span>
+                        @else
+                            <span class="text-muted">-</span>
+                        @endif
+                    </td>
+                    <td class="text-right">{{ $item->unpaid_count }}</td>
+                    <td class="text-right">
+                        @if($item->days_outstanding > 0)
+                            <span class="badge badge-{{ $item->days_outstanding > 90 ? 'secondary' : ($item->days_outstanding > 60 ? 'danger' : ($item->days_outstanding > 30 ? 'warning' : 'success')) }}">
+                                {{ $item->days_outstanding }}d
+                            </span>
+                        @else
+                            -
+                        @endif
+                    </td>
+                    <td class="text-right">{{ $item->current > 0 ? 'R' . number_format($item->current, 2) : '-' }}</td>
+                    <td class="text-right">{{ $item->over30 > 0 ? 'R' . number_format($item->over30, 2) : '-' }}</td>
+                    <td class="text-right">{{ $item->over60 > 0 ? 'R' . number_format($item->over60, 2) : '-' }}</td>
+                    <td class="text-right">{{ $item->over90 > 0 ? 'R' . number_format($item->over90, 2) : '-' }}</td>
+                    <td style="white-space:nowrap;">
+                        <a href="{{ route('admin.accounts-receivable.statement', ['customer' => $item->customer->id, 'from' => now()->subMonths(3)->format('Y-m-d'), 'to' => now()->format('Y-m-d')]) }}" class="btn btn-outline btn-sm" title="Download Statement">PDF</a>
+                        <form method="POST" action="{{ route('admin.accounts-receivable.email-statement', $item->customer) }}" style="display:inline;">
+                            @csrf
+                            <input type="hidden" name="from" value="{{ now()->subMonths(3)->format('Y-m-d') }}">
+                            <input type="hidden" name="to" value="{{ now()->format('Y-m-d') }}">
+                            <button type="submit" class="btn btn-sm" style="background:var(--success, #27ae60); color:#fff;" title="Email Statement" onclick="return confirm('Email statement to {{ $item->customer->user->email ?? 'customer' }}?')">Email</button>
+                        </form>
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="12">
+                        <div class="empty-state">
+                            <h3>No accounts receivable data found</h3>
+                            <p>No account customers with outstanding balances.</p>
+                        </div>
+                    </td>
+                </tr>
+            @endforelse
+        </tbody>
+        @if($arData->count() > 0)
+        <tfoot>
+            <tr class="font-semibold" style="background:rgba(255,255,255,0.03);">
+                <td colspan="3" class="text-right">TOTALS:</td>
+                <td class="text-right" style="color:var(--danger, #e74c3c);">R{{ number_format($totalOutstanding, 2) }}</td>
+                <td></td><td></td><td></td>
+                <td class="text-right">R{{ number_format($totalCurrent, 2) }}</td>
+                <td class="text-right">R{{ number_format($totalOver30, 2) }}</td>
+                <td class="text-right">R{{ number_format($totalOver60, 2) }}</td>
+                <td class="text-right">R{{ number_format($totalOver90, 2) }}</td>
+                <td></td>
+            </tr>
+        </tfoot>
+        @endif
+    </table></div>
 </div>
 @endsection
