@@ -158,6 +158,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff', 
     Route::resource('categories', Admin\CategoryController::class)->except(['show', 'create', 'edit']);
 
     Route::get('/customers', [Admin\CustomerController::class, 'index'])->name('customers.index');
+    Route::get('/customers/export', [Admin\CustomerController::class, 'export'])->name('customers.export');
     Route::get('/customers/{customer}', [Admin\CustomerController::class, 'show'])->name('customers.show');
     Route::put('/customers/{customer}', [Admin\CustomerController::class, 'update'])->name('customers.update');
     Route::put('/customers/{customer}/company', [Admin\CustomerController::class, 'updateCompany'])->name('customers.update-company');
@@ -178,6 +179,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff', 
     Route::post('/settings', [Admin\SettingsController::class, 'update'])->name('settings.update');
 
     Route::resource('users', Admin\UserController::class)->except(['show', 'destroy']);
+    Route::post('/users/{user}/toggle-active', [Admin\UserController::class, 'toggleActive'])->name('users.toggle-active');
 
     Route::get('/messages', [Admin\MessageController::class, 'index'])->name('messages.index');
     Route::get('/messages/{contactMessage}', [Admin\MessageController::class, 'show'])->name('messages.show');

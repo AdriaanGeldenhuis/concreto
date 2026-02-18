@@ -6,12 +6,39 @@
             <a href="{{ route('admin.customers.index') }}">Customers</a> / {{ $customer->user->name }}
         </div>
         <h1>{{ $customer->company->display_name ?? $customer->user->name }}</h1>
-        <span class="badge badge-{{ $customer->type == 'COD' ? 'warning' : 'info' }}">{{ $customer->type }}</span>
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+            <span class="badge badge-{{ $customer->type == 'COD' ? 'warning' : 'info' }}">{{ $customer->type }}</span>
+            <span class="badge badge-{{ ($customer->user->is_active ?? false) ? 'success' : 'danger' }}">{{ ($customer->user->is_active ?? false) ? 'Active' : 'Inactive' }}</span>
+            @if($customer->pay_before_dispatch)
+                <span class="badge badge-warning">Pay Before Dispatch</span>
+            @endif
+        </div>
     </div>
 
     @if(session('success'))
         <div class="alert alert-success mb-2">{{ session('success') }}</div>
     @endif
+
+    {{-- Quick Actions Bar --}}
+    <div class="card mb-2">
+        <div class="card-body" style="padding:0.75rem; display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+            <a href="{{ route('admin.orders.create') }}?customer_id={{ $customer->id }}" class="btn btn-primary btn-sm">+ New Order</a>
+            <a href="{{ route('admin.quotes.create') }}?customer_id={{ $customer->id }}" class="btn btn-outline btn-sm">+ New Quote</a>
+            <a href="{{ route('admin.accounts-receivable.statement', $customer) }}" class="btn btn-outline btn-sm">View Statement</a>
+            <a href="{{ route('admin.users.edit', $customer->user) }}" class="btn btn-outline btn-sm">Edit User Account</a>
+            @if($customer->user->is_active && $customer->user->id !== auth()->id())
+                <form method="POST" action="{{ route('admin.users.toggle-active', $customer->user) }}" style="margin-left:auto;">
+                    @csrf
+                    <button type="submit" class="btn btn-ghost btn-sm" onclick="return confirm('Deactivate this customer account?')">Deactivate Account</button>
+                </form>
+            @elseif(!$customer->user->is_active)
+                <form method="POST" action="{{ route('admin.users.toggle-active', $customer->user) }}" style="margin-left:auto;">
+                    @csrf
+                    <button type="submit" class="btn btn-primary btn-sm" onclick="return confirm('Activate this customer account?')">Activate Account</button>
+                </form>
+            @endif
+        </div>
+    </div>
 
     {{-- 360 Customer Summary Cards --}}
     <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom:1.5rem;">
@@ -26,7 +53,7 @@
             <div class="card-body" style="padding:1rem;">
                 <h6 class="text-muted mb-1" style="font-size:0.75rem;">Avg Order</h6>
                 <h4 class="mb-0">R {{ number_format($stats['avg_order_value'], 2) }}</h4>
-                <small class="text-muted">{{ $stats['total_orders'] }} total</small>
+                <small class="text-muted">{{ $stats['total_orders'] }} total orders</small>
             </div>
         </div>
         <div class="card">
@@ -34,7 +61,7 @@
                 <h6 class="text-muted mb-1" style="font-size:0.75rem;">Outstanding</h6>
                 <h4 class="mb-0 {{ $stats['outstanding_balance'] > 0 ? 'text-danger' : '' }}">R {{ number_format($stats['outstanding_balance'], 2) }}</h4>
                 @if($stats['available_credit'] !== null)
-                    <small class="text-muted">Avail: R {{ number_format($stats['available_credit'], 2) }}</small>
+                    <small class="text-muted">Available: R {{ number_format($stats['available_credit'], 2) }}</small>
                 @endif
             </div>
         </div>
@@ -67,7 +94,8 @@
                 @php $maxSpend = $monthlySpend->max('total') ?: 1; @endphp
                 @foreach($monthlySpend as $m)
                     <div style="flex:1; display:flex; flex-direction:column; align-items:center;">
-                        <div style="width:100%; background:var(--primary, #3498db); border-radius:3px 3px 0 0; min-height:3px; height:{{ ($m->total / $maxSpend) * 90 }}px;" title="R {{ number_format($m->total, 2) }}"></div>
+                        <small class="text-muted" style="font-size:0.55rem; margin-bottom:2px;">R{{ number_format($m->total, 0) }}</small>
+                        <div style="width:100%; background:var(--primary, #3498db); border-radius:3px 3px 0 0; min-height:3px; height:{{ ($m->total / $maxSpend) * 80 }}px;" title="R {{ number_format($m->total, 2) }} ({{ $m->count }} orders)"></div>
                         <small class="text-muted" style="font-size:0.6rem; margin-top:2px;">{{ \Carbon\Carbon::parse($m->month . '-01')->format('M') }}</small>
                     </div>
                 @endforeach
@@ -166,10 +194,30 @@
                 <div class="card-body">
                     <form method="POST" action="{{ route('admin.customers.update', $customer) }}">
                         @csrf @method('PUT')
-                        <div class="form-group"><label class="form-label">Account Type</label><select name="type" class="form-control"><option value="COD" {{ $customer->type == 'COD' ? 'selected' : '' }}>COD</option><option value="ACCOUNT" {{ $customer->type == 'ACCOUNT' ? 'selected' : '' }}>Account</option></select></div>
-                        <div class="form-group"><label class="form-label">Credit Limit (R)</label><input type="number" name="credit_limit" class="form-control" step="0.01" value="{{ $customer->credit_limit }}"></div>
-                        <div class="form-group"><label class="form-label">Payment Terms</label><input type="text" name="payment_terms" class="form-control" value="{{ $customer->payment_terms }}" placeholder="e.g. 30 days"></div>
-                        <div class="form-check"><input type="checkbox" name="pay_before_dispatch" value="1" id="pay_before_dispatch" {{ $customer->pay_before_dispatch ? 'checked' : '' }}><label for="pay_before_dispatch">Pay before dispatch</label></div>
+                        <div class="form-group">
+                            <label class="form-label">Account Type</label>
+                            <select name="type" class="form-control">
+                                <option value="COD" {{ $customer->type == 'COD' ? 'selected' : '' }}>COD - Cash On Delivery</option>
+                                <option value="ACCOUNT" {{ $customer->type == 'ACCOUNT' ? 'selected' : '' }}>Account - Credit Terms</option>
+                            </select>
+                            <div class="form-hint">COD = pay on delivery/before dispatch. Account = pay on credit terms.</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Credit Limit (R)</label>
+                            <input type="number" name="credit_limit" class="form-control" step="0.01" value="{{ $customer->credit_limit }}">
+                            @if($stats['outstanding_balance'] > 0)
+                                <div class="form-hint" style="color:var(--danger, #e74c3c);">Current outstanding: R {{ number_format($stats['outstanding_balance'], 2) }}</div>
+                            @endif
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Payment Terms</label>
+                            <input type="text" name="payment_terms" class="form-control" value="{{ $customer->payment_terms }}" placeholder="e.g. 30 days, 7 days, COD">
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" name="pay_before_dispatch" value="1" id="pay_before_dispatch" {{ $customer->pay_before_dispatch ? 'checked' : '' }}>
+                            <label for="pay_before_dispatch">Pay before dispatch</label>
+                        </div>
+                        <div class="form-hint">When checked, orders must be paid before they can be dispatched.</div>
                         <button type="submit" class="btn btn-primary mt-2">Save Settings</button>
                     </form>
                 </div>
@@ -180,7 +228,10 @@
                 <div class="card-header"><span>Delivery Addresses</span> <span class="badge badge-secondary">{{ $customer->addresses->count() }}</span></div>
                 <div class="card-body">
                     @forelse($customer->addresses as $addr)
-                        <div class="info-row"><span class="label">{{ $addr->label ?? 'Address' }}</span><span class="value">{{ $addr->full_address }}</span></div>
+                        <div class="info-row">
+                            <span class="label">{{ $addr->label ?? 'Address' }}</span>
+                            <span class="value">{{ $addr->full_address }}</span>
+                        </div>
                     @empty
                         <p class="text-muted mb-0">No addresses on file.</p>
                     @endforelse
@@ -191,16 +242,35 @@
         <div>
             {{-- Recent Orders --}}
             <div class="card">
-                <div class="card-header"><span>Recent Orders</span> <span class="badge badge-secondary">{{ $stats['total_orders'] }}</span></div>
+                <div class="card-header">
+                    <span>Recent Orders</span>
+                    <span class="badge badge-secondary">{{ $stats['total_orders'] }}</span>
+                </div>
                 <div class="table-responsive">
                     <table>
                         <thead><tr><th>Order #</th><th>Status</th><th>Payment</th><th class="text-right">Total</th></tr></thead>
                         <tbody>
                         @forelse($customer->orders as $order)
                             <tr>
-                                <td><a href="{{ route('admin.orders.show', $order) }}" class="font-semibold">{{ $order->order_number }}</a><br><small class="text-muted">{{ $order->created_at->format('d M Y') }}</small></td>
-                                <td><span class="badge badge-{{ match($order->status) { 'DELIVERED' => 'success', 'CANCELLED', 'REFUNDED' => 'danger', 'IN_TRANSIT', 'LOADED' => 'warning', default => 'info' } }}">{{ ucwords(str_replace('_', ' ', $order->status)) }}</span></td>
-                                <td>@if($order->payments->where('status', 'completed')->count() > 0)<span class="badge badge-success">Paid</span>@else<span class="badge badge-warning">Unpaid</span>@endif</td>
+                                <td>
+                                    <a href="{{ route('admin.orders.show', $order) }}" class="font-semibold">{{ $order->order_number }}</a>
+                                    <br><small class="text-muted">{{ $order->created_at->format('d M Y') }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge badge-{{ match($order->status) {
+                                        'DELIVERED' => 'success',
+                                        'CANCELLED', 'REFUNDED' => 'danger',
+                                        'IN_TRANSIT', 'LOADED' => 'warning',
+                                        default => 'info'
+                                    } }}">{{ ucwords(str_replace('_', ' ', $order->status)) }}</span>
+                                </td>
+                                <td>
+                                    @if($order->payments->where('status', 'completed')->count() > 0)
+                                        <span class="badge badge-success">Paid</span>
+                                    @else
+                                        <span class="badge badge-warning">Unpaid</span>
+                                    @endif
+                                </td>
                                 <td class="text-right font-semibold">R{{ number_format($order->total, 2) }}</td>
                             </tr>
                         @empty

@@ -8,6 +8,7 @@ use App\Models\Company;
 use App\Models\Customer;
 use App\Models\Order;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CustomerController extends Controller
 {
@@ -18,12 +19,18 @@ class CustomerController extends Controller
         if ($request->filled('type')) {
             $query->where('type', $request->type);
         }
+        if ($request->filled('status')) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('is_active', $request->status === 'active');
+            });
+        }
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->whereHas('user', function ($q2) use ($search) {
                     $q2->where('name', 'like', "%{$search}%")
-                      ->orWhere('email', 'like', "%{$search}%");
+                      ->orWhere('email', 'like', "%{$search}%")
+                      ->orWhere('phone', 'like', "%{$search}%");
                 })->orWhereHas('company', function ($q2) use ($search) {
                     $q2->where('name', 'like', "%{$search}%")
                       ->orWhere('trading_as', 'like', "%{$search}%")
@@ -32,8 +39,36 @@ class CustomerController extends Controller
             });
         }
 
-        $customers = $query->orderBy('created_at', 'desc')->paginate(20);
-        return view('admin.customers.index', compact('customers'));
+        // Sorting
+        $sortField = $request->input('sort', 'created_at');
+        $sortDir = $request->input('dir', 'desc');
+
+        if ($sortField === 'name') {
+            $query->join('users', 'customers.user_id', '=', 'users.id')
+                  ->orderBy('users.name', $sortDir === 'desc' ? 'desc' : 'asc')
+                  ->select('customers.*');
+        } elseif (in_array($sortField, ['type', 'credit_limit', 'created_at'])) {
+            $query->orderBy($sortField, $sortDir === 'desc' ? 'desc' : 'asc');
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
+        $customers = $query->paginate(25);
+
+        // Summary stats
+        $stats = [
+            'total' => Customer::count(),
+            'cod' => Customer::where('type', 'COD')->count(),
+            'account' => Customer::where('type', 'ACCOUNT')->count(),
+            'active' => Customer::whereHas('user', fn($q) => $q->where('is_active', true))->count(),
+            'total_outstanding' => (float) Order::whereHas('customer', fn($q) => $q->where('type', 'ACCOUNT'))
+                ->where('status', 'DELIVERED')
+                ->whereDoesntHave('payments', fn($q) => $q->where('status', 'completed'))
+                ->sum('total'),
+            'new_this_month' => Customer::where('created_at', '>=', now()->startOfMonth())->count(),
+        ];
+
+        return view('admin.customers.index', compact('customers', 'stats'));
     }
 
     public function show(Customer $customer)
@@ -111,7 +146,7 @@ class CustomerController extends Controller
         $customer->update($data);
         AuditLog::log('updated', 'Customer', $customer->id, $data);
 
-        return back()->with('success', 'Customer updated.');
+        return back()->with('success', 'Customer settings updated.');
     }
 
     public function updateCompany(Request $request, Customer $customer)
@@ -155,5 +190,56 @@ class CustomerController extends Controller
         AuditLog::log('updated', 'User', $customer->user_id, $data);
 
         return back()->with('success', 'Contact information updated.');
+    }
+
+    public function export(Request $request)
+    {
+        $query = Customer::with(['user', 'company']);
+
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('user', function ($q2) use ($search) {
+                    $q2->where('name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%");
+                })->orWhereHas('company', function ($q2) use ($search) {
+                    $q2->where('name', 'like', "%{$search}%");
+                });
+            });
+        }
+
+        $customers = $query->orderBy('created_at', 'desc')->get();
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="customers-' . now()->format('Y-m-d') . '.csv"',
+        ];
+
+        $callback = function () use ($customers) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['Name', 'Email', 'Phone', 'Company', 'VAT Number', 'Type', 'Credit Limit', 'Payment Terms', 'Outstanding Balance', 'Customer Since']);
+
+            foreach ($customers as $c) {
+                fputcsv($file, [
+                    $c->user->name ?? '',
+                    $c->user->email ?? '',
+                    $c->user->phone ?? '',
+                    $c->company->display_name ?? '',
+                    $c->company->vat_number ?? '',
+                    $c->type,
+                    $c->credit_limit ?? '0.00',
+                    $c->payment_terms ?? '',
+                    number_format($c->outstanding_balance, 2),
+                    $c->created_at->format('Y-m-d'),
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }
