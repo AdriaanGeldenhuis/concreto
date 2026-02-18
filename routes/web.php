@@ -24,7 +24,7 @@ Route::get('/media/{path}', function (string $path) {
 // Public pages
 Route::get('/', [PublicController::class, 'home'])->name('home');
 Route::get('/products', [PublicController::class, 'products'])->name('products');
-Route::get('/products/{product}', [PublicController::class, 'productDetail'])->name('products.show');
+Route::get('/products/{product:slug}', [PublicController::class, 'productDetail'])->name('products.show');
 Route::get('/contact', [PublicController::class, 'contact'])->name('contact');
 Route::post('/contact', [PublicController::class, 'submitContact'])->name('contact.submit');
 Route::get('/terms', [PublicController::class, 'terms'])->name('terms');
