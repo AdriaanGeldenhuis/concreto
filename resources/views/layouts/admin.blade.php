@@ -57,14 +57,12 @@
 <body>
     <div class="admin-layout">
         <aside class="admin-sidebar">
-            <a href="{{ route('admin.dashboard') }}" class="sidebar-brand" style="text-decoration:none; color:inherit;">
-                @php $logoH = ($siteSettings['logo_height'] ?? 36) . 'px'; @endphp
+            <a href="{{ route('admin.dashboard') }}" class="sidebar-brand">
                 @if(!empty($siteSettings['site_logo']))
-                    <img src="{{ url('media/' . $siteSettings['site_logo']) }}" alt="{{ $siteSettings['company_name'] ?? 'Concreto' }}" style="height:{{ $logoH }} !important; width:auto !important; max-width:none !important; max-height:none !important;">
+                    <img src="{{ url('media/' . $siteSettings['site_logo']) }}" alt="{{ $siteSettings['company_name'] ?? 'Concreto' }}">
                 @else
-                    <img src="/assets/logo/concreto.webp" alt="Concreto" style="height:{{ $logoH }} !important; width:auto !important; max-width:none !important; max-height:none !important;">
+                    <img src="/assets/logo/concreto.webp" alt="Concreto">
                 @endif
-                Admin
             </a>
             <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">&#9632; Home</a>
             <div class="sidebar-section">Orders</div>
