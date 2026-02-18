@@ -22,6 +22,14 @@
                         @error('name')<div class="form-error">{{ $message }}</div>@enderror
                     </div>
                     <div class="form-group">
+                        <label class="form-label">SKU</label>
+                        <input type="text" name="sku" class="form-control" value="{{ old('sku', $product->sku ?? '') }}" placeholder="e.g. SAND-001">
+                        <div class="form-hint">Unique product code (optional)</div>
+                        @error('sku')<div class="form-error">{{ $message }}</div>@enderror
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
                         <label class="form-label">Category</label>
                         <select name="category_id" class="form-control">
                             <option value="">None</option>
@@ -31,6 +39,11 @@
                                 </option>
                             @endforeach
                         </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Unit</label>
+                        <input type="text" name="unit" class="form-control" value="{{ old('unit', $product->unit ?? 'ton') }}" required>
+                        <div class="form-hint">e.g. ton, m3, bag, load</div>
                     </div>
                 </div>
                 <div class="form-row">
@@ -46,16 +59,11 @@
                         @error('cost_price')<div class="form-error">{{ $message }}</div>@enderror
                     </div>
                 </div>
+                @if(isset($product) && $product->cost_price)
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">Unit</label>
-                        <input type="text" name="unit" class="form-control" value="{{ old('unit', $product->unit ?? 'ton') }}" required>
-                        <div class="form-hint">e.g. ton, m3, bag, load</div>
-                    </div>
-                    @if(isset($product) && $product->cost_price)
-                    <div class="form-group">
                         <label class="form-label">Profit Margin</label>
-                        <div class="form-control" style="background: #f5f5f5; border: 1px solid #ddd;">
+                        <div class="form-control" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border, #ddd);">
                             @php
                                 $margin = $product->price > 0 && $product->cost_price > 0
                                     ? (($product->price - $product->cost_price) / $product->price) * 100
@@ -65,8 +73,8 @@
                             <span class="text-muted text-small"> (R{{ number_format($product->price - $product->cost_price, 2) }} per unit)</span>
                         </div>
                     </div>
-                    @endif
                 </div>
+                @endif
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Stock Quantity</label>
@@ -92,9 +100,14 @@
             <div class="card-body">
                 <div class="form-group">
                     <label class="form-label">Product Image</label>
+                    @if(isset($product) && $product->image_path)
+                        <div style="margin-bottom:0.75rem;">
+                            <img src="{{ url('media/' . $product->image_path) }}" alt="{{ $product->name }}" style="max-width:200px; max-height:150px; object-fit:contain; border-radius:var(--radius, 6px); border:1px solid var(--border, #e5e7eb);">
+                        </div>
+                    @endif
                     <input type="file" name="image" class="form-control" accept="image/*">
-                    @if(isset($product) && $product->image)
-                        <div class="form-hint mt-1">Current image is set. Upload a new one to replace it.</div>
+                    @if(isset($product) && $product->image_path)
+                        <div class="form-hint">Upload a new image to replace the current one.</div>
                     @endif
                 </div>
                 <div class="form-row">
