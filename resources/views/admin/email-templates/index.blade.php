@@ -2,86 +2,80 @@
 @section('title', 'Email Templates')
 
 @section('content')
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h3 mb-1">Email Templates</h1>
-            <small class="text-muted">Manage the Blade email templates sent to customers for orders, invoices, and delivery updates.</small>
-        </div>
-    </div>
+<div class="page-header">
+    <h1>Email Templates</h1>
+</div>
 
-    <div class="card">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>Template</th>
-                            <th>Key</th>
-                            <th>Status</th>
-                            <th class="text-end">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($templates as $template)
-                        <tr>
-                            <td><strong>{{ $template['label'] }}</strong></td>
-                            <td><code>{{ $template['key'] }}</code></td>
-                            <td>
-                                @if($template['exists'])
-                                    <span class="badge bg-success">Active</span>
-                                @else
-                                    <span class="badge bg-warning">Not Created</span>
-                                @endif
-                            </td>
-                            <td class="text-end">
-                                <a href="{{ route('admin.email-templates.edit', ['template' => $template['key']]) }}" class="btn btn-sm btn-primary">
-                                    Edit
-                                </a>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="4" class="text-center text-muted py-4">No email templates configured.</td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+<p class="text-muted" style="margin-bottom:1.25rem;">Manage the Blade email templates sent to customers for orders, invoices, and delivery updates.</p>
+
+{{-- Templates Table --}}
+<div class="card mb-2">
+    <div class="card-header"><span>Templates</span><span class="badge badge-secondary">{{ count($templates) }}</span></div>
+    @if(empty($templates))
+        <div class="card-body">
+            <div class="empty-state">
+                <div class="icon">&#9993;</div>
+                <h3>No templates configured</h3>
             </div>
         </div>
-    </div>
+    @else
+        <div class="table-responsive"><table><thead><tr>
+            <th>Template</th>
+            <th>Key</th>
+            <th>Status</th>
+            <th class="text-right">Actions</th>
+        </tr></thead><tbody>
+            @foreach($templates as $template)
+            <tr>
+                <td class="font-semibold">{{ $template['label'] }}</td>
+                <td><code style="font-size:0.8rem;">{{ $template['key'] }}</code></td>
+                <td>
+                    @if($template['exists'])
+                        <span class="badge badge-success">Active</span>
+                    @else
+                        <span class="badge badge-warning">Not Created</span>
+                    @endif
+                </td>
+                <td class="text-right">
+                    <a href="{{ route('admin.email-templates.edit', ['template' => $template['key']]) }}" class="btn btn-sm btn-primary">Edit</a>
+                </td>
+            </tr>
+            @endforeach
+        </tbody></table></div>
+    @endif
+</div>
 
-    <div class="card mt-4">
-        <div class="card-header"><h5 class="mb-0">Template Variables Guide</h5></div>
-        <div class="card-body" style="font-size: 0.9rem;">
-            <p class="text-muted mb-3">These variables are available inside email templates depending on the template type:</p>
-            <div class="row">
-                <div class="col-md-4">
-                    <h6>Order Templates</h6>
-                    <ul class="mb-3">
-                        <li><code>@{{ $order->order_number }}</code> - Order number</li>
-                        <li><code>@{{ $order->total }}</code> - Order total</li>
-                        <li><code>@{{ $order->status }}</code> - Order status</li>
-                        <li><code>@{{ $order->delivery_date }}</code> - Delivery date</li>
-                    </ul>
-                </div>
-                <div class="col-md-4">
-                    <h6>Invoice Templates</h6>
-                    <ul class="mb-3">
-                        <li><code>@{{ $invoice->invoice_no }}</code> - Invoice number</li>
-                        <li><code>@{{ $invoice->total_incl }}</code> - Total incl. VAT</li>
-                        <li><code>@{{ $invoice->vat_amount }}</code> - VAT amount</li>
-                    </ul>
-                </div>
-                <div class="col-md-4">
-                    <h6>Common Variables</h6>
-                    <ul class="mb-3">
-                        <li><code>@{{ $user->name }}</code> - Customer name</li>
-                        <li><code>@{{ $user->email }}</code> - Customer email</li>
-                        <li><code>@{{ config('app.name') }}</code> - App name</li>
-                        <li><code>@{{ $siteSettings['company_name'] }}</code> - Company</li>
-                    </ul>
-                </div>
+{{-- Template Variables Guide --}}
+<div class="card">
+    <div class="card-header">Template Variables Guide</div>
+    <div class="card-body">
+        <p class="text-muted" style="margin-bottom:0.75rem;">These variables are available inside email templates depending on the template type:</p>
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <div>
+                <h6 class="font-semibold" style="margin-bottom:0.5rem;">Order Templates</h6>
+                <ul style="margin:0; padding-left:1.25rem; font-size:0.85rem;">
+                    <li><code>@{{ $order->order_number }}</code></li>
+                    <li><code>@{{ $order->total }}</code></li>
+                    <li><code>@{{ $order->status }}</code></li>
+                    <li><code>@{{ $order->delivery_date }}</code></li>
+                </ul>
+            </div>
+            <div>
+                <h6 class="font-semibold" style="margin-bottom:0.5rem;">Invoice Templates</h6>
+                <ul style="margin:0; padding-left:1.25rem; font-size:0.85rem;">
+                    <li><code>@{{ $invoice->invoice_no }}</code></li>
+                    <li><code>@{{ $invoice->total_incl }}</code></li>
+                    <li><code>@{{ $invoice->vat_amount }}</code></li>
+                </ul>
+            </div>
+            <div>
+                <h6 class="font-semibold" style="margin-bottom:0.5rem;">Common Variables</h6>
+                <ul style="margin:0; padding-left:1.25rem; font-size:0.85rem;">
+                    <li><code>@{{ $user->name }}</code></li>
+                    <li><code>@{{ $user->email }}</code></li>
+                    <li><code>@{{ config('app.name') }}</code></li>
+                    <li><code>@{{ $siteSettings['company_name'] }}</code></li>
+                </ul>
             </div>
         </div>
     </div>
