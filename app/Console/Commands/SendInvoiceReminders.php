@@ -23,7 +23,9 @@ class SendInvoiceReminders extends Command
             ->with(['order.customer.user'])
             ->get();
 
+        $siteSettings = Setting::getAll();
         $sent = 0;
+
         foreach ($unpaidInvoices as $invoice) {
             // Check how many reminders already sent
             $reminderCount = $invoice->reminders()->count();
@@ -34,23 +36,29 @@ class SendInvoiceReminders extends Command
             if ($lastReminder && $lastReminder->sent_at->diffInDays(now()) < 7) continue;
 
             $email = $invoice->order->customer->user->email;
-            $settings = Setting::getAll();
+            $reminderNumber = $reminderCount + 1;
+            $daysOverdue = max(0, (int) $invoice->created_at->diffInDays(now()));
+            $amountDue = $invoice->order->total ?? 0;
+            $urgency = $reminderNumber >= 3 ? 'high' : ($reminderNumber >= 2 ? 'medium' : 'low');
 
             try {
                 Mail::send('emails.invoice-reminder', [
                     'invoice' => $invoice,
-                    'order' => $invoice->order,
-                    'reminderNumber' => $reminderCount + 1,
-                    'settings' => $settings,
-                ], function ($message) use ($email, $invoice, $reminderCount) {
-                    $urgency = $reminderCount >= 2 ? 'URGENT: ' : '';
+                    'customer' => $invoice->order->customer,
+                    'reminderNumber' => $reminderNumber,
+                    'siteSettings' => $siteSettings,
+                    'daysOverdue' => $daysOverdue,
+                    'amountDue' => $amountDue,
+                    'urgency' => $urgency,
+                ], function ($message) use ($email, $invoice, $urgency, $reminderNumber) {
+                    $prefix = $urgency === 'high' ? 'URGENT: ' : '';
                     $message->to($email)
-                        ->subject("{$urgency}Payment Reminder - Invoice {$invoice->invoice_no}");
+                        ->subject("{$prefix}Payment Reminder #{$reminderNumber} - Invoice {$invoice->invoice_no}");
                 });
 
                 InvoiceReminder::create([
                     'invoice_id' => $invoice->id,
-                    'reminder_number' => $reminderCount + 1,
+                    'reminder_number' => $reminderNumber,
                     'sent_at' => now(),
                 ]);
                 $sent++;
