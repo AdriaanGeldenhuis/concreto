@@ -608,11 +608,14 @@ tr:last-child td { border-bottom:none; }
     border-right:1px solid var(--glass-border);
     box-shadow:4px 0 24px rgba(0,0,0,0.4);
 }
-.admin-sidebar .sidebar-brand {
-    padding:1rem 1.25rem; font-size:1.125rem; font-weight:800;
+.admin-sidebar .sidebar-brand,
+.admin-sidebar a.sidebar-brand {
+    padding:1rem 1.25rem; font-size:1.125rem; font-weight:800; color:#fff;
     border-bottom:1px solid var(--glass-border); display:flex; align-items:center; gap:0.5rem;
     letter-spacing:-0.02em; background:linear-gradient(180deg,rgba(255,255,255,0.03) 0%,transparent 100%);
+    border-left:none; text-decoration:none;
 }
+.admin-sidebar a.sidebar-brand:hover { background:linear-gradient(180deg,rgba(255,255,255,0.06) 0%,transparent 100%); color:#fff; }
 .admin-sidebar .sidebar-brand img { height:30px; width:auto; max-width:none; max-height:none; border-radius:4px; display:inline-block; }
 .admin-sidebar a {
     display:flex; align-items:center; gap:0.75rem; padding:0.625rem 1.25rem;
