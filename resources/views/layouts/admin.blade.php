@@ -64,7 +64,8 @@
                     <img src="/assets/logo/concreto.webp" alt="Concreto">
                 @endif
             </a>
-            <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">&#9632; Home</a>
+            <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">&#9632; Dashboard</a>
+            <a href="https://concreto.co.za" target="_blank">&#8592; Home</a>
             <div class="sidebar-section">Orders</div>
             <a href="{{ route('admin.orders.index') }}" class="{{ request()->routeIs('admin.orders*') ? 'active' : '' }}">&#9744; Orders</a>
             <a href="{{ route('admin.quotes.index') }}" class="{{ request()->routeIs('admin.quotes*') ? 'active' : '' }}">&#9997; Quotes</a>
@@ -113,7 +114,7 @@
             <a href="{{ route('admin.notification-logs.index') }}" class="{{ request()->routeIs('admin.notification-logs*') ? 'active' : '' }}">&#128172; Notification Logs</a>
             <a href="{{ route('admin.staff-permissions.index') }}" class="{{ request()->routeIs('admin.staff-permissions*') ? 'active' : '' }}">&#128274; Staff Permissions</a>
             <div style="padding: 1rem 1.25rem; margin-top: auto; border-top: 1px solid rgba(255,255,255,0.08);">
-                <a href="{{ route('home') }}" style="margin-bottom: 0.25rem;">&#8592; View Site</a>
+                <a href="https://concreto.co.za" target="_blank" style="margin-bottom: 0.25rem;">&#8592; View Site</a>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit" style="background:none;border:none;color:rgba(255,255,255,0.5);cursor:pointer;font-size:0.875rem;padding:0.5rem 0;">&#10005; Logout</button>
