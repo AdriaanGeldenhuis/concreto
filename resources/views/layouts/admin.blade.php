@@ -57,7 +57,7 @@
 <body>
     <div class="admin-layout">
         <aside class="admin-sidebar">
-            <div class="sidebar-brand">
+            <a href="{{ route('admin.dashboard') }}" class="sidebar-brand" style="text-decoration:none; color:inherit;">
                 @php $logoH = ($siteSettings['logo_height'] ?? 36) . 'px'; @endphp
                 @if(!empty($siteSettings['site_logo']))
                     <img src="{{ url('media/' . $siteSettings['site_logo']) }}" alt="{{ $siteSettings['company_name'] ?? 'Concreto' }}" style="height:{{ $logoH }} !important; width:auto !important; max-width:none !important; max-height:none !important;">
@@ -65,8 +65,8 @@
                     <img src="/assets/logo/concreto.webp" alt="Concreto" style="height:{{ $logoH }} !important; width:auto !important; max-width:none !important; max-height:none !important;">
                 @endif
                 Admin
-            </div>
-            <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">&#9632; Dashboard</a>
+            </a>
+            <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">&#9632; Home</a>
             <div class="sidebar-section">Orders</div>
             <a href="{{ route('admin.orders.index') }}" class="{{ request()->routeIs('admin.orders*') ? 'active' : '' }}">&#9744; Orders</a>
             <a href="{{ route('admin.quotes.index') }}" class="{{ request()->routeIs('admin.quotes*') ? 'active' : '' }}">&#9997; Quotes</a>
@@ -141,6 +141,20 @@
     </div>
 
     <script src="/js/app.js"></script>
+    <script>
+    (function(){
+        var sb = document.querySelector('.admin-sidebar');
+        if (!sb) return;
+        var key = 'admin_sidebar_scroll';
+        // Restore scroll position
+        var saved = sessionStorage.getItem(key);
+        if (saved) sb.scrollTop = parseInt(saved, 10);
+        // Save scroll position before navigating away
+        window.addEventListener('beforeunload', function(){
+            sessionStorage.setItem(key, sb.scrollTop);
+        });
+    })();
+    </script>
     @stack('scripts')
 </body>
 </html>
