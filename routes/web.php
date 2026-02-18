@@ -24,7 +24,7 @@ Route::get('/media/{path}', function (string $path) {
 // Public pages
 Route::get('/', [PublicController::class, 'home'])->name('home');
 Route::get('/products', [PublicController::class, 'products'])->name('products');
-Route::get('/products/{product}', [PublicController::class, 'productDetail'])->name('products.show');
+Route::get('/products/{product:slug}', [PublicController::class, 'productDetail'])->name('products.show');
 Route::get('/contact', [PublicController::class, 'contact'])->name('contact');
 Route::post('/contact', [PublicController::class, 'submitContact'])->name('contact.submit');
 Route::get('/terms', [PublicController::class, 'terms'])->name('terms');
@@ -138,6 +138,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff', 
     Route::get('/', [Admin\DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/orders', [Admin\OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/export', [Admin\OrderController::class, 'export'])->name('orders.export');
     Route::get('/orders/create', [Admin\OrderController::class, 'create'])->name('orders.create');
     Route::post('/orders', [Admin\OrderController::class, 'store'])->name('orders.store');
     Route::get('/orders/{order}', [Admin\OrderController::class, 'show'])->name('orders.show');
@@ -151,7 +152,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff', 
     Route::post('/orders/bulk-assign-driver', [Admin\OrderController::class, 'bulkAssignDriver'])->name('orders.bulk-assign-driver');
     Route::post('/orders/bulk-update-status', [Admin\OrderController::class, 'bulkUpdateStatus'])->name('orders.bulk-update-status');
 
-    Route::resource('products', Admin\ProductController::class)->except(['show']);
+    Route::get('/products/export', [Admin\ProductController::class, 'export'])->name('products.export');
+    Route::resource('products', Admin\ProductController::class);
     Route::get('/product-analytics', [Admin\ProductAnalyticsController::class, 'index'])->name('product-analytics.index');
     Route::resource('categories', Admin\CategoryController::class)->except(['show', 'create', 'edit']);
 
@@ -162,9 +164,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff', 
     Route::put('/customers/{customer}/contact', [Admin\CustomerController::class, 'updateContact'])->name('customers.update-contact');
 
     Route::get('/quotes', [Admin\QuoteController::class, 'index'])->name('quotes.index');
+    Route::get('/quotes/export', [Admin\QuoteController::class, 'export'])->name('quotes.export');
     Route::get('/quotes/create', [Admin\QuoteController::class, 'create'])->name('quotes.create');
     Route::post('/quotes', [Admin\QuoteController::class, 'store'])->name('quotes.store');
     Route::get('/quotes/{quote}', [Admin\QuoteController::class, 'show'])->name('quotes.show');
+    Route::get('/quotes/{quote}/edit', [Admin\QuoteController::class, 'edit'])->name('quotes.edit');
+    Route::put('/quotes/{quote}', [Admin\QuoteController::class, 'update'])->name('quotes.update');
     Route::post('/quotes/{quote}/send', [Admin\QuoteController::class, 'send'])->name('quotes.send');
     Route::get('/quotes/{quote}/pdf', [Admin\QuoteController::class, 'downloadPdf'])->name('quotes.pdf');
     Route::post('/quotes/{quote}/convert', [Admin\QuoteController::class, 'convertToOrder'])->name('quotes.convert');

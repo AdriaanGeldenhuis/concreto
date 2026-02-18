@@ -127,9 +127,15 @@ class OrderController extends Controller
 
     public function show(Order $order)
     {
-        $order->load(['customer.user', 'items.product', 'deliveryAddress', 'driver', 'payments', 'invoice', 'proofOfDelivery', 'driverLocations']);
+        $order->load(['customer.user', 'items.product', 'deliveryAddress', 'driver', 'payments', 'invoice', 'proofOfDelivery', 'driverLocations', 'promoCode']);
         $drivers = User::where('role', 'driver')->where('is_active', true)->get();
-        return view('admin.orders.show', compact('order', 'drivers'));
+        $auditLogs = AuditLog::where('entity', 'Order')
+            ->where('entity_id', $order->id)
+            ->with('actor')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('admin.orders.show', compact('order', 'drivers', 'auditLogs'));
     }
 
     public function assignDriver(Request $request, Order $order)
@@ -252,9 +258,15 @@ class OrderController extends Controller
 
     public function refund(Request $request, Order $order)
     {
+        $totalPaid = $order->payments()->where('status', 'completed')->where('amount', '>', 0)->sum('amount');
+        $totalRefunded = abs((float) $order->payments()->where('status', 'completed')->where('amount', '<', 0)->sum('amount'));
+        $maxRefundable = max(0, $totalPaid - $totalRefunded);
+
         $request->validate([
-            'amount' => 'required|numeric|min:0.01',
+            'amount' => ['required', 'numeric', 'min:0.01', "max:{$maxRefundable}"],
             'reason' => 'required|string|max:1000',
+        ], [
+            'amount.max' => "Refund cannot exceed R" . number_format($maxRefundable, 2) . " (total paid minus previous refunds).",
         ]);
 
         $payment = Payment::create([
@@ -316,6 +328,72 @@ class OrderController extends Controller
         ]);
 
         return back()->with('success', "Bulk assign: {$assigned} orders assigned to {$driver->name}" . ($failed > 0 ? ", {$failed} failed" : '') . '.');
+    }
+
+    public function export(Request $request)
+    {
+        $query = Order::with(['customer.user', 'driver']);
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('order_number', 'like', "%{$search}%")
+                  ->orWhereHas('customer.user', function ($q2) use ($search) {
+                      $q2->where('name', 'like', "%{$search}%")
+                         ->orWhere('email', 'like', "%{$search}%");
+                  });
+            });
+        }
+        if ($request->filled('driver_id')) {
+            $query->where('driver_id', $request->driver_id);
+        }
+        if ($request->filled('from')) {
+            $query->whereDate('created_at', '>=', $request->from);
+        }
+        if ($request->filled('to')) {
+            $query->whereDate('created_at', '<=', $request->to);
+        }
+        if ($request->filled('min_total')) {
+            $query->where('total', '>=', $request->min_total);
+        }
+        if ($request->filled('max_total')) {
+            $query->where('total', '<=', $request->max_total);
+        }
+
+        $filename = 'orders-' . now()->format('Y-m-d') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        return response()->stream(function () use ($query) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['Order #', 'Customer', 'Email', 'Status', 'Subtotal', 'Delivery Fee', 'VAT', 'Discount', 'Total', 'Driver', 'Scheduled Date', 'Created']);
+
+            $query->orderBy('created_at', 'desc')->chunk(200, function ($orders) use ($handle) {
+                foreach ($orders as $order) {
+                    fputcsv($handle, [
+                        $order->order_number,
+                        $order->customer?->user?->name ?? '-',
+                        $order->customer?->user?->email ?? '-',
+                        $order->status,
+                        number_format($order->subtotal, 2),
+                        number_format($order->delivery_fee, 2),
+                        number_format($order->vat, 2),
+                        number_format($order->discount_amount ?? 0, 2),
+                        number_format($order->total, 2),
+                        $order->driver?->name ?? '-',
+                        $order->scheduled_date?->format('Y-m-d') ?? '-',
+                        $order->created_at->format('Y-m-d H:i'),
+                    ]);
+                }
+            });
+
+            fclose($handle);
+        }, 200, $headers);
     }
 
     public function bulkUpdateStatus(Request $request)

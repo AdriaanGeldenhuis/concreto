@@ -9,8 +9,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Product extends Model
 {
     use HasFactory;
+
     protected $fillable = [
-        'name', 'slug', 'category_id', 'unit', 'price', 'cost_price',
+        'name', 'sku', 'slug', 'category_id', 'unit', 'price', 'cost_price',
         'description', 'is_active', 'in_stock', 'stock_qty', 'low_stock_threshold', 'image_path',
     ];
 

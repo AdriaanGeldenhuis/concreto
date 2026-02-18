@@ -28,15 +28,14 @@ class OpsController extends Controller
             ->get();
 
         // En route but no tracking update in 10 minutes
+        $tenMinutesAgo = now()->subMinutes(10);
         $enRouteNoTracking = Order::where('status', 'IN_TRANSIT')
             ->with(['customer.user', 'driver'])
-            ->get()
-            ->filter(function ($order) {
-                $lastLocation = $order->driverLocations()
-                    ->orderBy('recorded_at', 'desc')
-                    ->first();
-                return !$lastLocation || $lastLocation->recorded_at->lt(now()->subMinutes(10));
-            });
+            ->where(function ($q) use ($tenMinutesAgo) {
+                $q->whereDoesntHave('driverLocations')
+                  ->orWhereDoesntHave('driverLocations', fn($q2) => $q2->where('recorded_at', '>=', $tenMinutesAgo));
+            })
+            ->get();
 
         // Delivered but not invoiced
         $deliveredNotInvoiced = Order::where('status', 'DELIVERED')
