@@ -50,6 +50,14 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/checkout/save-company', [CartController::class, 'saveCompany'])->name('checkout.save-company');
 });
 
+// Notification bell endpoints (session-auth, JSON)
+Route::middleware(['auth'])->prefix('notifications')->group(function () {
+    Route::get('/unread-count', [\App\Http\Controllers\NotificationWebController::class, 'unreadCount'])->name('notifications.unread-count');
+    Route::get('/list', [\App\Http\Controllers\NotificationWebController::class, 'index'])->name('notifications.list');
+    Route::post('/{id}/read', [\App\Http\Controllers\NotificationWebController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/read-all', [\App\Http\Controllers\NotificationWebController::class, 'markAllAsRead'])->name('notifications.read-all');
+});
+
 // Auth (rate limited)
 Route::middleware(['guest', 'throttle:login'])->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');

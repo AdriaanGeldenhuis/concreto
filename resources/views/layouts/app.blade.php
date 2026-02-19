@@ -138,7 +138,26 @@
             </a>
             <button class="navbar-toggle" aria-label="Toggle menu">&#9776;</button>
             <div class="navbar-links">
-                <button class="dark-mode-toggle" aria-label="Toggle dark mode" onclick="toggleDarkMode()">&#9789;</button>
+                @auth
+                <div class="notification-bell-wrap">
+                    <button class="notification-bell" id="notification-bell" aria-label="Notifications">
+                        <svg class="bell-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                        </svg>
+                        <span class="notification-count" id="notification-count" style="display:none;">0</span>
+                    </button>
+                    <div class="notification-dropdown" id="notification-dropdown">
+                        <div class="notification-dropdown-header">
+                            <strong>Notifications</strong>
+                            <button onclick="markAllNotificationsRead()" class="notification-mark-all">Mark all read</button>
+                        </div>
+                        <div class="notification-dropdown-body" id="notification-list">
+                            <div class="notification-empty">No notifications</div>
+                        </div>
+                    </div>
+                </div>
+                @endauth
                 <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}">Home</a>
                 <a href="{{ route('products') }}" class="{{ request()->routeIs('products*') ? 'active' : '' }}">Products</a>
                 <a href="{{ route('contact') }}" class="{{ request()->routeIs('contact') ? 'active' : '' }}">Contact</a>
@@ -286,25 +305,142 @@
         }
     </script>
 
-    {{-- Dark Mode Script --}}
+    {{-- Notification Bell Script --}}
+    @auth
     <script>
-        // Check for saved dark mode preference
-        window.addEventListener('DOMContentLoaded', function() {
-            const darkMode = localStorage.getItem('darkMode');
-            if (darkMode === 'enabled') {
-                document.body.classList.add('dark-mode');
+    (function(){
+        var bell = document.getElementById('notification-bell');
+        var dropdown = document.getElementById('notification-dropdown');
+        var countEl = document.getElementById('notification-count');
+        var listEl = document.getElementById('notification-list');
+        var isOpen = false;
+        var lastCount = 0;
+        var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        if (!bell) return;
+
+        // Toggle dropdown
+        bell.addEventListener('click', function(e) {
+            e.stopPropagation();
+            isOpen = !isOpen;
+            dropdown.classList.toggle('open', isOpen);
+            if (isOpen) {
+                bell.classList.remove('bell-ring');
+                loadNotifications();
             }
         });
 
-        function toggleDarkMode() {
-            document.body.classList.toggle('dark-mode');
-            if (document.body.classList.contains('dark-mode')) {
-                localStorage.setItem('darkMode', 'enabled');
-            } else {
-                localStorage.setItem('darkMode', 'disabled');
+        // Close on outside click
+        document.addEventListener('click', function(e) {
+            if (isOpen && !dropdown.contains(e.target) && !bell.contains(e.target)) {
+                isOpen = false;
+                dropdown.classList.remove('open');
             }
+        });
+
+        // Fetch unread count
+        function fetchUnreadCount() {
+            fetch('/notifications/unread-count', {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(function(r) { return r.ok ? r.json() : null; })
+            .then(function(data) {
+                if (!data) return;
+                var count = data.unread_count || 0;
+                if (count > 0) {
+                    countEl.textContent = count > 99 ? '99+' : count;
+                    countEl.style.display = '';
+                    // Ring the bell when count increases
+                    if (count > lastCount) {
+                        bell.classList.add('has-notifications', 'bell-ring');
+                        // Remove ring class after animation so it can re-trigger
+                        setTimeout(function(){ bell.classList.remove('bell-ring'); }, 900);
+                    } else {
+                        bell.classList.add('has-notifications');
+                    }
+                } else {
+                    countEl.style.display = 'none';
+                    bell.classList.remove('has-notifications');
+                }
+                lastCount = count;
+            })
+            .catch(function(){});
         }
+
+        // Load notification list
+        function loadNotifications() {
+            fetch('/notifications/list', {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(function(r) { return r.ok ? r.json() : null; })
+            .then(function(resp) {
+                if (!resp || !resp.data || resp.data.length === 0) {
+                    listEl.innerHTML = '<div class="notification-empty">No notifications yet</div>';
+                    return;
+                }
+                var html = '';
+                resp.data.forEach(function(n) {
+                    var d = n.data || {};
+                    var isUnread = !n.read_at;
+                    var timeAgo = formatTimeAgo(n.created_at);
+                    html += '<div class="notification-item' + (isUnread ? ' unread' : '') + '" onclick="readNotification(\'' + n.id + '\')">';
+                    html += '<div class="notification-item-title">' + escHtml(d.title || 'Notification') + '</div>';
+                    html += '<div class="notification-item-body">' + escHtml(d.body || '') + '</div>';
+                    html += '<div class="notification-item-time">' + timeAgo + '</div>';
+                    html += '</div>';
+                });
+                listEl.innerHTML = html;
+            })
+            .catch(function() {
+                listEl.innerHTML = '<div class="notification-empty">Could not load notifications</div>';
+            });
+        }
+
+        // Mark single as read
+        window.readNotification = function(id) {
+            fetch('/notifications/' + id + '/read', {
+                method: 'POST',
+                headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'X-Requested-With': 'XMLHttpRequest' }
+            }).then(function() {
+                fetchUnreadCount();
+                loadNotifications();
+            });
+        };
+
+        // Mark all read
+        window.markAllNotificationsRead = function() {
+            fetch('/notifications/read-all', {
+                method: 'POST',
+                headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'X-Requested-With': 'XMLHttpRequest' }
+            }).then(function() {
+                fetchUnreadCount();
+                loadNotifications();
+            });
+        };
+
+        function escHtml(s) {
+            var el = document.createElement('div');
+            el.textContent = s;
+            return el.innerHTML;
+        }
+
+        function formatTimeAgo(dateStr) {
+            var d = new Date(dateStr);
+            var now = new Date();
+            var diff = Math.floor((now - d) / 1000);
+            if (diff < 60) return 'just now';
+            if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+            if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+            if (diff < 604800) return Math.floor(diff / 86400) + 'd ago';
+            return d.toLocaleDateString();
+        }
+
+        // Initial fetch + poll every 30 seconds
+        fetchUnreadCount();
+        setInterval(fetchUnreadCount, 30000);
+    })();
     </script>
+    @endauth
 
 </body>
 </html>
