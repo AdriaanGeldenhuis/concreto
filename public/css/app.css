@@ -1133,16 +1133,24 @@ body.light-mode input:focus, body.light-mode select:focus, body.light-mode texta
 /* ============================================
    Notification Bell
    ============================================ */
-.notification-bell-wrap { position:relative; display:inline-flex; align-items:center; }
+.notification-bell-wrap { position:relative; display:inline-flex; align-items:center; flex-shrink:0; }
+
+/* Override navbar-links generic button styles */
+.navbar-links .notification-bell,
+.navbar-links .notification-bell:hover {
+    width:auto !important; text-align:center !important;
+    padding:0.4rem 0.55rem !important; border-radius:var(--radius-sm) !important;
+}
 .notification-bell {
-    background:none; border:1px solid var(--border); color:var(--text-light);
+    background:none; border:1px solid rgba(255,255,255,0.2); color:rgba(255,255,255,0.7);
     padding:0.4rem 0.55rem; border-radius:var(--radius-sm); cursor:pointer;
     position:relative; display:inline-flex; align-items:center; justify-content:center;
     transition: color 0.2s, border-color 0.2s, transform 0.2s;
+    line-height:1;
 }
-.notification-bell:hover { color:var(--primary); border-color:var(--primary); }
+.notification-bell:hover { color:#fff !important; border-color:rgba(255,255,255,0.4); background:rgba(255,255,255,0.08) !important; }
 .notification-bell .bell-icon { display:block; }
-.notification-bell.has-notifications { color:var(--primary); border-color:var(--primary); }
+.notification-bell.has-notifications { color:var(--primary) !important; border-color:var(--primary); }
 
 /* Bell ring animation */
 @keyframes bellRing {
@@ -1170,6 +1178,7 @@ body.light-mode input:focus, body.light-mode select:focus, body.light-mode texta
     border-radius:9px; display:flex; align-items:center; justify-content:center;
     animation: countPop 0.3s ease;
     box-shadow:0 2px 6px rgba(231,76,60,0.4);
+    pointer-events:none;
 }
 @keyframes countPop {
     0% { transform:scale(0); }
@@ -1177,12 +1186,13 @@ body.light-mode input:focus, body.light-mode select:focus, body.light-mode texta
     100% { transform:scale(1); }
 }
 
-/* Dropdown */
+/* Dropdown — dark theme to match navbar */
 .notification-dropdown {
     display:none; position:absolute; top:calc(100% + 8px); right:0;
-    width:340px; max-height:420px; background:var(--bg, #fff);
-    border:1px solid var(--border, #e1e8ed); border-radius:8px;
-    box-shadow:0 8px 32px rgba(0,0,0,0.15); z-index:1000;
+    width:340px; max-height:420px;
+    background:rgba(20,20,20,0.98); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+    border:1px solid rgba(255,255,255,0.1); border-radius:10px;
+    box-shadow:0 12px 40px rgba(0,0,0,0.5); z-index:1001;
     overflow:hidden;
 }
 .notification-dropdown.open { display:block; animation: dropIn 0.2s ease; }
@@ -1192,34 +1202,39 @@ body.light-mode input:focus, body.light-mode select:focus, body.light-mode texta
 }
 .notification-dropdown-header {
     display:flex; align-items:center; justify-content:space-between;
-    padding:12px 16px; border-bottom:1px solid var(--border, #e1e8ed);
-    font-size:0.875rem;
+    padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.08);
+    font-size:0.875rem; color:#fff;
 }
 .notification-mark-all {
     background:none; border:none; color:var(--primary, #e67e22);
     cursor:pointer; font-size:0.75rem; font-weight:600;
-    padding:0;
+    padding:0; width:auto !important; text-align:right !important;
 }
-.notification-mark-all:hover { text-decoration:underline; }
+.notification-mark-all:hover { text-decoration:underline; color:var(--primary, #e67e22) !important; }
 .notification-dropdown-body {
     max-height:360px; overflow-y:auto;
 }
+.notification-dropdown-body::-webkit-scrollbar { width:4px; }
+.notification-dropdown-body::-webkit-scrollbar-track { background:transparent; }
+.notification-dropdown-body::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.15); border-radius:4px; }
 .notification-item {
-    padding:12px 16px; border-bottom:1px solid var(--border, #f0f3f5);
+    padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.06);
     cursor:pointer; transition: background 0.15s;
 }
-.notification-item:hover { background:rgba(0,0,0,0.03); }
-.notification-item.unread { background:rgba(230,126,34,0.06); border-left:3px solid var(--primary, #e67e22); }
-.notification-item-title { font-size:0.8125rem; font-weight:600; color:var(--text, #2c3e50); margin-bottom:2px; }
-.notification-item-body { font-size:0.75rem; color:var(--text-light, #7f8c8d); line-height:1.4; }
-.notification-item-time { font-size:0.675rem; color:var(--text-muted, #95a5a6); margin-top:4px; }
+.notification-item:hover { background:rgba(255,255,255,0.05); }
+.notification-item.unread { background:rgba(230,126,34,0.1); border-left:3px solid var(--primary, #e67e22); }
+.notification-item-title { font-size:0.8125rem; font-weight:600; color:#fff; margin-bottom:2px; }
+.notification-item-body { font-size:0.75rem; color:rgba(255,255,255,0.55); line-height:1.4; }
+.notification-item-time { font-size:0.675rem; color:rgba(255,255,255,0.35); margin-top:4px; }
 .notification-empty {
-    padding:32px 16px; text-align:center; color:var(--text-muted, #95a5a6);
+    padding:32px 16px; text-align:center; color:rgba(255,255,255,0.4);
     font-size:0.8125rem;
 }
 
-@media (max-width: 768px) {
-    .notification-dropdown { width:calc(100vw - 32px); right:-80px; }
+@media (max-width: 767px) {
+    /* Keep bell inline on mobile, not full-width */
+    .notification-bell-wrap { width:auto !important; }
+    .notification-dropdown { position:fixed; top:60px; right:16px; left:16px; width:auto; }
 }
 
 /* WhatsApp Float Button (alternate class) */
