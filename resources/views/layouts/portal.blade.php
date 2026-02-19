@@ -62,16 +62,21 @@
     <nav class="navbar">
         <div class="container">
             <a href="@yield('home-url', '/')" class="navbar-brand">
-                @php $logoH = ($siteSettings['logo_height'] ?? 36) . 'px'; @endphp
+                @php $portalLogoH = min(($siteSettings['logo_height'] ?? 36), 36) . 'px'; @endphp
                 @if(!empty($siteSettings['site_logo']))
-                    <img src="{{ url('media/' . $siteSettings['site_logo']) }}" alt="{{ $siteSettings['company_name'] ?? 'Concreto' }}" style="height:{{ $logoH }} !important; width:auto !important; max-width:none !important; max-height:none !important;">
+                    <img src="{{ url('media/' . $siteSettings['site_logo']) }}" alt="{{ $siteSettings['company_name'] ?? 'Concreto' }}" style="height:{{ $portalLogoH }} !important; width:auto !important; max-width:none !important; max-height:none !important;">
                 @else
-                    <img src="/assets/logo/concreto.webp" alt="Concreto" style="height:{{ $logoH }} !important; width:auto !important; max-width:none !important; max-height:none !important;">
+                    <img src="/assets/logo/concreto.webp" alt="Concreto" style="height:{{ $portalLogoH }} !important; width:auto !important; max-width:none !important; max-height:none !important;">
                 @endif
                 <span>@yield('portal-name', 'Portal')</span>
             </a>
             <button class="navbar-toggle" aria-label="Toggle menu">&#9776;</button>
             <div class="navbar-links">
+                <a href="https://concreto.co.za">Home</a>
+                <a href="{{ route('customer.dashboard') }}" class="{{ request()->routeIs('customer.dashboard') ? 'active' : '' }}">Dashboard</a>
+                <a href="{{ route('customer.orders.index') }}" class="{{ request()->routeIs('customer.orders.*') ? 'active' : '' }}">Orders</a>
+                <a href="{{ route('customer.invoices.index') }}" class="{{ request()->routeIs('customer.invoices.*') ? 'active' : '' }}">Invoices</a>
+                <a href="{{ route('customer.account') }}" class="{{ request()->routeIs('customer.account') ? 'active' : '' }}">Account</a>
                 @yield('nav-links')
                 <form method="POST" action="{{ route('logout') }}" style="display:inline">
                     @csrf

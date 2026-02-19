@@ -2,11 +2,6 @@
 @section('title', 'My Orders')
 @section('portal-name', 'My Account')
 @section('home-url', route('customer.dashboard'))
-@section('nav-links')
-    <a href="{{ route('customer.dashboard') }}">Dashboard</a>
-    <a href="{{ route('customer.orders.index') }}" class="active">Orders</a>
-    <a href="{{ route('customer.invoices.index') }}">Invoices</a>
-@endsection
 
 @section('content')
     <div class="page-header d-flex justify-between items-center flex-wrap gap-1">
