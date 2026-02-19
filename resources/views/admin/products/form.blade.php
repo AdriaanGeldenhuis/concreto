@@ -41,6 +41,21 @@
                         </select>
                     </div>
                     <div class="form-group">
+                        <label class="form-label">Supplier / Vendor</label>
+                        <select name="vendor_id" class="form-control">
+                            <option value="">None</option>
+                            @foreach($vendors as $v)
+                                <option value="{{ $v->id }}" {{ old('vendor_id', $product->vendor_id ?? '') == $v->id ? 'selected' : '' }}>
+                                    {{ $v->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <div class="form-hint">Supplier gets notified when orders with this product are processed</div>
+                        @error('vendor_id')<div class="form-error">{{ $message }}</div>@enderror
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
                         <label class="form-label">Unit</label>
                         <input type="text" name="unit" class="form-control" value="{{ old('unit', $product->unit ?? 'ton') }}" required>
                         <div class="form-hint">e.g. ton, m3, bag, load</div>
