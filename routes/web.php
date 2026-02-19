@@ -317,6 +317,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff', 
     Route::get('/order-templates/{orderTemplate}', [Admin\OrderTemplateController::class, 'show'])->name('order-templates.show');
     Route::delete('/order-templates/{orderTemplate}', [Admin\OrderTemplateController::class, 'destroy'])->name('order-templates.destroy');
 
+    // Vendors / Suppliers
+    Route::get('/vendors', [Admin\VendorController::class, 'index'])->name('vendors.index');
+    Route::get('/vendors/create', [Admin\VendorController::class, 'create'])->name('vendors.create');
+    Route::post('/vendors', [Admin\VendorController::class, 'store'])->name('vendors.store');
+    Route::get('/vendors/{vendor}/edit', [Admin\VendorController::class, 'edit'])->name('vendors.edit');
+    Route::put('/vendors/{vendor}', [Admin\VendorController::class, 'update'])->name('vendors.update');
+    Route::delete('/vendors/{vendor}', [Admin\VendorController::class, 'destroy'])->name('vendors.destroy');
+
     // Notification & Email Logs
     Route::get('/notification-logs', [Admin\NotificationLogController::class, 'index'])->name('notification-logs.index');
     Route::get('/notification-logs/export', [Admin\NotificationLogController::class, 'export'])->name('notification-logs.export');

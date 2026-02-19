@@ -10,6 +10,7 @@ use App\Models\Payment;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\InvoiceService;
+use App\Services\NotificationService;
 use App\Services\OrderService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -19,6 +20,7 @@ class OrderController extends Controller
     public function __construct(
         private OrderService $orderService,
         private InvoiceService $invoiceService,
+        private NotificationService $notificationService,
     ) {}
 
     public function create()
@@ -250,6 +252,16 @@ class OrderController extends Controller
                     'total_paid' => $totalPaid,
                     'provider' => $request->provider,
                 ]);
+
+                // Notify vendors + admin that order is ready for processing
+                try {
+                    $this->notificationService->orderPlacedForProcessing($order);
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::warning('Failed to send vendor notification on manual payment', [
+                        'order_id' => $order->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
             }
         }
 

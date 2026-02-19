@@ -105,6 +105,18 @@ class OrderService
             ]);
         }
 
+        // If ACCOUNT order went straight to PLACED, notify vendors + admin
+        if ($order->status === 'PLACED') {
+            try {
+                $this->notificationService->orderPlacedForProcessing($order);
+            } catch (\Exception $e) {
+                Log::warning('Failed to send vendor/admin notification for placed order', [
+                    'order_id' => $order->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
         return $order;
     }
 

@@ -2,10 +2,22 @@
 
 use App\Http\Controllers\Api\AdminApiController;
 use App\Http\Controllers\Api\CustomerApiController;
+use App\Http\Controllers\Api\DeviceTokenController;
 use App\Http\Controllers\Api\DriverApiController;
+use App\Http\Controllers\Api\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:sanctum')->group(function () {
+
+    // Device Tokens (push notifications) — available to all authenticated users
+    Route::post('/device-tokens', [DeviceTokenController::class, 'store']);
+    Route::delete('/device-tokens/{token}', [DeviceTokenController::class, 'destroy']);
+
+    // Notifications — available to all authenticated users
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
     // Customer API
     Route::middleware('role:customer')->prefix('orders')->group(function () {
         Route::get('/', [CustomerApiController::class, 'listOrders']);
