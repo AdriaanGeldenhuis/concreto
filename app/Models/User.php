@@ -37,6 +37,21 @@ class User extends Authenticatable
         return $this->hasOne(Customer::class);
     }
 
+    public function vendor(): HasOne
+    {
+        return $this->hasOne(Vendor::class);
+    }
+
+    public function deviceTokens(): HasMany
+    {
+        return $this->hasMany(DeviceToken::class);
+    }
+
+    public function activeDeviceTokens(): HasMany
+    {
+        return $this->hasMany(DeviceToken::class)->where('is_active', true);
+    }
+
     public function driverOrders(): HasMany
     {
         return $this->hasMany(Order::class, 'driver_id');

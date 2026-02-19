@@ -67,6 +67,7 @@
                         </th>
                         <th>SKU</th>
                         <th>Category</th>
+                        <th>Supplier</th>
                         <th class="text-right">
                             <a href="{{ route('admin.products.index', array_merge(request()->query(), ['sort' => 'price', 'dir' => request('sort') === 'price' && request('dir') !== 'desc' ? 'desc' : 'asc'])) }}" style="color:inherit; text-decoration:none;">
                                 Price {!! request('sort') === 'price' ? (request('dir') === 'desc' ? '&#9660;' : '&#9650;') : '' !!}
@@ -99,6 +100,13 @@
                         <td>
                             @if($product->category)
                                 <span class="badge badge-secondary">{{ $product->category->name }}</span>
+                            @else
+                                <span class="text-muted">-</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if($product->vendor)
+                                <span class="text-small">{{ $product->vendor->name }}</span>
                             @else
                                 <span class="text-muted">-</span>
                             @endif
@@ -138,7 +146,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="9">
+                        <td colspan="10">
                             <div class="empty-state">
                                 <div class="icon">&#9733;</div>
                                 <h3>No products found</h3>

@@ -7,6 +7,7 @@ use App\Models\AuditLog;
 use App\Models\BulkPricingTier;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Vendor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -15,7 +16,7 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Product::with('category');
+        $query = Product::with(['category', 'vendor']);
 
         // Search
         if ($search = $request->input('search')) {
@@ -64,7 +65,7 @@ class ProductController extends Controller
 
     public function show(Product $product)
     {
-        $product->load(['category', 'bulkPricingTiers', 'reviews.customer.user', 'reviews.order']);
+        $product->load(['category', 'vendor', 'bulkPricingTiers', 'reviews.customer.user', 'reviews.order']);
 
         // Sales stats
         $salesStats = \App\Models\OrderItem::join('orders', 'order_items.order_id', '=', 'orders.id')
@@ -79,7 +80,8 @@ class ProductController extends Controller
     public function create()
     {
         $categories = Category::where('is_active', true)->orderBy('name')->get();
-        return view('admin.products.form', compact('categories'));
+        $vendors = Vendor::where('is_active', true)->orderBy('name')->get();
+        return view('admin.products.form', compact('categories', 'vendors'));
     }
 
     public function store(Request $request)
@@ -88,6 +90,7 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'sku' => 'nullable|string|max:100|unique:products,sku',
             'category_id' => 'nullable|exists:categories,id',
+            'vendor_id' => 'nullable|exists:vendors,id',
             'unit' => 'required|string|max:20',
             'price' => 'required|numeric|min:0',
             'cost_price' => 'nullable|numeric|min:0',
@@ -121,7 +124,8 @@ class ProductController extends Controller
     {
         $product->load('bulkPricingTiers');
         $categories = Category::where('is_active', true)->orderBy('name')->get();
-        return view('admin.products.form', compact('product', 'categories'));
+        $vendors = Vendor::where('is_active', true)->orderBy('name')->get();
+        return view('admin.products.form', compact('product', 'categories', 'vendors'));
     }
 
     public function update(Request $request, Product $product)
@@ -130,6 +134,7 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'sku' => 'nullable|string|max:100|unique:products,sku,' . $product->id,
             'category_id' => 'nullable|exists:categories,id',
+            'vendor_id' => 'nullable|exists:vendors,id',
             'unit' => 'required|string|max:20',
             'price' => 'required|numeric|min:0',
             'cost_price' => 'nullable|numeric|min:0',

@@ -45,6 +45,16 @@
                             </span>
                         </div>
                         <div class="info-row">
+                            <span class="label">Supplier</span>
+                            <span class="value">
+                                @if($product->vendor)
+                                    <a href="{{ route('admin.vendors.show', $product->vendor) }}">{{ $product->vendor->name }}</a>
+                                @else
+                                    <span class="text-muted">No supplier assigned</span>
+                                @endif
+                            </span>
+                        </div>
+                        <div class="info-row">
                             <span class="label">Unit</span>
                             <span class="value">{{ $product->unit }}</span>
                         </div>

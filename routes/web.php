@@ -50,6 +50,14 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/checkout/save-company', [CartController::class, 'saveCompany'])->name('checkout.save-company');
 });
 
+// Notification bell endpoints (session-auth, JSON)
+Route::middleware(['auth'])->prefix('notifications')->group(function () {
+    Route::get('/unread-count', [\App\Http\Controllers\NotificationWebController::class, 'unreadCount'])->name('notifications.unread-count');
+    Route::get('/list', [\App\Http\Controllers\NotificationWebController::class, 'index'])->name('notifications.list');
+    Route::post('/{id}/read', [\App\Http\Controllers\NotificationWebController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/read-all', [\App\Http\Controllers\NotificationWebController::class, 'markAllAsRead'])->name('notifications.read-all');
+});
+
 // Auth (rate limited)
 Route::middleware(['guest', 'throttle:login'])->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -316,6 +324,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff', 
     Route::get('/order-templates', [Admin\OrderTemplateController::class, 'index'])->name('order-templates.index');
     Route::get('/order-templates/{orderTemplate}', [Admin\OrderTemplateController::class, 'show'])->name('order-templates.show');
     Route::delete('/order-templates/{orderTemplate}', [Admin\OrderTemplateController::class, 'destroy'])->name('order-templates.destroy');
+
+    // Vendors / Suppliers
+    Route::get('/vendors', [Admin\VendorController::class, 'index'])->name('vendors.index');
+    Route::get('/vendors/create', [Admin\VendorController::class, 'create'])->name('vendors.create');
+    Route::post('/vendors', [Admin\VendorController::class, 'store'])->name('vendors.store');
+    Route::get('/vendors/{vendor}/edit', [Admin\VendorController::class, 'edit'])->name('vendors.edit');
+    Route::put('/vendors/{vendor}', [Admin\VendorController::class, 'update'])->name('vendors.update');
+    Route::delete('/vendors/{vendor}', [Admin\VendorController::class, 'destroy'])->name('vendors.destroy');
 
     // Notification & Email Logs
     Route::get('/notification-logs', [Admin\NotificationLogController::class, 'index'])->name('notification-logs.index');

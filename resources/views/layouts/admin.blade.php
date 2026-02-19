@@ -75,6 +75,7 @@
             <a href="{{ route('admin.product-analytics.index') }}" class="{{ request()->routeIs('admin.product-analytics*') ? 'active' : '' }}">&#128200; Product Analytics</a>
             <div class="sidebar-section">People</div>
             <a href="{{ route('admin.customers.index') }}" class="{{ request()->routeIs('admin.customers*') ? 'active' : '' }}">&#9786; Customers</a>
+            <a href="{{ route('admin.vendors.index') }}" class="{{ request()->routeIs('admin.vendors*') ? 'active' : '' }}">&#128666; Vendors / Suppliers</a>
             <a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users*') ? 'active' : '' }}">&#9998; Users</a>
             <div class="sidebar-section">Tracking & Ops</div>
             <a href="{{ route('admin.tracking.drivers') }}" class="{{ request()->routeIs('admin.tracking*') ? 'active' : '' }}">&#9737; Track Drivers</a>
