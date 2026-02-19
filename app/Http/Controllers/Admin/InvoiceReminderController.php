@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Invoice;
 use App\Models\InvoiceReminder;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
@@ -33,8 +34,8 @@ class InvoiceReminderController extends Controller
 
         $reminders = $query->paginate(30);
 
-        // Overdue invoices that haven't had a recent reminder
-        $overdueInvoices = Invoice::with(['order.customer.user'])
+        // Overdue invoices that haven't had a recent reminder - eager load reminders to avoid N+1
+        $overdueInvoices = Invoice::with(['order.customer.user', 'reminders'])
             ->whereHas('order', function ($q) {
                 $q->where('status', 'DELIVERED')
                   ->whereDoesntHave('payments', fn($q2) => $q2->where('status', 'completed'));
@@ -62,15 +63,24 @@ class InvoiceReminderController extends Controller
         $email = $customer->user->email;
 
         $reminderNumber = $invoice->reminders()->count() + 1;
+        $siteSettings = Setting::getAll();
+        $daysOverdue = max(0, (int) $invoice->created_at->diffInDays(now()));
+        $amountDue = $invoice->order->total ?? 0;
+        $urgency = $reminderNumber >= 3 ? 'high' : ($reminderNumber >= 2 ? 'medium' : 'low');
 
         try {
             Mail::send('emails.invoice-reminder', [
                 'invoice' => $invoice,
                 'customer' => $customer,
                 'reminderNumber' => $reminderNumber,
-            ], function ($message) use ($email, $invoice, $reminderNumber) {
+                'siteSettings' => $siteSettings,
+                'daysOverdue' => $daysOverdue,
+                'amountDue' => $amountDue,
+                'urgency' => $urgency,
+            ], function ($message) use ($email, $invoice, $reminderNumber, $urgency) {
+                $prefix = $urgency === 'high' ? 'URGENT: ' : '';
                 $message->to($email)
-                    ->subject("Payment Reminder #{$reminderNumber} - Invoice {$invoice->invoice_no}");
+                    ->subject("{$prefix}Payment Reminder #{$reminderNumber} - Invoice {$invoice->invoice_no}");
             });
 
             InvoiceReminder::create([
@@ -99,6 +109,7 @@ class InvoiceReminderController extends Controller
         }
 
         $invoices = Invoice::with('order.customer.user')->whereIn('id', $invoiceIds)->get();
+        $siteSettings = Setting::getAll();
         $sent = 0;
         $failed = 0;
 
@@ -111,15 +122,23 @@ class InvoiceReminderController extends Controller
 
             $email = $customer->user->email;
             $reminderNumber = $invoice->reminders()->count() + 1;
+            $daysOverdue = max(0, (int) $invoice->created_at->diffInDays(now()));
+            $amountDue = $invoice->order->total ?? 0;
+            $urgency = $reminderNumber >= 3 ? 'high' : ($reminderNumber >= 2 ? 'medium' : 'low');
 
             try {
                 Mail::send('emails.invoice-reminder', [
                     'invoice' => $invoice,
                     'customer' => $customer,
                     'reminderNumber' => $reminderNumber,
-                ], function ($message) use ($email, $invoice, $reminderNumber) {
+                    'siteSettings' => $siteSettings,
+                    'daysOverdue' => $daysOverdue,
+                    'amountDue' => $amountDue,
+                    'urgency' => $urgency,
+                ], function ($message) use ($email, $invoice, $reminderNumber, $urgency) {
+                    $prefix = $urgency === 'high' ? 'URGENT: ' : '';
                     $message->to($email)
-                        ->subject("Payment Reminder #{$reminderNumber} - Invoice {$invoice->invoice_no}");
+                        ->subject("{$prefix}Payment Reminder #{$reminderNumber} - Invoice {$invoice->invoice_no}");
                 });
 
                 InvoiceReminder::create([

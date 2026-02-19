@@ -84,7 +84,7 @@ class RecurringOrderController extends Controller
     public function updateFrequency(Request $request, RecurringOrder $recurringOrder)
     {
         $request->validate([
-            'frequency' => 'required|in:weekly,fortnightly,monthly',
+            'frequency' => 'required|in:weekly,biweekly,monthly',
             'next_run_date' => 'required|date|after:today',
         ]);
 

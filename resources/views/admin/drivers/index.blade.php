@@ -1,112 +1,84 @@
 @extends('layouts.admin')
+@section('title', 'Driver Management')
 
 @section('content')
-<div class="container-fluid py-4">
-    <div class="row">
-        <div class="col-12 mb-4">
-            <h3 class="text-light">Drivers Management</h3>
-        </div>
+<div class="page-header">
+    <h1>Drivers Management</h1>
+    <div style="display:flex; gap:0.5rem; align-items:center;">
+        <a href="{{ route('admin.tracking.drivers') }}" class="btn btn-outline btn-sm">Track Drivers</a>
+        <a href="{{ route('admin.users.index', ['role' => 'driver']) }}" class="btn btn-outline btn-sm">User Accounts</a>
     </div>
+</div>
 
-    <div class="row">
-        @forelse($drivers as $driver)
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card bg-dark text-light h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">{{ $driver->name }}</h5>
-                    @if($driver->is_active)
-                        <span class="badge bg-success">Active</span>
+{{-- Stats --}}
+<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem;">
+    <div class="card"><div class="card-body" style="padding:0.75rem; text-align:center;"><h6 class="text-muted mb-0" style="font-size:0.7rem; text-transform:uppercase;">Total Drivers</h6><h3 class="mb-0" style="margin-top:0.25rem;">{{ $drivers->count() }}</h3></div></div>
+    <div class="card"><div class="card-body" style="padding:0.75rem; text-align:center;"><h6 class="text-muted mb-0" style="font-size:0.7rem; text-transform:uppercase;">Active</h6><h3 class="mb-0" style="margin-top:0.25rem; color:var(--success, #27ae60);">{{ $drivers->where('is_active', true)->count() }}</h3></div></div>
+    <div class="card"><div class="card-body" style="padding:0.75rem; text-align:center;"><h6 class="text-muted mb-0" style="font-size:0.7rem; text-transform:uppercase;">On Shift</h6><h3 class="mb-0" style="margin-top:0.25rem;">{{ $drivers->filter(fn($d) => $d->current_shift)->count() }}</h3></div></div>
+    <div class="card"><div class="card-body" style="padding:0.75rem; text-align:center;"><h6 class="text-muted mb-0" style="font-size:0.7rem; text-transform:uppercase;">Today's Deliveries</h6><h3 class="mb-0" style="margin-top:0.25rem;">{{ $drivers->sum('today_deliveries') }}</h3></div></div>
+</div>
+
+{{-- Drivers Table --}}
+<div class="card">
+    <div class="card-header"><span>All Drivers</span><span class="badge badge-secondary">{{ $drivers->count() }}</span></div>
+    @if($drivers->isEmpty())
+        <div class="card-body">
+            <div class="empty-state">
+                <div class="icon">&#128666;</div>
+                <h3>No drivers found</h3>
+                <p>Add driver users from the <a href="{{ route('admin.users.create') }}">Users</a> page.</p>
+            </div>
+        </div>
+    @else
+        <div class="table-responsive"><table><thead><tr>
+            <th>Driver</th>
+            <th>Status</th>
+            <th>Shift</th>
+            <th class="text-right">Today</th>
+            <th class="text-right">Total</th>
+            <th class="text-right">Month Hours</th>
+            <th class="text-right">Month Deliveries</th>
+            <th class="text-right">Month Pay</th>
+            <th>Pay Type</th>
+            <th class="text-right">Actions</th>
+        </tr></thead><tbody>
+            @foreach($drivers as $driver)
+            <tr style="{{ !$driver->is_active ? 'opacity:0.5;' : '' }}">
+                <td>
+                    <div class="font-semibold">{{ $driver->name }}</div>
+                    @if($driver->phone)<small class="text-muted"><a href="tel:{{ $driver->phone }}">{{ $driver->phone }}</a></small>@endif
+                </td>
+                <td><span class="badge badge-{{ $driver->is_active ? 'success' : 'danger' }}">{{ $driver->is_active ? 'Active' : 'Inactive' }}</span></td>
+                <td>
+                    @if($driver->current_shift)
+                        <span class="badge badge-success">On Shift</span>
+                        <br><small class="text-muted">Since {{ $driver->current_shift->clock_in->format('H:i') }}</small>
                     @else
-                        <span class="badge bg-secondary">Inactive</span>
+                        <span class="badge badge-secondary">Off</span>
                     @endif
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <h6 class="text-muted">Contact Information</h6>
-                        <p class="mb-1"><strong>Phone:</strong> {{ $driver->phone }}</p>
-                    </div>
-
-                    <div class="mb-3">
-                        <h6 class="text-muted">Current Shift</h6>
-                        @if($driver->current_shift)
-                            <span class="badge bg-success">On Shift</span>
-                            <p class="mb-0 mt-2 small">Started: {{ $driver->current_shift->clock_in->format('H:i') }}</p>
-                        @else
-                            <span class="badge bg-warning">Off Shift</span>
-                        @endif
-                    </div>
-
-                    <div class="mb-3">
-                        <h6 class="text-muted">Today's Statistics</h6>
-                        <div class="row">
-                            <div class="col-6">
-                                <p class="mb-1 small"><strong>Deliveries:</strong></p>
-                                <h4 class="text-primary">{{ $driver->today_deliveries }}</h4>
-                            </div>
-                            <div class="col-6">
-                                <p class="mb-1 small"><strong>Total:</strong></p>
-                                <h4 class="text-info">{{ $driver->total_deliveries }}</h4>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <h6 class="text-muted">Month Statistics</h6>
-                        <div class="row">
-                            <div class="col-4">
-                                <p class="mb-1 small"><strong>Hours:</strong></p>
-                                <p class="mb-0">{{ number_format($driver->month_hours, 1) }}h</p>
-                            </div>
-                            <div class="col-4">
-                                <p class="mb-1 small"><strong>Deliveries:</strong></p>
-                                <p class="mb-0">{{ $driver->month_deliveries }}</p>
-                            </div>
-                            <div class="col-4">
-                                <p class="mb-1 small"><strong>Pay:</strong></p>
-                                <p class="mb-0">R {{ number_format($driver->month_pay, 2) }}</p>
-                            </div>
-                        </div>
-                    </div>
-
+                </td>
+                <td class="text-right font-semibold">{{ $driver->today_deliveries }}</td>
+                <td class="text-right">{{ $driver->total_deliveries }}</td>
+                <td class="text-right">{{ number_format($driver->month_hours, 1) }}h</td>
+                <td class="text-right">{{ $driver->month_deliveries }}</td>
+                <td class="text-right font-semibold">R{{ number_format($driver->month_pay, 2) }}</td>
+                <td>
                     @if($driver->salaryConfig)
-                    <div class="mb-3">
-                        <h6 class="text-muted">Salary Configuration</h6>
-                        <p class="mb-1 small">
-                            <strong>Type:</strong>
-                            <span class="badge bg-info">{{ ucfirst($driver->salaryConfig->pay_type) }}</span>
-                        </p>
-                        <p class="mb-1 small">
-                            <strong>Rate:</strong>
-                            @if($driver->salaryConfig->pay_type === 'hourly')
-                                R {{ number_format($driver->salaryConfig->rate, 2) }}/hour
-                            @else
-                                R {{ number_format($driver->salaryConfig->rate, 2) }}/delivery
-                            @endif
-                        </p>
-                        @if($driver->salaryConfig->bonus_per_delivery)
-                        <p class="mb-1 small">
-                            <strong>Bonus:</strong> R {{ number_format($driver->salaryConfig->bonus_per_delivery, 2) }}/delivery
-                        </p>
-                        @endif
-                    </div>
+                        <span class="badge badge-info">{{ ucfirst(str_replace('_', ' ', $driver->salaryConfig->pay_type)) }}</span>
+                        <br><small class="text-muted">R{{ number_format($driver->salaryConfig->rate, 2) }}{{ $driver->salaryConfig->pay_type === 'hourly' ? '/hr' : ($driver->salaryConfig->pay_type === 'per_delivery' ? '/del' : '/mo') }}</small>
+                    @else
+                        <span class="text-muted">-</span>
                     @endif
-                </div>
-                <div class="card-footer">
-                    <a href="{{ route('admin.drivers.shifts', $driver->id) }}" class="btn btn-primary btn-sm w-100">
-                        View Shifts & Salary
-                    </a>
-                </div>
-            </div>
-        </div>
-        @empty
-        <div class="col-12">
-            <div class="card bg-dark text-light">
-                <div class="card-body text-center">
-                    <p class="mb-0">No drivers found.</p>
-                </div>
-            </div>
-        </div>
-        @endforelse
-    </div>
+                </td>
+                <td class="text-right">
+                    <div style="display:flex; gap:0.25rem; justify-content:flex-end;">
+                        <a href="{{ route('admin.tracking.driver-detail', $driver->id) }}" class="btn btn-sm btn-outline">Track</a>
+                        <a href="{{ route('admin.drivers.shifts', $driver->id) }}" class="btn btn-sm btn-primary">Shifts</a>
+                    </div>
+                </td>
+            </tr>
+            @endforeach
+        </tbody></table></div>
+    @endif
 </div>
 @endsection

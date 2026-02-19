@@ -604,16 +604,21 @@ tr:last-child td { border-bottom:none; }
     width:250px;
     background:linear-gradient(180deg,#0d0d0d 0%,#080808 100%);
     color:#fff; padding:0; flex-shrink:0; position:fixed; height:100vh;
-    overflow-y:auto; z-index:50;
+    overflow-y:auto; overflow-x:hidden; z-index:50;
     border-right:1px solid var(--glass-border);
     box-shadow:4px 0 24px rgba(0,0,0,0.4);
+    scrollbar-width:none; -ms-overflow-style:none;
 }
-.admin-sidebar .sidebar-brand {
-    padding:1rem 1.25rem; font-size:1.125rem; font-weight:800;
+.admin-sidebar::-webkit-scrollbar { display:none; }
+.admin-sidebar .sidebar-brand,
+.admin-sidebar a.sidebar-brand {
+    padding:0.75rem 1rem; font-size:1rem; font-weight:800; color:#fff;
     border-bottom:1px solid var(--glass-border); display:flex; align-items:center; gap:0.5rem;
     letter-spacing:-0.02em; background:linear-gradient(180deg,rgba(255,255,255,0.03) 0%,transparent 100%);
+    border-left:none; text-decoration:none; overflow:hidden;
 }
-.admin-sidebar .sidebar-brand img { height:30px; width:auto; max-width:none; max-height:none; border-radius:4px; display:inline-block; }
+.admin-sidebar a.sidebar-brand:hover { background:linear-gradient(180deg,rgba(255,255,255,0.06) 0%,transparent 100%); color:#fff; }
+.admin-sidebar .sidebar-brand img { height:28px; width:auto; max-width:100%; max-height:36px; border-radius:4px; display:inline-block; object-fit:contain; }
 .admin-sidebar a {
     display:flex; align-items:center; gap:0.75rem; padding:0.625rem 1.25rem;
     color:rgba(255,255,255,0.5); font-size:0.875rem; transition:all var(--transition-fast);

@@ -2,136 +2,144 @@
 @section('title', 'Operations Board')
 
 @section('content')
-<div style="max-width: 1200px; margin: 0 auto;">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
-        <div>
-            <h1 style="font-size: 24px; margin-bottom:4px;">Operations Board</h1>
-            @if($totalAlerts > 0)
-                <span class="badge badge-danger" style="font-size:0.9rem;">{{ $totalAlerts }} active alerts</span>
-            @else
-                <span class="badge badge-success" style="font-size:0.9rem;">All clear</span>
-            @endif
-        </div>
-    </div>
-
-    {{-- Today's Metrics --}}
-    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:1rem; margin-bottom:24px;">
-        <div style="background:var(--card,#fff); border:1px solid var(--border,#e1e8ed); border-radius:8px; padding:16px; text-align:center;">
-            <div style="color:var(--text-light,#95a5a6); font-size:0.75rem;">Orders Today</div>
-            <div style="font-size:1.5rem; font-weight:700;">{{ $todayMetrics['orders_placed'] }}</div>
-        </div>
-        <div style="background:var(--card,#fff); border:1px solid var(--border,#e1e8ed); border-radius:8px; padding:16px; text-align:center;">
-            <div style="color:var(--text-light,#95a5a6); font-size:0.75rem;">Delivered</div>
-            <div style="font-size:1.5rem; font-weight:700; color:var(--success,#27ae60);">{{ $todayMetrics['orders_delivered'] }}</div>
-        </div>
-        <div style="background:var(--card,#fff); border:1px solid var(--border,#e1e8ed); border-radius:8px; padding:16px; text-align:center;">
-            <div style="color:var(--text-light,#95a5a6); font-size:0.75rem;">In Transit</div>
-            <div style="font-size:1.5rem; font-weight:700; color:var(--warning,#e67e22);">{{ $todayMetrics['orders_in_transit'] }}</div>
-        </div>
-        <div style="background:var(--card,#fff); border:1px solid var(--border,#e1e8ed); border-radius:8px; padding:16px; text-align:center;">
-            <div style="color:var(--text-light,#95a5a6); font-size:0.75rem;">Active Drivers</div>
-            <div style="font-size:1.5rem; font-weight:700;">{{ $todayMetrics['active_drivers'] }}</div>
-        </div>
-        <div style="background:var(--card,#fff); border:1px solid var(--border,#e1e8ed); border-radius:8px; padding:16px; text-align:center;">
-            <div style="color:var(--text-light,#95a5a6); font-size:0.75rem;">Revenue Today</div>
-            <div style="font-size:1.5rem; font-weight:700;">R {{ number_format($todayMetrics['revenue_today'], 0) }}</div>
-        </div>
-    </div>
-
-    {{-- Unassigned --}}
-    <div style="background:var(--card,#fff); border:1px solid var(--border,#e1e8ed); border-radius:8px; padding:20px; margin-bottom:20px; {{ $unassigned->count() > 0 ? 'border-left:4px solid var(--danger,#e74c3c);' : '' }}">
-        <h2 style="font-size:18px; color:var(--danger,#e74c3c); margin:0 0 12px;">Unassigned Orders ({{ $unassigned->count() }})</h2>
-        @if($unassigned->isEmpty())
-            <p style="color:var(--text-light,#95a5a6);">All orders have drivers assigned.</p>
+<div class="page-header">
+    <h1>Operations Board</h1>
+    <div style="display:flex; gap:0.5rem; align-items:center;">
+        @if($totalAlerts > 0)
+            <span class="badge badge-danger" style="font-size:0.85rem;">{{ $totalAlerts }} active alerts</span>
         @else
-            <table style="width:100%; border-collapse:collapse;">
-                <thead><tr style="border-bottom:2px solid var(--border,#e1e8ed);"><th style="padding:8px; text-align:left;">Order</th><th style="padding:8px; text-align:left;">Customer</th><th style="padding:8px; text-align:left;">Created</th><th style="padding:8px; text-align:left;">Total</th><th style="padding:8px;">Quick Assign</th></tr></thead>
-                <tbody>
-                    @foreach($unassigned as $order)
-                    <tr style="border-bottom:1px solid var(--border,#f0f3f5);">
-                        <td style="padding:8px;"><a href="{{ route('admin.orders.show', $order) }}">{{ $order->order_number }}</a></td>
-                        <td style="padding:8px;">{{ $order->customer->user->name }}</td>
-                        <td style="padding:8px;">{{ $order->created_at->diffForHumans() }}</td>
-                        <td style="padding:8px;">R{{ number_format($order->total, 2) }}</td>
-                        <td style="padding:8px;">
-                            <form method="POST" action="{{ route('admin.orders.assign-driver', $order) }}" style="display:flex;gap:4px;">@csrf
-                                <select name="driver_id" class="form-control" style="max-width:140px;font-size:0.85rem;" required><option value="">Driver...</option>@foreach($availableDrivers as $d)<option value="{{ $d->id }}">{{ $d->name }}</option>@endforeach</select>
-                                <button type="submit" class="btn btn-sm btn-primary">Assign</button>
-                            </form>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
+            <span class="badge badge-success" style="font-size:0.85rem;">All clear</span>
         @endif
+        <a href="{{ route('admin.tracking.drivers') }}" class="btn btn-outline btn-sm">Track Drivers</a>
+        <a href="{{ route('admin.orders.index') }}" class="btn btn-outline btn-sm">All Orders</a>
     </div>
+</div>
 
-    {{-- Assigned not loaded --}}
-    <div style="background:var(--card,#fff); border:1px solid var(--border,#e1e8ed); border-radius:8px; padding:20px; margin-bottom:20px; {{ $assignedNotLoaded->count() > 0 ? 'border-left:4px solid var(--warning,#e67e22);' : '' }}">
-        <h2 style="font-size:18px; color:var(--warning,#e67e22); margin:0 0 12px;">Assigned > 60 min, Not Loaded ({{ $assignedNotLoaded->count() }})</h2>
-        @if($assignedNotLoaded->isEmpty())
-            <p style="color:var(--text-light,#95a5a6);">No stuck assignments.</p>
-        @else
-            <table style="width:100%; border-collapse:collapse;">
-                <thead><tr style="border-bottom:2px solid var(--border,#e1e8ed);"><th style="padding:8px;">Order</th><th style="padding:8px;">Driver</th><th style="padding:8px;">Status</th><th style="padding:8px;">Since</th><th style="padding:8px;"></th></tr></thead>
-                <tbody>
-                    @foreach($assignedNotLoaded as $order)
-                    <tr style="border-bottom:1px solid var(--border,#f0f3f5);"><td style="padding:8px;"><a href="{{ route('admin.orders.show', $order) }}">{{ $order->order_number }}</a></td><td style="padding:8px;">{{ $order->driver?->name ?? 'N/A' }}</td><td style="padding:8px;">{{ $order->status }}</td><td style="padding:8px;">{{ $order->updated_at->diffForHumans() }}</td><td style="padding:8px;"><a href="{{ route('admin.orders.show', $order) }}" class="btn btn-sm btn-outline">Review</a></td></tr>
-                    @endforeach
-                </tbody>
-            </table>
-        @endif
-    </div>
+{{-- Today's Metrics --}}
+<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem;">
+    <div class="card"><div class="card-body" style="padding:0.75rem; text-align:center;"><h6 class="text-muted mb-0" style="font-size:0.7rem; text-transform:uppercase;">Orders Today</h6><h3 class="mb-0" style="margin-top:0.25rem;">{{ $todayMetrics['orders_placed'] }}</h3></div></div>
+    <div class="card"><div class="card-body" style="padding:0.75rem; text-align:center;"><h6 class="text-muted mb-0" style="font-size:0.7rem; text-transform:uppercase;">Delivered</h6><h3 class="mb-0" style="margin-top:0.25rem; color:var(--success, #27ae60);">{{ $todayMetrics['orders_delivered'] }}</h3></div></div>
+    <div class="card"><div class="card-body" style="padding:0.75rem; text-align:center;"><h6 class="text-muted mb-0" style="font-size:0.7rem; text-transform:uppercase;">In Transit</h6><h3 class="mb-0" style="margin-top:0.25rem; color:var(--warning, #e67e22);">{{ $todayMetrics['orders_in_transit'] }}</h3></div></div>
+    <div class="card"><div class="card-body" style="padding:0.75rem; text-align:center;"><h6 class="text-muted mb-0" style="font-size:0.7rem; text-transform:uppercase;">Active Drivers</h6><h3 class="mb-0" style="margin-top:0.25rem;">{{ $todayMetrics['active_drivers'] }}</h3></div></div>
+    <div class="card"><div class="card-body" style="padding:0.75rem; text-align:center;"><h6 class="text-muted mb-0" style="font-size:0.7rem; text-transform:uppercase;">Revenue Today</h6><h3 class="mb-0" style="margin-top:0.25rem;">R {{ number_format($todayMetrics['revenue_today'], 0) }}</h3></div></div>
+</div>
 
-    {{-- No tracking --}}
-    <div style="background:var(--card,#fff); border:1px solid var(--border,#e1e8ed); border-radius:8px; padding:20px; margin-bottom:20px; {{ $enRouteNoTracking->count() > 0 ? 'border-left:4px solid var(--warning,#e67e22);' : '' }}">
-        <h2 style="font-size:18px; color:var(--warning,#e67e22); margin:0 0 12px;">En Route, No Tracking > 10 min ({{ $enRouteNoTracking->count() }})</h2>
-        @if($enRouteNoTracking->isEmpty())
-            <p style="color:var(--text-light,#95a5a6);">All en-route orders have recent tracking.</p>
-        @else
-            <table style="width:100%; border-collapse:collapse;">
-                <thead><tr style="border-bottom:2px solid var(--border,#e1e8ed);"><th style="padding:8px;">Order</th><th style="padding:8px;">Driver</th><th style="padding:8px;">Last Update</th><th style="padding:8px;"></th></tr></thead>
-                <tbody>
-                    @foreach($enRouteNoTracking as $order)
-                    <tr style="border-bottom:1px solid var(--border,#f0f3f5);"><td style="padding:8px;"><a href="{{ route('admin.orders.show', $order) }}">{{ $order->order_number }}</a></td><td style="padding:8px;">{{ $order->driver?->name ?? 'N/A' }}</td><td style="padding:8px;">@php $last = $order->driverLocations()->orderBy('recorded_at','desc')->first(); @endphp{{ $last ? $last->recorded_at->diffForHumans() : 'Never' }}</td><td style="padding:8px;"><a href="{{ route('admin.tracking.order', $order) }}" class="btn btn-sm btn-outline">Track</a></td></tr>
-                    @endforeach
-                </tbody>
-            </table>
-        @endif
+{{-- Unassigned Orders --}}
+<div class="card mb-2" @if($unassigned->count() > 0) style="border-left:3px solid var(--danger, #e74c3c);" @endif>
+    <div class="card-header">
+        <span style="color:var(--danger, #e74c3c); font-weight:700;">Unassigned Orders</span>
+        <span class="badge badge-{{ $unassigned->count() > 0 ? 'danger' : 'success' }}">{{ $unassigned->count() }}</span>
     </div>
+    @if($unassigned->isEmpty())
+        <div class="card-body"><p class="text-muted mb-0">All orders have drivers assigned.</p></div>
+    @else
+        <div class="table-responsive"><table><thead><tr><th>Order</th><th>Customer</th><th>Created</th><th class="text-right">Total</th><th>Quick Assign</th></tr></thead><tbody>
+            @foreach($unassigned as $order)
+            <tr>
+                <td><a href="{{ route('admin.orders.show', $order) }}" class="font-semibold">{{ $order->order_number }}</a></td>
+                <td>{{ $order->customer->user->name }}</td>
+                <td><small>{{ $order->created_at->diffForHumans() }}</small></td>
+                <td class="text-right font-semibold">R{{ number_format($order->total, 2) }}</td>
+                <td>
+                    <form method="POST" action="{{ route('admin.orders.assign-driver', $order) }}" style="display:flex;gap:0.25rem;">@csrf
+                        <select name="driver_id" class="form-control" style="max-width:140px;font-size:0.8rem;" required><option value="">Driver...</option>@foreach($availableDrivers as $d)<option value="{{ $d->id }}">{{ $d->name }}</option>@endforeach</select>
+                        <button type="submit" class="btn btn-sm btn-primary">Assign</button>
+                    </form>
+                </td>
+            </tr>
+            @endforeach
+        </tbody></table></div>
+    @endif
+</div>
 
-    {{-- Delivered not invoiced --}}
-    <div style="background:var(--card,#fff); border:1px solid var(--border,#e1e8ed); border-radius:8px; padding:20px; margin-bottom:20px; {{ $deliveredNotInvoiced->count() > 0 ? 'border-left:4px solid var(--danger,#e74c3c);' : '' }}">
-        <h2 style="font-size:18px; color:var(--danger,#e74c3c); margin:0 0 12px;">Delivered, No Invoice ({{ $deliveredNotInvoiced->count() }})</h2>
-        @if($deliveredNotInvoiced->isEmpty())
-            <p style="color:var(--text-light,#95a5a6);">All delivered orders have invoices.</p>
-        @else
-            <table style="width:100%; border-collapse:collapse;">
-                <thead><tr style="border-bottom:2px solid var(--border,#e1e8ed);"><th style="padding:8px;">Order</th><th style="padding:8px;">Customer</th><th style="padding:8px;">Delivered</th><th style="padding:8px;">Total</th><th style="padding:8px;"></th></tr></thead>
-                <tbody>
-                    @foreach($deliveredNotInvoiced as $order)
-                    <tr style="border-bottom:1px solid var(--border,#f0f3f5);"><td style="padding:8px;"><a href="{{ route('admin.orders.show', $order) }}">{{ $order->order_number }}</a></td><td style="padding:8px;">{{ $order->customer->user->name }}</td><td style="padding:8px;">{{ $order->updated_at->diffForHumans() }}</td><td style="padding:8px;">R{{ number_format($order->total, 2) }}</td><td style="padding:8px;"><form method="POST" action="{{ route('admin.orders.resend-invoice', $order) }}" style="display:inline;">@csrf<button type="submit" class="btn btn-sm btn-primary">Generate</button></form></td></tr>
-                    @endforeach
-                </tbody>
-            </table>
-        @endif
+{{-- Assigned not loaded --}}
+<div class="card mb-2" @if($assignedNotLoaded->count() > 0) style="border-left:3px solid var(--warning, #e67e22);" @endif>
+    <div class="card-header">
+        <span style="color:var(--warning, #e67e22); font-weight:700;">Assigned > 60 min, Not Loaded</span>
+        <span class="badge badge-{{ $assignedNotLoaded->count() > 0 ? 'warning' : 'success' }}">{{ $assignedNotLoaded->count() }}</span>
     </div>
+    @if($assignedNotLoaded->isEmpty())
+        <div class="card-body"><p class="text-muted mb-0">No stuck assignments.</p></div>
+    @else
+        <div class="table-responsive"><table><thead><tr><th>Order</th><th>Driver</th><th>Status</th><th>Since</th><th class="text-right">Actions</th></tr></thead><tbody>
+            @foreach($assignedNotLoaded as $order)
+            <tr>
+                <td><a href="{{ route('admin.orders.show', $order) }}" class="font-semibold">{{ $order->order_number }}</a></td>
+                <td>{{ $order->driver?->name ?? 'N/A' }}</td>
+                <td><span class="badge badge-warning">{{ str_replace('_', ' ', $order->status) }}</span></td>
+                <td><small>{{ $order->updated_at->diffForHumans() }}</small></td>
+                <td class="text-right"><a href="{{ route('admin.orders.show', $order) }}" class="btn btn-sm btn-outline">Review</a></td>
+            </tr>
+            @endforeach
+        </tbody></table></div>
+    @endif
+</div>
 
-    {{-- Stale pending --}}
-    <div style="background:var(--card,#fff); border:1px solid var(--border,#e1e8ed); border-radius:8px; padding:20px; margin-bottom:20px;">
-        <h2 style="font-size:18px; color:var(--text-light,#95a5a6); margin:0 0 12px;">Pending Payment > 24h ({{ $stalePending->count() }})</h2>
-        @if($stalePending->isEmpty())
-            <p style="color:var(--text-light,#95a5a6);">No stale pending orders.</p>
-        @else
-            <table style="width:100%; border-collapse:collapse;">
-                <thead><tr style="border-bottom:2px solid var(--border,#e1e8ed);"><th style="padding:8px;">Order</th><th style="padding:8px;">Customer</th><th style="padding:8px;">Created</th><th style="padding:8px;">Total</th><th style="padding:8px;"></th></tr></thead>
-                <tbody>
-                    @foreach($stalePending as $order)
-                    <tr style="border-bottom:1px solid var(--border,#f0f3f5);"><td style="padding:8px;"><a href="{{ route('admin.orders.show', $order) }}">{{ $order->order_number }}</a></td><td style="padding:8px;">{{ $order->customer->user->name }}</td><td style="padding:8px;">{{ $order->created_at->diffForHumans() }}</td><td style="padding:8px;">R{{ number_format($order->total, 2) }}</td><td style="padding:8px;"><a href="{{ route('admin.orders.show', $order) }}" class="btn btn-sm btn-outline">Review</a></td></tr>
-                    @endforeach
-                </tbody>
-            </table>
-        @endif
+{{-- No tracking --}}
+<div class="card mb-2" @if($enRouteNoTracking->count() > 0) style="border-left:3px solid var(--warning, #e67e22);" @endif>
+    <div class="card-header">
+        <span style="color:var(--warning, #e67e22); font-weight:700;">En Route, No Tracking > 10 min</span>
+        <span class="badge badge-{{ $enRouteNoTracking->count() > 0 ? 'warning' : 'success' }}">{{ $enRouteNoTracking->count() }}</span>
     </div>
+    @if($enRouteNoTracking->isEmpty())
+        <div class="card-body"><p class="text-muted mb-0">All en-route orders have recent tracking.</p></div>
+    @else
+        <div class="table-responsive"><table><thead><tr><th>Order</th><th>Driver</th><th>Last Update</th><th class="text-right">Actions</th></tr></thead><tbody>
+            @foreach($enRouteNoTracking as $order)
+            <tr>
+                <td><a href="{{ route('admin.orders.show', $order) }}" class="font-semibold">{{ $order->order_number }}</a></td>
+                <td>{{ $order->driver?->name ?? 'N/A' }}</td>
+                <td>@php $last = $order->driverLocations()->orderBy('recorded_at','desc')->first(); @endphp<small>{{ $last ? $last->recorded_at->diffForHumans() : 'Never' }}</small></td>
+                <td class="text-right"><a href="{{ route('admin.tracking.order', $order) }}" class="btn btn-sm btn-primary">Track</a></td>
+            </tr>
+            @endforeach
+        </tbody></table></div>
+    @endif
+</div>
+
+{{-- Delivered not invoiced --}}
+<div class="card mb-2" @if($deliveredNotInvoiced->count() > 0) style="border-left:3px solid var(--danger, #e74c3c);" @endif>
+    <div class="card-header">
+        <span style="color:var(--danger, #e74c3c); font-weight:700;">Delivered, No Invoice</span>
+        <span class="badge badge-{{ $deliveredNotInvoiced->count() > 0 ? 'danger' : 'success' }}">{{ $deliveredNotInvoiced->count() }}</span>
+    </div>
+    @if($deliveredNotInvoiced->isEmpty())
+        <div class="card-body"><p class="text-muted mb-0">All delivered orders have invoices.</p></div>
+    @else
+        <div class="table-responsive"><table><thead><tr><th>Order</th><th>Customer</th><th>Delivered</th><th class="text-right">Total</th><th class="text-right">Actions</th></tr></thead><tbody>
+            @foreach($deliveredNotInvoiced as $order)
+            <tr>
+                <td><a href="{{ route('admin.orders.show', $order) }}" class="font-semibold">{{ $order->order_number }}</a></td>
+                <td>{{ $order->customer->user->name }}</td>
+                <td><small>{{ $order->updated_at->diffForHumans() }}</small></td>
+                <td class="text-right font-semibold">R{{ number_format($order->total, 2) }}</td>
+                <td class="text-right"><form method="POST" action="{{ route('admin.orders.resend-invoice', $order) }}" style="display:inline;">@csrf<button type="submit" class="btn btn-sm btn-primary">Generate</button></form></td>
+            </tr>
+            @endforeach
+        </tbody></table></div>
+    @endif
+</div>
+
+{{-- Stale pending --}}
+<div class="card mb-2">
+    <div class="card-header">
+        <span>Pending Payment > 24h</span>
+        <span class="badge badge-secondary">{{ $stalePending->count() }}</span>
+    </div>
+    @if($stalePending->isEmpty())
+        <div class="card-body"><p class="text-muted mb-0">No stale pending orders.</p></div>
+    @else
+        <div class="table-responsive"><table><thead><tr><th>Order</th><th>Customer</th><th>Created</th><th class="text-right">Total</th><th class="text-right">Actions</th></tr></thead><tbody>
+            @foreach($stalePending as $order)
+            <tr>
+                <td><a href="{{ route('admin.orders.show', $order) }}" class="font-semibold">{{ $order->order_number }}</a></td>
+                <td>{{ $order->customer->user->name }}</td>
+                <td><small>{{ $order->created_at->diffForHumans() }}</small></td>
+                <td class="text-right font-semibold">R{{ number_format($order->total, 2) }}</td>
+                <td class="text-right"><a href="{{ route('admin.orders.show', $order) }}" class="btn btn-sm btn-outline">Review</a></td>
+            </tr>
+            @endforeach
+        </tbody></table></div>
+    @endif
 </div>
 @endsection

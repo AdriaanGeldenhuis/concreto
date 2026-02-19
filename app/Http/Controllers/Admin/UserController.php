@@ -7,6 +7,7 @@ use App\Models\AuditLog;
 use App\Models\Customer;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
@@ -17,16 +18,44 @@ class UserController extends Controller
         if ($request->filled('role')) {
             $query->where('role', $request->role);
         }
+        if ($request->filled('status')) {
+            $query->where('is_active', $request->status === 'active');
+        }
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%");
             });
         }
 
-        $users = $query->orderBy('name')->paginate(20);
-        return view('admin.users.index', compact('users'));
+        // Sorting
+        $sortField = $request->input('sort', 'name');
+        $sortDir = $request->input('dir', 'asc');
+        $allowedSorts = ['name', 'email', 'role', 'created_at', 'is_active'];
+        if (in_array($sortField, $allowedSorts)) {
+            $query->orderBy($sortField, $sortDir === 'desc' ? 'desc' : 'asc');
+        } else {
+            $query->orderBy('name');
+        }
+
+        $query->with('customer');
+        $users = $query->paginate(25);
+
+        // Summary stats
+        $stats = [
+            'total' => User::count(),
+            'admins' => User::where('role', 'admin')->count(),
+            'staff' => User::where('role', 'staff')->count(),
+            'drivers' => User::where('role', 'driver')->count(),
+            'customers' => User::where('role', 'customer')->count(),
+            'active' => User::where('is_active', true)->count(),
+            'inactive' => User::where('is_active', false)->count(),
+            'two_factor' => User::where('two_factor_enabled', true)->count(),
+        ];
+
+        return view('admin.users.index', compact('users', 'stats'));
     }
 
     public function create()
@@ -58,7 +87,7 @@ class UserController extends Controller
 
         AuditLog::log('created', 'User', $user->id, ['role' => $user->role]);
 
-        return redirect()->route('admin.users.index')->with('success', 'User created.');
+        return redirect()->route('admin.users.index')->with('success', 'User created successfully.');
     }
 
     public function edit(User $user)
@@ -83,9 +112,31 @@ class UserController extends Controller
             unset($data['password']);
         }
 
+        // If changing role to customer and no customer record exists, create one
+        if ($data['role'] === 'customer' && !$user->customer) {
+            Customer::create([
+                'user_id' => $user->id,
+                'type' => 'COD',
+            ]);
+        }
+
         $user->update($data);
         AuditLog::log('updated', 'User', $user->id);
 
-        return redirect()->route('admin.users.index')->with('success', 'User updated.');
+        return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');
+    }
+
+    public function toggleActive(User $user)
+    {
+        // Prevent deactivating yourself
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'You cannot deactivate your own account.');
+        }
+
+        $user->update(['is_active' => !$user->is_active]);
+        $status = $user->is_active ? 'activated' : 'deactivated';
+        AuditLog::log($status, 'User', $user->id);
+
+        return back()->with('success', "User {$status} successfully.");
     }
 }

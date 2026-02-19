@@ -25,4 +25,9 @@ class OrderTemplate extends Model
     {
         return $this->belongsTo(Address::class, 'delivery_address_id');
     }
+
+    public function recurringOrders(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(RecurringOrder::class, 'order_template_id');
+    }
 }

@@ -1,162 +1,124 @@
 @extends('layouts.admin')
+@section('title', $driver->name . ' - Shifts & Salary')
 
 @section('content')
-<div class="container-fluid py-4">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <h3 class="text-light">{{ $driver->name }} - Shifts & Salary</h3>
-                <a href="{{ route('admin.drivers.index') }}" class="btn btn-secondary">Back to Drivers</a>
-            </div>
-        </div>
+<div class="page-header">
+    <div class="breadcrumb"><a href="{{ route('admin.drivers.index') }}">Drivers</a> / {{ $driver->name }}</div>
+    <h1>{{ $driver->name }} – Shifts & Salary</h1>
+    <div style="display:flex; gap:0.5rem; align-items:center;">
+        <span class="badge badge-{{ $driver->is_active ? 'success' : 'danger' }}">{{ $driver->is_active ? 'Active' : 'Inactive' }}</span>
+        @if($driver->phone)<a href="tel:{{ $driver->phone }}" class="btn btn-sm btn-outline">Call {{ $driver->phone }}</a>@endif
+        <a href="{{ route('admin.tracking.driver-detail', $driver) }}" class="btn btn-sm btn-outline">Track</a>
     </div>
+</div>
 
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card bg-dark text-light">
-                <div class="card-header">
-                    <h5 class="mb-0">Salary Configuration</h5>
+{{-- Salary Configuration --}}
+<div class="card mb-2">
+    <div class="card-header">Salary Configuration</div>
+    <div class="card-body">
+        <form action="{{ route('admin.drivers.salary', $driver->id) }}" method="POST">
+            @csrf
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Pay Type</label>
+                    <select class="form-control" name="pay_type" required>
+                        <option value="hourly" {{ $config && $config->pay_type === 'hourly' ? 'selected' : '' }}>Hourly</option>
+                        <option value="per_delivery" {{ $config && $config->pay_type === 'per_delivery' ? 'selected' : '' }}>Per Delivery</option>
+                        <option value="fixed_monthly" {{ $config && $config->pay_type === 'fixed_monthly' ? 'selected' : '' }}>Fixed Monthly</option>
+                    </select>
                 </div>
-                <div class="card-body">
-                    <form action="{{ route('admin.drivers.salary', $driver->id) }}" method="POST">
-                        @csrf
-                        <div class="row">
-                            <div class="col-md-3 mb-3">
-                                <label for="pay_type" class="form-label">Pay Type</label>
-                                <select class="form-control bg-dark text-light border-secondary" id="pay_type" name="pay_type" required>
-                                    <option value="hourly" {{ $config && $config->pay_type === 'hourly' ? 'selected' : '' }}>Hourly</option>
-                                    <option value="per_delivery" {{ $config && $config->pay_type === 'per_delivery' ? 'selected' : '' }}>Per Delivery</option>
-                                    <option value="fixed_monthly" {{ $config && $config->pay_type === 'fixed_monthly' ? 'selected' : '' }}>Fixed Monthly</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <label for="rate" class="form-label">Rate (R)</label>
-                                <input type="number" step="0.01" class="form-control bg-dark text-light border-secondary" id="rate" name="rate" value="{{ $config->rate ?? '' }}" required>
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <label for="overtime_rate" class="form-label">Overtime Rate (R)</label>
-                                <input type="number" step="0.01" class="form-control bg-dark text-light border-secondary" id="overtime_rate" name="overtime_rate" value="{{ $config->overtime_rate ?? '' }}">
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <label for="bonus_per_delivery" class="form-label">Bonus Per Delivery (R)</label>
-                                <input type="number" step="0.01" class="form-control bg-dark text-light border-secondary" id="bonus_per_delivery" name="bonus_per_delivery" value="{{ $config->bonus_per_delivery ?? '' }}">
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Update Salary Configuration</button>
-                    </form>
+                <div class="form-group">
+                    <label class="form-label">Rate (R)</label>
+                    <input type="number" step="0.01" class="form-control" name="rate" value="{{ $config->rate ?? '' }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Overtime Rate (R)</label>
+                    <input type="number" step="0.01" class="form-control" name="overtime_rate" value="{{ $config->overtime_rate ?? '' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Bonus / Delivery (R)</label>
+                    <input type="number" step="0.01" class="form-control" name="bonus_per_delivery" value="{{ $config->bonus_per_delivery ?? '' }}">
+                </div>
+                <div class="form-group" style="display:flex; align-items:flex-end;">
+                    <button type="submit" class="btn btn-primary btn-sm">Update Salary</button>
                 </div>
             </div>
-        </div>
+        </form>
     </div>
+</div>
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card bg-dark text-light">
-                <div class="card-header">
-                    <h5 class="mb-0">Shift History</h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-dark table-striped table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Clock In</th>
-                                    <th>Clock Out</th>
-                                    <th>Hours Worked</th>
-                                    <th>Deliveries</th>
-                                    <th>Pay</th>
-                                    <th>Notes</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($shifts as $shift)
-                                <tr>
-                                    <td>{{ $shift->clock_in->format('Y-m-d H:i') }}</td>
-                                    <td>
-                                        @if($shift->clock_out)
-                                            {{ $shift->clock_out->format('Y-m-d H:i') }}
-                                        @else
-                                            <span class="badge bg-success">Active</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if($shift->hours_worked)
-                                            {{ number_format($shift->hours_worked, 2) }} hours
-                                        @else
-                                            -
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-info">{{ $shift->deliveries_count ?? 0 }}</span>
-                                    </td>
-                                    <td>
-                                        @php
-                                            $pay = 0;
-                                            if ($config && $shift->clock_out) {
-                                                if ($config->pay_type === 'hourly') {
-                                                    $pay = $shift->hours_worked * $config->rate;
-                                                } elseif ($config->pay_type === 'per_delivery') {
-                                                    $pay = $shift->deliveries_count * $config->rate;
-                                                }
-                                                if ($config->bonus_per_delivery) {
-                                                    $pay += $shift->deliveries_count * $config->bonus_per_delivery;
-                                                }
-                                            }
-                                        @endphp
-                                        @if($shift->clock_out)
-                                            <strong>R {{ number_format($pay, 2) }}</strong>
-                                        @else
-                                            -
-                                        @endif
-                                    </td>
-                                    <td>{{ $shift->notes ?? '-' }}</td>
-                                </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="6" class="text-center">No shifts found for this driver.</td>
-                                </tr>
-                                @endforelse
-                            </tbody>
-                            @if($shifts->total() > 0)
-                            <tfoot>
-                                <tr class="table-active">
-                                    <td colspan="2"><strong>Totals:</strong></td>
-                                    <td>
-                                        <strong>{{ number_format($shifts->sum('hours_worked'), 2) }} hours</strong>
-                                    </td>
-                                    <td>
-                                        <strong>{{ $shifts->sum('deliveries_count') }} deliveries</strong>
-                                    </td>
-                                    <td>
-                                        @php
-                                            $totalPay = 0;
-                                            foreach($shifts as $shift) {
-                                                if ($config && $shift->clock_out) {
-                                                    if ($config->pay_type === 'hourly') {
-                                                        $totalPay += $shift->hours_worked * $config->rate;
-                                                    } elseif ($config->pay_type === 'per_delivery') {
-                                                        $totalPay += $shift->deliveries_count * $config->rate;
-                                                    }
-                                                    if ($config->bonus_per_delivery) {
-                                                        $totalPay += $shift->deliveries_count * $config->bonus_per_delivery;
-                                                    }
-                                                }
-                                            }
-                                        @endphp
-                                        <strong class="text-success">R {{ number_format($totalPay, 2) }}</strong>
-                                    </td>
-                                    <td></td>
-                                </tr>
-                            </tfoot>
-                            @endif
-                        </table>
-                    </div>
-                    <div class="mt-3">
-                        {{ $shifts->links() }}
-                    </div>
-                </div>
+{{-- Shift History --}}
+<div class="card">
+    <div class="card-header"><span>Shift History</span><span class="badge badge-secondary">{{ $shifts->total() }} shifts</span></div>
+    @if($shifts->isEmpty())
+        <div class="card-body">
+            <div class="empty-state">
+                <div class="icon">&#9200;</div>
+                <h3>No shifts recorded</h3>
+                <p>Shifts are logged when the driver clocks in via the driver app.</p>
             </div>
         </div>
-    </div>
+    @else
+        <div class="table-responsive"><table><thead><tr>
+            <th>Clock In</th>
+            <th>Clock Out</th>
+            <th class="text-right">Hours</th>
+            <th class="text-right">Deliveries</th>
+            <th class="text-right">Pay</th>
+            <th>Notes</th>
+        </tr></thead><tbody>
+            @foreach($shifts as $shift)
+            <tr>
+                <td>{{ $shift->clock_in->format('d M Y H:i') }}</td>
+                <td>
+                    @if($shift->clock_out)
+                        {{ $shift->clock_out->format('d M Y H:i') }}
+                    @else
+                        <span class="badge badge-success">Active</span>
+                    @endif
+                </td>
+                <td class="text-right">{{ $shift->hours_worked ? number_format($shift->hours_worked, 2).'h' : '-' }}</td>
+                <td class="text-right"><span class="badge badge-info">{{ $shift->deliveries_count ?? 0 }}</span></td>
+                <td class="text-right font-semibold">
+                    @php
+                        $pay = 0;
+                        if ($config && $shift->clock_out) {
+                            if ($config->pay_type === 'hourly') { $pay = $shift->hours_worked * $config->rate; }
+                            elseif ($config->pay_type === 'per_delivery') { $pay = $shift->deliveries_count * $config->rate; }
+                            if ($config->bonus_per_delivery) { $pay += $shift->deliveries_count * $config->bonus_per_delivery; }
+                        }
+                    @endphp
+                    @if($shift->clock_out) R{{ number_format($pay, 2) }} @else - @endif
+                </td>
+                <td><small class="text-muted">{{ $shift->notes ?? '-' }}</small></td>
+            </tr>
+            @endforeach
+        </tbody>
+        @if($shifts->total() > 0)
+        <tfoot><tr style="font-weight:700;">
+            <td colspan="2">Totals (this page)</td>
+            <td class="text-right">{{ number_format($shifts->sum('hours_worked'), 2) }}h</td>
+            <td class="text-right">{{ $shifts->sum('deliveries_count') }} del</td>
+            <td class="text-right" style="color:var(--success, #27ae60);">
+                @php
+                    $totalPay = 0;
+                    foreach($shifts as $shift) {
+                        if ($config && $shift->clock_out) {
+                            if ($config->pay_type === 'hourly') { $totalPay += $shift->hours_worked * $config->rate; }
+                            elseif ($config->pay_type === 'per_delivery') { $totalPay += $shift->deliveries_count * $config->rate; }
+                            if ($config->bonus_per_delivery) { $totalPay += $shift->deliveries_count * $config->bonus_per_delivery; }
+                        }
+                    }
+                @endphp
+                R{{ number_format($totalPay, 2) }}
+            </td>
+            <td></td>
+        </tr></tfoot>
+        @endif
+        </table></div>
+        @if($shifts->hasPages())
+            <div class="pagination" style="padding:0.75rem;">{!! $shifts->links('pagination::simple-default') !!}</div>
+        @endif
+    @endif
 </div>
 @endsection

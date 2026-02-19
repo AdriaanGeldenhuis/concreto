@@ -2,117 +2,110 @@
 @section('title', 'Expense Categories')
 
 @section('content')
-<div class="container-fluid" style="max-width: 900px;">
-    <h1 class="h3 mb-4">Expense Categories</h1>
+<div class="page-header">
+    <h1>Expense Categories</h1>
+    <a href="{{ route('admin.expenses.index') }}" class="btn btn-outline btn-sm">View Expenses</a>
+</div>
 
-    <!-- Add Category Form -->
-    <div class="card mb-4">
-        <div class="card-header"><h5 class="mb-0">Add Category</h5></div>
-        <div class="card-body">
-            <form method="POST" action="{{ route('admin.expense-categories.store') }}">
-                @csrf
-                <div class="row g-3 align-items-end">
-                    <div class="col-md-3">
-                        <label class="form-label">Name *</label>
-                        <input type="text" name="name" class="form-control" required placeholder="e.g. Vehicle Maintenance">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Description</label>
-                        <input type="text" name="description" class="form-control" placeholder="Optional">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Color</label>
-                        <input type="color" name="color" class="form-control form-control-color" value="#6c757d">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Sort Order</label>
-                        <input type="number" name="sort_order" class="form-control" value="0" min="0">
-                    </div>
-                    <div class="col-md-2">
-                        <button type="submit" class="btn btn-primary w-100">Add</button>
-                    </div>
+{{-- Add Category Form --}}
+<div class="card mb-2">
+    <div class="card-header">Add Category</div>
+    <div class="card-body">
+        <form method="POST" action="{{ route('admin.expense-categories.store') }}">
+            @csrf
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Name *</label>
+                    <input type="text" name="name" class="form-control" required placeholder="e.g. Vehicle Maintenance">
                 </div>
-            </form>
-        </div>
+                <div class="form-group" style="flex:2;">
+                    <label class="form-label">Description</label>
+                    <input type="text" name="description" class="form-control" placeholder="Optional description">
+                </div>
+                <div class="form-group" style="flex:0.5;">
+                    <label class="form-label">Color</label>
+                    <input type="color" name="color" class="form-control" value="#6c757d" style="padding:0.25rem; height:38px;">
+                </div>
+                <div class="form-group" style="flex:0.5;">
+                    <label class="form-label">Sort</label>
+                    <input type="number" name="sort_order" class="form-control" value="0" min="0">
+                </div>
+                <div class="form-group" style="display:flex; align-items:flex-end;">
+                    <button type="submit" class="btn btn-primary btn-sm">Add</button>
+                </div>
+            </div>
+        </form>
     </div>
+</div>
 
-    <!-- Categories List -->
-    <div class="card">
-        <div class="card-header"><h5 class="mb-0">Categories</h5></div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th style="width: 30px;"></th>
-                            <th>Name</th>
-                            <th>Description</th>
-                            <th class="text-center">Expenses</th>
-                            <th class="text-center">Status</th>
-                            <th class="text-end">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($categories as $cat)
-                        <tr>
-                            <td><span style="display:inline-block;width:16px;height:16px;border-radius:3px;background:{{ $cat->color }}"></span></td>
-                            <td class="fw-bold">{{ $cat->name }}</td>
-                            <td class="text-muted">{{ $cat->description ?? '-' }}</td>
-                            <td class="text-center">{{ $cat->expenses_count }}</td>
-                            <td class="text-center">
-                                @if($cat->is_active)
-                                    <span class="badge bg-success">Active</span>
-                                @else
-                                    <span class="badge bg-secondary">Inactive</span>
-                                @endif
-                            </td>
-                            <td class="text-end">
-                                <button class="btn btn-sm btn-secondary" onclick="document.getElementById('edit-{{ $cat->id }}').style.display = document.getElementById('edit-{{ $cat->id }}').style.display === 'none' ? 'table-row' : 'none'">Edit</button>
-                                @if($cat->expenses_count === 0)
-                                <form method="POST" action="{{ route('admin.expense-categories.destroy', $cat) }}" style="display:inline" onsubmit="return confirm('Delete this category?')">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                                </form>
-                                @endif
-                            </td>
-                        </tr>
-                        <tr id="edit-{{ $cat->id }}" style="display: none; background: rgba(0,0,0,0.05);">
-                            <td colspan="6">
-                                <form method="POST" action="{{ route('admin.expense-categories.update', $cat) }}" class="row g-2 align-items-end p-2">
-                                    @csrf @method('PUT')
-                                    <div class="col-md-3">
-                                        <input type="text" name="name" class="form-control form-control-sm" value="{{ $cat->name }}" required>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <input type="text" name="description" class="form-control form-control-sm" value="{{ $cat->description }}">
-                                    </div>
-                                    <div class="col-md-1">
-                                        <input type="color" name="color" class="form-control form-control-sm form-control-color" value="{{ $cat->color }}">
-                                    </div>
-                                    <div class="col-md-1">
-                                        <input type="number" name="sort_order" class="form-control form-control-sm" value="{{ $cat->sort_order }}" min="0">
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="is_active" value="1" {{ $cat->is_active ? 'checked' : '' }}>
-                                            <label class="form-check-label small">Active</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <button type="submit" class="btn btn-sm btn-primary w-100">Save</button>
-                                    </div>
-                                </form>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="6" class="text-center py-4 text-muted">No categories yet. Add one above.</td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+{{-- Categories List --}}
+<div class="card">
+    <div class="card-header"><span>Categories</span><span class="badge badge-secondary">{{ $categories->count() }}</span></div>
+    @if($categories->isEmpty())
+        <div class="card-body">
+            <div class="empty-state">
+                <div class="icon">&#128193;</div>
+                <h3>No categories yet</h3>
+                <p>Add one above to start organizing expenses.</p>
             </div>
         </div>
-    </div>
+    @else
+        <div class="table-responsive"><table><thead><tr>
+            <th style="width:24px;"></th>
+            <th>Name</th>
+            <th>Description</th>
+            <th class="text-right">Expenses</th>
+            <th>Status</th>
+            <th class="text-right">Actions</th>
+        </tr></thead><tbody>
+            @foreach($categories as $cat)
+            <tr>
+                <td><span style="display:inline-block;width:16px;height:16px;border-radius:3px;background:{{ $cat->color }}"></span></td>
+                <td class="font-semibold">{{ $cat->name }}</td>
+                <td><small class="text-muted">{{ $cat->description ?? '-' }}</small></td>
+                <td class="text-right">{{ $cat->expenses_count }}</td>
+                <td><span class="badge badge-{{ $cat->is_active ? 'success' : 'secondary' }}">{{ $cat->is_active ? 'Active' : 'Inactive' }}</span></td>
+                <td class="text-right" style="white-space:nowrap;">
+                    <button class="btn btn-sm btn-outline" onclick="var el=document.getElementById('edit-{{ $cat->id }}'); el.style.display = el.style.display === 'none' ? 'table-row' : 'none'">Edit</button>
+                    @if($cat->expenses_count === 0)
+                    <form method="POST" action="{{ route('admin.expense-categories.destroy', $cat) }}" style="display:inline;" onsubmit="return confirm('Delete this category?')">
+                        @csrf @method('DELETE')
+                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                    @endif
+                </td>
+            </tr>
+            <tr id="edit-{{ $cat->id }}" style="display:none; background:rgba(255,255,255,0.02);">
+                <td colspan="6">
+                    <form method="POST" action="{{ route('admin.expense-categories.update', $cat) }}" style="padding:0.5rem;">
+                        @csrf @method('PUT')
+                        <div class="form-row">
+                            <div class="form-group">
+                                <input type="text" name="name" class="form-control" value="{{ $cat->name }}" required>
+                            </div>
+                            <div class="form-group" style="flex:2;">
+                                <input type="text" name="description" class="form-control" value="{{ $cat->description }}" placeholder="Description">
+                            </div>
+                            <div class="form-group" style="flex:0.4;">
+                                <input type="color" name="color" class="form-control" value="{{ $cat->color }}" style="padding:0.25rem; height:38px;">
+                            </div>
+                            <div class="form-group" style="flex:0.4;">
+                                <input type="number" name="sort_order" class="form-control" value="{{ $cat->sort_order }}" min="0">
+                            </div>
+                            <div class="form-group" style="flex:0.5;">
+                                <label style="display:flex; align-items:center; gap:0.35rem; cursor:pointer; font-size:0.85rem;">
+                                    <input type="checkbox" name="is_active" value="1" {{ $cat->is_active ? 'checked' : '' }}> Active
+                                </label>
+                            </div>
+                            <div class="form-group" style="display:flex; align-items:flex-end;">
+                                <button type="submit" class="btn btn-sm btn-primary">Save</button>
+                            </div>
+                        </div>
+                    </form>
+                </td>
+            </tr>
+            @endforeach
+        </tbody></table></div>
+    @endif
 </div>
 @endsection
