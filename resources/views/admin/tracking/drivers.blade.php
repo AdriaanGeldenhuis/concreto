@@ -54,6 +54,10 @@
     </div>
 </div>
 
+@if(session('success'))
+    <div class="alert alert-success mb-2" style="word-break:break-all; font-size:0.8rem;">{{ session('success') }}</div>
+@endif
+
 {{-- Summary --}}
 <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem;">
     <div class="card"><div class="card-body" style="padding:0.75rem; text-align:center;"><h6 class="text-muted mb-0" style="font-size:0.7rem; text-transform:uppercase;">Total Drivers</h6><h3 class="mb-0" style="margin-top:0.25rem;">{{ $activeDrivers->count() + $idleDrivers->count() }}</h3></div></div>

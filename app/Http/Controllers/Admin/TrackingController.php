@@ -176,16 +176,23 @@ class TrackingController extends Controller
     {
         $token = config('services.mapbox.token');
         if (!$token) {
-            return response()->json(['error' => 'Mapbox token not configured'], 500);
+            return back()->with('success', 'ERROR: Mapbox token not configured.');
         }
 
         $updated = 0;
         $failed = 0;
+        $log = [];
+
+        // Diagnostics first
+        $totalAddresses = Address::count();
+        $log[] = "Total delivery addresses in DB: {$totalAddresses}";
 
         // Geocode customer delivery addresses missing GPS
-        $addresses = Address::whereNull('gps_lat')
-            ->orWhere('gps_lat', 0)
-            ->get();
+        $addresses = Address::where(function ($q) {
+            $q->whereNull('gps_lat')->orWhere('gps_lat', 0);
+        })->get();
+
+        $log[] = "Addresses missing GPS: {$addresses->count()}";
 
         foreach ($addresses as $address) {
             $query = collect([$address->line1, $address->city, $address->province, $address->postal_code])
@@ -194,6 +201,7 @@ class TrackingController extends Controller
 
             if (empty(trim($query))) {
                 $failed++;
+                $log[] = "SKIP Addr#{$address->id}: empty";
                 continue;
             }
 
@@ -201,11 +209,13 @@ class TrackingController extends Controller
             if ($result) {
                 $address->update(['gps_lat' => $result['lat'], 'gps_lng' => $result['lng']]);
                 $updated++;
+                $log[] = "OK Addr#{$address->id}: {$result['lat']},{$result['lng']}";
             } else {
                 $failed++;
+                $log[] = "FAIL Addr#{$address->id}: '{$query}'";
             }
 
-            usleep(100000); // 100ms delay to respect rate limits
+            usleep(100000);
         }
 
         // Geocode company addresses missing GPS
@@ -215,6 +225,8 @@ class TrackingController extends Controller
             ->whereNotNull('address_line1')
             ->where('address_line1', '!=', '')
             ->get();
+
+        $log[] = "Companies missing GPS: {$companies->count()}";
 
         foreach ($companies as $company) {
             $query = collect([$company->address_line1, $company->city, $company->province, $company->postal_code])
@@ -230,8 +242,10 @@ class TrackingController extends Controller
             if ($result) {
                 $company->update(['gps_lat' => $result['lat'], 'gps_lng' => $result['lng']]);
                 $updated++;
+                $log[] = "OK Co#{$company->id}: {$result['lat']},{$result['lng']}";
             } else {
                 $failed++;
+                $log[] = "FAIL Co#{$company->id}: '{$query}'";
             }
 
             usleep(100000);
@@ -244,6 +258,8 @@ class TrackingController extends Controller
             ->whereNotNull('address_line1')
             ->where('address_line1', '!=', '')
             ->get();
+
+        $log[] = "Vendors missing GPS: {$vendors->count()}";
 
         foreach ($vendors as $vendor) {
             $query = collect([$vendor->address_line1, $vendor->city, $vendor->province, $vendor->postal_code])
@@ -259,14 +275,21 @@ class TrackingController extends Controller
             if ($result) {
                 $vendor->update(['gps_lat' => $result['lat'], 'gps_lng' => $result['lng']]);
                 $updated++;
+                $log[] = "OK Vendor#{$vendor->id}: {$result['lat']},{$result['lng']}";
             } else {
                 $failed++;
+                $log[] = "FAIL Vendor#{$vendor->id}: '{$query}'";
             }
 
             usleep(100000);
         }
 
-        return back()->with('success', "Geocoding complete: {$updated} addresses updated, {$failed} failed.");
+        $addressesWithGps = Address::whereNotNull('gps_lat')->where('gps_lat', '!=', 0)->count();
+        $log[] = "After: {$addressesWithGps}/{$totalAddresses} addresses have GPS";
+
+        $msg = "Geocoding: {$updated} updated, {$failed} failed. " . implode(' | ', $log);
+
+        return back()->with('success', $msg);
     }
 
     private function geocodeQuery(string $query, string $token): ?array
@@ -287,7 +310,7 @@ class TrackingController extends Controller
                 }
             }
         } catch (\Throwable $e) {
-            // Silently fail for individual addresses
+            // fail silently per address
         }
 
         return null;
