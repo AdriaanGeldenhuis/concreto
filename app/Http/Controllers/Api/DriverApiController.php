@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\DriverLocation;
+use App\Models\DriverShift;
 use App\Models\Order;
 use App\Models\ProofOfDelivery;
 use App\Services\InvoiceService;
@@ -193,6 +194,159 @@ class DriverApiController extends Controller
                 'invoice_no' => $invoice->invoice_no,
             ]);
         });
+    }
+
+    public function updateGeneralLocation(Request $request)
+    {
+        $request->validate([
+            'lat' => 'required|numeric|between:-90,90',
+            'lng' => 'required|numeric|between:-180,180',
+            'speed' => 'nullable|numeric|min:0',
+            'heading' => 'nullable|numeric|between:0,360',
+            'accuracy' => 'nullable|numeric|min:0',
+        ]);
+
+        $driver = $request->user();
+
+        // Rate limit: moving = 1 per 10s, stationary = 1 per 60s
+        $lastLocation = DriverLocation::where('driver_id', $driver->id)
+            ->orderBy('recorded_at', 'desc')
+            ->first();
+
+        if ($lastLocation) {
+            $isStationary = ($request->speed ?? 0) < 1;
+            $minInterval = $isStationary ? 60 : 10;
+            if ($lastLocation->recorded_at->diffInSeconds(now()) < $minInterval) {
+                return response()->json(['status' => 'throttled'], 429);
+            }
+        }
+
+        // Associate with active orders if any
+        $activeOrderIds = Order::where('driver_id', $driver->id)
+            ->whereIn('status', ['ACCEPTED', 'LOADED', 'IN_TRANSIT', 'ARRIVED'])
+            ->pluck('id');
+
+        if ($activeOrderIds->isNotEmpty()) {
+            foreach ($activeOrderIds as $orderId) {
+                DriverLocation::create([
+                    'driver_id' => $driver->id,
+                    'order_id' => $orderId,
+                    'lat' => $request->lat,
+                    'lng' => $request->lng,
+                    'speed' => $request->speed,
+                    'heading' => $request->heading,
+                    'accuracy' => $request->accuracy,
+                    'recorded_at' => now(),
+                ]);
+            }
+        } else {
+            DriverLocation::create([
+                'driver_id' => $driver->id,
+                'order_id' => null,
+                'lat' => $request->lat,
+                'lng' => $request->lng,
+                'speed' => $request->speed,
+                'heading' => $request->heading,
+                'accuracy' => $request->accuracy,
+                'recorded_at' => now(),
+            ]);
+        }
+
+        return response()->json(['status' => 'ok']);
+    }
+
+    public function clockIn(Request $request)
+    {
+        $driver = $request->user();
+
+        $existing = DriverShift::where('driver_id', $driver->id)
+            ->whereNull('clock_out')
+            ->first();
+
+        if ($existing) {
+            return response()->json([
+                'error' => 'Already clocked in.',
+                'shift' => $existing,
+            ], 409);
+        }
+
+        $shift = DriverShift::create([
+            'driver_id' => $driver->id,
+            'clock_in' => now(),
+        ]);
+
+        return response()->json([
+            'status' => 'clocked_in',
+            'shift' => $shift,
+        ]);
+    }
+
+    public function clockOut(Request $request)
+    {
+        $driver = $request->user();
+
+        $shift = DriverShift::where('driver_id', $driver->id)
+            ->whereNull('clock_out')
+            ->latest('clock_in')
+            ->first();
+
+        if (!$shift) {
+            return response()->json(['error' => 'Not clocked in.'], 409);
+        }
+
+        $shift->update([
+            'clock_out' => now(),
+            'hours_worked' => round($shift->clock_in->diffInMinutes(now()) / 60, 2),
+            'deliveries_count' => Order::where('driver_id', $driver->id)
+                ->where('status', 'DELIVERED')
+                ->whereBetween('updated_at', [$shift->clock_in, now()])
+                ->count(),
+        ]);
+
+        return response()->json([
+            'status' => 'clocked_out',
+            'shift' => $shift->fresh(),
+        ]);
+    }
+
+    public function dashboard(Request $request)
+    {
+        $driver = $request->user();
+
+        $activeOrders = Order::where('driver_id', $driver->id)
+            ->whereNotIn('status', ['DELIVERED', 'CANCELLED', 'REFUNDED'])
+            ->with(['customer.user', 'deliveryAddress', 'items.product'])
+            ->orderBy('scheduled_date')
+            ->get();
+
+        $completedToday = Order::where('driver_id', $driver->id)
+            ->where('status', 'DELIVERED')
+            ->whereDate('updated_at', today())
+            ->count();
+
+        $currentShift = DriverShift::where('driver_id', $driver->id)
+            ->whereNull('clock_out')
+            ->latest('clock_in')
+            ->first();
+
+        $monthDeliveries = Order::where('driver_id', $driver->id)
+            ->where('status', 'DELIVERED')
+            ->whereMonth('updated_at', now()->month)
+            ->whereYear('updated_at', now()->year)
+            ->count();
+
+        $monthHours = DriverShift::where('driver_id', $driver->id)
+            ->whereMonth('clock_in', now()->month)
+            ->whereYear('clock_in', now()->year)
+            ->sum('hours_worked');
+
+        return response()->json([
+            'active_orders' => $activeOrders,
+            'completed_today' => $completedToday,
+            'current_shift' => $currentShift,
+            'month_deliveries' => $monthDeliveries,
+            'month_hours' => round($monthHours, 1),
+        ]);
     }
 
     private function transitionStatus(Order $order, string $newStatus, string $auditAction): void

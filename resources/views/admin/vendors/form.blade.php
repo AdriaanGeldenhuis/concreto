@@ -57,7 +57,7 @@
                 <div class="form-group">
                     <label class="form-label">Search Address</label>
                     <input type="text" id="vendor-address-search" class="form-control" placeholder="Start typing an address..." autocomplete="off">
-                    <small class="text-muted">Type to search via Google Maps. Fields below will auto-fill.</small>
+                    <small class="text-muted">Type to search. Fields below will auto-fill.</small>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Address Line 1</label>
@@ -133,33 +133,21 @@
         </div>
     </form>
 
-@php $gmKey = $siteSettings['google_maps_api_key'] ?? ''; @endphp
-@if($gmKey)
+@include('partials.address-autocomplete')
 @push('scripts')
-<script src="https://maps.googleapis.com/maps/api/js?key={{ $gmKey }}&libraries=places&callback=initVendorAutocomplete" async defer></script>
 <script>
-function initVendorAutocomplete() {
-    var input = document.getElementById('vendor-address-search');
-    if (!input) return;
-    var ac = new google.maps.places.Autocomplete(input, { componentRestrictions: { country: 'za' }, fields: ['address_components', 'geometry'] });
-    ac.addListener('place_changed', function() {
-        var place = ac.getPlace();
-        if (!place.geometry) return;
-        var c = {};
-        place.address_components.forEach(function(comp) {
-            comp.types.forEach(function(t) { c[t] = comp.long_name; if (t === 'administrative_area_level_1') c['province_short'] = comp.short_name; });
-        });
-        document.getElementById('vendor-line1').value = [(c.street_number || ''), (c.route || '')].filter(Boolean).join(' ');
-        document.getElementById('vendor-line2').value = c.sublocality || c.sublocality_level_1 || '';
-        document.getElementById('vendor-city').value = c.locality || c.sublocality || c.administrative_area_level_2 || '';
-        document.getElementById('vendor-province').value = c.administrative_area_level_1 || '';
-        document.getElementById('vendor-postal').value = c.postal_code || '';
-        document.getElementById('vendor-lat').value = place.geometry.location.lat();
-        document.getElementById('vendor-lng').value = place.geometry.location.lng();
-        document.getElementById('vendor-gps-display').textContent = 'GPS: ' + place.geometry.location.lat().toFixed(7) + ', ' + place.geometry.location.lng().toFixed(7);
+document.addEventListener('DOMContentLoaded', function() {
+    initMapboxAutocomplete('vendor-address-search', {
+        line1: 'vendor-line1',
+        line2: 'vendor-line2',
+        city: 'vendor-city',
+        province: 'vendor-province',
+        postal: 'vendor-postal',
+        lat: 'vendor-lat',
+        lng: 'vendor-lng',
+        gpsDisplay: 'vendor-gps-display'
     });
-}
+});
 </script>
 @endpush
-@endif
 @endsection

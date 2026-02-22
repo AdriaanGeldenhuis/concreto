@@ -215,64 +215,148 @@ function initSignaturePad() {
 
 // Driver GPS tracking
 function initDriverTracking() {
-    const trackingEl = document.getElementById('driver-tracking');
+    var trackingEl = document.getElementById('driver-tracking');
     if (!trackingEl) return;
 
-    const url = trackingEl.dataset.url;
-    const token = document.querySelector('meta[name="csrf-token"]')?.content;
+    var url = trackingEl.dataset.url;
+    var token = document.querySelector('meta[name="csrf-token"]');
+    token = token ? token.content : null;
 
-    if (!url || !navigator.geolocation) return;
+    if (!url || !token || !navigator.geolocation) {
+        updateGpsStatus('GPS not available', 'error');
+        return;
+    }
 
     var statusEl = document.getElementById('gps-status');
+    var watchId = null;
+    var lastSendTime = 0;
+    var sendPending = false;
+    var lastLat = 0;
+    var lastLng = 0;
+    var consecutiveErrors = 0;
+    var maxRetries = 3;
 
-    function updateStatus(text, type) {
+    function updateGpsStatus(text, type) {
         if (!statusEl) return;
         statusEl.textContent = text;
         statusEl.className = 'gps-status gps-status-' + type;
     }
 
-    let trackingInterval = null;
+    function sendLocation(pos) {
+        var now = Date.now();
+        var speed = pos.coords.speed != null ? pos.coords.speed * 3.6 : 0; // m/s to km/h
+        var isStationary = speed < 1;
+        var minInterval = isStationary ? 60000 : 10000;
 
-    function sendLocation() {
-        navigator.geolocation.getCurrentPosition(function(pos) {
-            updateStatus('GPS active', 'ok');
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': token,
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify({
-                    lat: pos.coords.latitude,
-                    lng: pos.coords.longitude,
-                    speed: pos.coords.speed,
-                    heading: pos.coords.heading,
-                    accuracy: pos.coords.accuracy,
-                }),
-            }).catch(function() {
-                updateStatus('GPS send failed', 'error');
-            });
-        }, function(err) {
-            if (err.code === 1) {
-                updateStatus('GPS denied - tap to allow', 'error');
-            } else {
-                updateStatus('GPS unavailable', 'error');
+        // Throttle sends based on speed
+        if (now - lastSendTime < minInterval) return;
+
+        // Skip if position hasn't changed meaningfully (within ~10m)
+        if (lastLat !== 0 && lastLng !== 0 && isStationary) {
+            var dlat = pos.coords.latitude - lastLat;
+            var dlng = pos.coords.longitude - lastLng;
+            var dist = Math.sqrt(dlat * dlat + dlng * dlng) * 111000; // rough meters
+            if (dist < 10) return;
+        }
+
+        if (sendPending) return;
+        sendPending = true;
+        lastSendTime = now;
+        lastLat = pos.coords.latitude;
+        lastLng = pos.coords.longitude;
+
+        var speedText = speed > 1 ? Math.round(speed) + ' km/h' : 'Stationary';
+        var accText = pos.coords.accuracy ? ' (' + Math.round(pos.coords.accuracy) + 'm)' : '';
+        updateGpsStatus('GPS active - ' + speedText + accText, 'ok');
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': token,
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({
+                lat: pos.coords.latitude,
+                lng: pos.coords.longitude,
+                speed: speed,
+                heading: pos.coords.heading,
+                accuracy: pos.coords.accuracy,
+            }),
+        }).then(function(res) {
+            sendPending = false;
+            consecutiveErrors = 0;
+            if (res.status === 429) {
+                // Throttled by server, will retry next position update
+            } else if (!res.ok) {
+                updateGpsStatus('GPS active - send error', 'pending');
             }
-        }, {
-            enableHighAccuracy: true,
-            timeout: 15000,
+        }).catch(function() {
+            sendPending = false;
+            consecutiveErrors++;
+            if (consecutiveErrors >= maxRetries) {
+                updateGpsStatus('GPS active - server unreachable', 'error');
+            } else {
+                updateGpsStatus('GPS active - retrying...', 'pending');
+            }
         });
     }
 
-    // Send every 30 seconds
-    updateStatus('Starting GPS...', 'pending');
-    sendLocation();
-    trackingInterval = setInterval(sendLocation, 30000);
+    function startWatching() {
+        updateGpsStatus('Acquiring GPS...', 'pending');
+
+        watchId = navigator.geolocation.watchPosition(
+            function(pos) {
+                consecutiveErrors = 0;
+                sendLocation(pos);
+            },
+            function(err) {
+                if (err.code === 1) {
+                    updateGpsStatus('GPS permission denied', 'error');
+                } else if (err.code === 2) {
+                    updateGpsStatus('GPS unavailable', 'error');
+                    // Retry after a delay
+                    setTimeout(function() {
+                        if (watchId !== null) {
+                            navigator.geolocation.clearWatch(watchId);
+                        }
+                        startWatching();
+                    }, 10000);
+                } else if (err.code === 3) {
+                    updateGpsStatus('GPS timeout - retrying...', 'pending');
+                }
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 20000,
+                maximumAge: 5000,
+            }
+        );
+    }
+
+    startWatching();
+
+    // Fallback: if watchPosition doesn't fire for 60s, try getCurrentPosition
+    var fallbackTimer = setInterval(function() {
+        if (Date.now() - lastSendTime > 60000 && !sendPending) {
+            navigator.geolocation.getCurrentPosition(function(pos) {
+                sendLocation(pos);
+            }, function() {}, { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 });
+        }
+    }, 60000);
 
     // Cleanup on page unload
     window.addEventListener('beforeunload', function() {
-        if (trackingInterval) clearInterval(trackingInterval);
+        if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+        if (fallbackTimer) clearInterval(fallbackTimer);
+    });
+
+    // Re-acquire GPS when app returns to foreground (for mobile WebView)
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden && watchId !== null) {
+            navigator.geolocation.clearWatch(watchId);
+            startWatching();
+        }
     });
 }
 

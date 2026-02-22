@@ -39,4 +39,8 @@ return [
         'server_key' => env('FCM_SERVER_KEY'),
     ],
 
+    'mapbox' => [
+        'token' => env('MAPBOX_TOKEN'),
+    ],
+
 ];
