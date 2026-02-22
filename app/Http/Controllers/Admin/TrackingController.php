@@ -98,6 +98,7 @@ class TrackingController extends Controller
             ->get();
 
         $recentLocations = $driver->driverLocations()
+            ->with('order')
             ->orderBy('recorded_at', 'desc')
             ->limit(50)
             ->get();

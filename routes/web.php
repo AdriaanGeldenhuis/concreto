@@ -125,6 +125,7 @@ Route::prefix('driver')->name('driver.')->middleware(['auth', 'role:driver'])->g
     Route::get('/', [Driver\DashboardController::class, 'index'])->name('dashboard');
     Route::post('/clock-in', [Driver\DashboardController::class, 'clockIn'])->name('clock-in');
     Route::post('/clock-out', [Driver\DashboardController::class, 'clockOut'])->name('clock-out');
+    Route::post('/location', [Driver\DashboardController::class, 'updateLocation'])->name('location')->middleware('throttle:tracking');
 
     Route::get('/jobs', [Driver\JobController::class, 'index'])->name('jobs.index');
     Route::get('/jobs/{order}', [Driver\JobController::class, 'show'])->name('jobs.show');

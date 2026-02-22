@@ -491,6 +491,17 @@ tr:last-child td { border-bottom:none; }
 .bottom-nav .nav-icon { font-size:1.375rem; line-height:1; }
 .portal-body { padding-bottom:5rem; }
 
+/* GPS Status Indicator */
+.gps-status { display:inline-flex; align-items:center; gap:0.4rem; font-size:0.75rem; font-weight:600; padding:0.2rem 0; }
+.gps-status::before { content:''; display:inline-block; width:8px; height:8px; border-radius:50%; }
+.gps-status-ok { color:#4ade80; }
+.gps-status-ok::before { background:#4ade80; box-shadow:0 0 6px rgba(74,222,128,0.5); }
+.gps-status-pending { color:var(--text-muted); }
+.gps-status-pending::before { background:var(--text-muted); animation:gps-blink 1.5s infinite; }
+.gps-status-error { color:#f87171; }
+.gps-status-error::before { background:#f87171; }
+@keyframes gps-blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
 /* ============================================
    Page header
    ============================================ */

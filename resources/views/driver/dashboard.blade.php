@@ -48,6 +48,15 @@
         </div>
     </div>
 
+    {{-- GPS Status --}}
+    <div class="card mb-2">
+        <div class="card-body" style="padding:0.5rem 1rem;">
+            <div class="d-flex items-center gap-1">
+                <span id="gps-status" class="gps-status gps-status-pending">Starting GPS...</span>
+            </div>
+        </div>
+    </div>
+
     {{-- Monthly Stats --}}
     @if(isset($monthDeliveries) && isset($monthHours))
     <div class="card mb-2">

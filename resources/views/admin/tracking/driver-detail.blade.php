@@ -74,7 +74,10 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    var locs = @json($recentLocations->map(fn($l) => ['lat'=>(float)$l->lat,'lng'=>(float)$l->lng,'speed'=>$l->speed,'time'=>$l->recorded_at->format('H:i:s')])->values());
+    @php
+        $mapPoints = $recentLocations->map(fn($l) => ['lat'=>(float)$l->lat,'lng'=>(float)$l->lng,'speed'=>$l->speed,'time'=>$l->recorded_at->format('H:i:s')])->values();
+    @endphp
+    var locs = @json($mapPoints);
     if (!locs.length) return;
     var latest=locs[0], map=L.map('driver-map',{attributionControl:false}).setView([latest.lat,latest.lng],14);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19,subdomains:'abcd'}).addTo(map);

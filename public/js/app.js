@@ -218,16 +218,24 @@ function initDriverTracking() {
     const trackingEl = document.getElementById('driver-tracking');
     if (!trackingEl) return;
 
-    const orderId = trackingEl.dataset.orderId;
     const url = trackingEl.dataset.url;
     const token = document.querySelector('meta[name="csrf-token"]')?.content;
 
-    if (!orderId || !url || !navigator.geolocation) return;
+    if (!url || !navigator.geolocation) return;
+
+    var statusEl = document.getElementById('gps-status');
+
+    function updateStatus(text, type) {
+        if (!statusEl) return;
+        statusEl.textContent = text;
+        statusEl.className = 'gps-status gps-status-' + type;
+    }
 
     let trackingInterval = null;
 
     function sendLocation() {
         navigator.geolocation.getCurrentPosition(function(pos) {
+            updateStatus('GPS active', 'ok');
             fetch(url, {
                 method: 'POST',
                 headers: {
@@ -240,15 +248,25 @@ function initDriverTracking() {
                     lng: pos.coords.longitude,
                     speed: pos.coords.speed,
                     heading: pos.coords.heading,
+                    accuracy: pos.coords.accuracy,
                 }),
-            }).catch(function() { /* silent fail */ });
-        }, function() { /* silent fail */ }, {
+            }).catch(function() {
+                updateStatus('GPS send failed', 'error');
+            });
+        }, function(err) {
+            if (err.code === 1) {
+                updateStatus('GPS denied - tap to allow', 'error');
+            } else {
+                updateStatus('GPS unavailable', 'error');
+            }
+        }, {
             enableHighAccuracy: true,
-            timeout: 10000,
+            timeout: 15000,
         });
     }
 
     // Send every 30 seconds
+    updateStatus('Starting GPS...', 'pending');
     sendLocation();
     trackingInterval = setInterval(sendLocation, 30000);
 
