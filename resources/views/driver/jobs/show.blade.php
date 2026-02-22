@@ -30,7 +30,6 @@
     {{-- GPS tracking when active --}}
     @if(in_array($order->status, ['ACCEPTED', 'LOADED', 'IN_TRANSIT', 'ARRIVED']))
         <div id="driver-tracking"
-             data-order-id="{{ $order->id }}"
              data-url="{{ route('driver.jobs.location', $order) }}"
              data-tracking-active="true"></div>
     @endif
