@@ -79,25 +79,30 @@
                     <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:var(--radius, 8px); padding:1rem;">
                         <h4 style="margin-bottom:0.75rem;">Add Delivery Address</h4>
                         <div class="form-group">
+                            <label class="form-label">Search Address</label>
+                            <input type="text" id="checkout-address-search" class="form-control" placeholder="Start typing an address..." autocomplete="off">
+                            <small class="text-muted">Type to search. Fields below will auto-fill.</small>
+                        </div>
+                        <div class="form-group">
                             <label class="form-label">Label (optional)</label>
                             <input type="text" form="address-form" name="label" class="form-control" placeholder="e.g. Site, Home, Office">
                         </div>
                         <div class="form-group">
                             <label class="form-label">Street Address *</label>
-                            <input type="text" form="address-form" name="line1" class="form-control" placeholder="123 Main Road" required>
+                            <input type="text" form="address-form" name="line1" id="checkout-line1" class="form-control" placeholder="123 Main Road" required>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Address Line 2</label>
-                            <input type="text" form="address-form" name="line2" class="form-control" placeholder="Unit, Suite, etc.">
+                            <input type="text" form="address-form" name="line2" id="checkout-line2" class="form-control" placeholder="Unit, Suite, etc.">
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label class="form-label">City *</label>
-                                <input type="text" form="address-form" name="city" class="form-control" required>
+                                <input type="text" form="address-form" name="city" id="checkout-city" class="form-control" required>
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Province *</label>
-                                <select form="address-form" name="province" class="form-control" required>
+                                <select form="address-form" name="province" id="checkout-province" class="form-control" required>
                                     <option value="">Select</option>
                                     <option value="Gauteng">Gauteng</option>
                                     <option value="Western Cape">Western Cape</option>
@@ -113,8 +118,10 @@
                         </div>
                         <div class="form-group">
                             <label class="form-label">Postal Code *</label>
-                            <input type="text" form="address-form" name="postal_code" class="form-control" style="max-width:150px;" maxlength="10" required>
+                            <input type="text" form="address-form" name="postal_code" id="checkout-postal" class="form-control" style="max-width:150px;" maxlength="10" required>
                         </div>
+                        <input type="hidden" form="address-form" name="gps_lat" id="checkout-lat">
+                        <input type="hidden" form="address-form" name="gps_lng" id="checkout-lng">
                         <button type="submit" form="address-form" class="btn btn-primary btn-sm">Save Address</button>
                     </div>
                 </div>
@@ -221,6 +228,7 @@
     </form>
 </div>
 
+@include('partials.address-autocomplete')
 @push('scripts')
 <script>
 function applyPromo() {
@@ -241,6 +249,19 @@ document.addEventListener('DOMContentLoaded', function() {
     if (promoInput) {
         promoInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') { e.preventDefault(); applyPromo(); }
+        });
+    }
+
+    // Address autocomplete for checkout
+    if (typeof initMapboxAutocomplete === 'function') {
+        initMapboxAutocomplete('checkout-address-search', {
+            line1: 'checkout-line1',
+            line2: 'checkout-line2',
+            city: 'checkout-city',
+            province: 'checkout-province',
+            postal: 'checkout-postal',
+            lat: 'checkout-lat',
+            lng: 'checkout-lng'
         });
     }
 

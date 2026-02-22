@@ -17,7 +17,7 @@
                 <div class="form-group">
                     <label class="form-label">Search Address</label>
                     <input type="text" id="cust-address-search" class="form-control" placeholder="Start typing an address..." autocomplete="off">
-                    <small class="text-muted">Type to search via Google Maps. Fields below will auto-fill.</small>
+                    <small class="text-muted">Type to search. Fields below will auto-fill.</small>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
@@ -104,34 +104,22 @@
     @endif
 @endsection
 
-@php $gmKey = $siteSettings['google_maps_api_key'] ?? ''; @endphp
-@if($gmKey)
+@include('partials.address-autocomplete')
 @push('scripts')
-<script src="https://maps.googleapis.com/maps/api/js?key={{ $gmKey }}&libraries=places&callback=initCustAutocomplete" async defer></script>
 <script>
-function initCustAutocomplete() {
-    var input = document.getElementById('cust-address-search');
-    if (!input) return;
-    var ac = new google.maps.places.Autocomplete(input, { componentRestrictions: { country: 'za' }, fields: ['address_components', 'geometry'] });
-    ac.addListener('place_changed', function() {
-        var place = ac.getPlace();
-        if (!place.geometry) return;
-        var c = {};
-        place.address_components.forEach(function(comp) {
-            comp.types.forEach(function(t) { c[t] = comp.long_name; });
-        });
-        document.getElementById('cust-line1').value = [(c.street_number || ''), (c.route || '')].filter(Boolean).join(' ');
-        document.getElementById('cust-line2').value = c.sublocality || c.sublocality_level_1 || '';
-        document.getElementById('cust-city').value = c.locality || c.sublocality || c.administrative_area_level_2 || '';
-        document.getElementById('cust-province').value = c.administrative_area_level_1 || '';
-        document.getElementById('cust-postal').value = c.postal_code || '';
-        document.getElementById('cust-lat').value = place.geometry.location.lat();
-        document.getElementById('cust-lng').value = place.geometry.location.lng();
+document.addEventListener('DOMContentLoaded', function() {
+    initMapboxAutocomplete('cust-address-search', {
+        line1: 'cust-line1',
+        line2: 'cust-line2',
+        city: 'cust-city',
+        province: 'cust-province',
+        postal: 'cust-postal',
+        lat: 'cust-lat',
+        lng: 'cust-lng'
     });
-}
+});
 </script>
 @endpush
-@endif
 
 @section('bottom-nav')
 <nav class="bottom-nav">
