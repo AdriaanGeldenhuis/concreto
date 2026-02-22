@@ -45,6 +45,10 @@
     <h1>Track Drivers</h1>
     <div style="display:flex; gap:0.5rem; align-items:center;">
         <small class="text-muted" id="refresh-status">Auto-refresh: 30s</small>
+        <form method="POST" action="{{ route('admin.tracking.geocode') }}" style="margin:0;">
+            @csrf
+            <button type="submit" class="btn btn-outline btn-sm" onclick="return confirm('Geocode all addresses missing GPS coordinates?')">Geocode Addresses</button>
+        </form>
         <a href="{{ route('admin.drivers.index') }}" class="btn btn-outline btn-sm">Manage Drivers</a>
         <a href="{{ route('admin.ops.index') }}" class="btn btn-outline btn-sm">Ops Board</a>
     </div>

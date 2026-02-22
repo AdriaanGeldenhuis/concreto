@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Address;
+use App\Models\Company;
 use App\Models\DriverLocation;
 use App\Models\Order;
 use App\Models\User;
 use App\Models\Vendor;
+use Illuminate\Support\Facades\Http;
 
 class TrackingController extends Controller
 {
@@ -168,5 +170,126 @@ class TrackingController extends Controller
             ->get();
 
         return view('admin.tracking.order', compact('order', 'locations'));
+    }
+
+    public function geocodeAddresses()
+    {
+        $token = config('services.mapbox.token');
+        if (!$token) {
+            return response()->json(['error' => 'Mapbox token not configured'], 500);
+        }
+
+        $updated = 0;
+        $failed = 0;
+
+        // Geocode customer delivery addresses missing GPS
+        $addresses = Address::whereNull('gps_lat')
+            ->orWhere('gps_lat', 0)
+            ->get();
+
+        foreach ($addresses as $address) {
+            $query = collect([$address->line1, $address->city, $address->province, $address->postal_code])
+                ->filter()
+                ->implode(', ');
+
+            if (empty(trim($query))) {
+                $failed++;
+                continue;
+            }
+
+            $result = $this->geocodeQuery($query, $token);
+            if ($result) {
+                $address->update(['gps_lat' => $result['lat'], 'gps_lng' => $result['lng']]);
+                $updated++;
+            } else {
+                $failed++;
+            }
+
+            usleep(100000); // 100ms delay to respect rate limits
+        }
+
+        // Geocode company addresses missing GPS
+        $companies = Company::where(function ($q) {
+                $q->whereNull('gps_lat')->orWhere('gps_lat', 0);
+            })
+            ->whereNotNull('address_line1')
+            ->where('address_line1', '!=', '')
+            ->get();
+
+        foreach ($companies as $company) {
+            $query = collect([$company->address_line1, $company->city, $company->province, $company->postal_code])
+                ->filter()
+                ->implode(', ');
+
+            if (empty(trim($query))) {
+                $failed++;
+                continue;
+            }
+
+            $result = $this->geocodeQuery($query, $token);
+            if ($result) {
+                $company->update(['gps_lat' => $result['lat'], 'gps_lng' => $result['lng']]);
+                $updated++;
+            } else {
+                $failed++;
+            }
+
+            usleep(100000);
+        }
+
+        // Geocode vendor addresses missing GPS
+        $vendors = Vendor::where(function ($q) {
+                $q->whereNull('gps_lat')->orWhere('gps_lat', 0);
+            })
+            ->whereNotNull('address_line1')
+            ->where('address_line1', '!=', '')
+            ->get();
+
+        foreach ($vendors as $vendor) {
+            $query = collect([$vendor->address_line1, $vendor->city, $vendor->province, $vendor->postal_code])
+                ->filter()
+                ->implode(', ');
+
+            if (empty(trim($query))) {
+                $failed++;
+                continue;
+            }
+
+            $result = $this->geocodeQuery($query, $token);
+            if ($result) {
+                $vendor->update(['gps_lat' => $result['lat'], 'gps_lng' => $result['lng']]);
+                $updated++;
+            } else {
+                $failed++;
+            }
+
+            usleep(100000);
+        }
+
+        return back()->with('success', "Geocoding complete: {$updated} addresses updated, {$failed} failed.");
+    }
+
+    private function geocodeQuery(string $query, string $token): ?array
+    {
+        try {
+            $response = Http::get('https://api.mapbox.com/geocoding/v5/mapbox.places/' . urlencode($query) . '.json', [
+                'access_token' => $token,
+                'country' => 'za',
+                'limit' => 1,
+                'language' => 'en',
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                if (!empty($data['features'])) {
+                    $center = $data['features'][0]['center'];
+                    return ['lng' => $center[0], 'lat' => $center[1]];
+                }
+            }
+        } catch (\Throwable $e) {
+            // Silently fail for individual addresses
+        }
+
+        return null;
     }
 }

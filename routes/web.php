@@ -204,6 +204,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff', 
     Route::get('/tracking/drivers/json', [Admin\TrackingController::class, 'driversJson'])->name('tracking.drivers.json');
     Route::get('/tracking/drivers/{driver}', [Admin\TrackingController::class, 'driverDetail'])->name('tracking.driver-detail');
     Route::get('/tracking/orders/{order}', [Admin\TrackingController::class, 'orderTracking'])->name('tracking.order');
+    Route::post('/tracking/geocode', [Admin\TrackingController::class, 'geocodeAddresses'])->name('tracking.geocode');
 
     // Delivery Areas
     Route::get('/delivery-areas', [Admin\DeliveryAreaController::class, 'index'])->name('delivery-areas.index');
