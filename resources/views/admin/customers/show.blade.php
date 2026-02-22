@@ -172,29 +172,26 @@
                         </div>
                         <div class="form-group">
                             <label class="form-label">Address Line 1</label>
-                            <input type="text" name="address_line1" id="cust-company-line1" class="form-control" autocomplete="off" value="{{ old('address_line1', $customer->company->address_line1 ?? '') }}">
+                            <input type="text" name="address_line1" id="cust-company-line1" class="form-control" value="{{ old('address_line1', $customer->company->address_line1 ?? '') }}">
                         </div>
                         <div class="form-group">
                             <label class="form-label">Address Line 2</label>
-                            <input type="text" name="address_line2" id="cust-company-line2" class="form-control" autocomplete="off" value="{{ old('address_line2', $customer->company->address_line2 ?? '') }}">
+                            <input type="text" name="address_line2" id="cust-company-line2" class="form-control" value="{{ old('address_line2', $customer->company->address_line2 ?? '') }}">
                         </div>
                         <div class="form-row">
-                            <div class="form-group" style="flex:1">
+                            <div class="form-group">
                                 <label class="form-label">City</label>
-                                <input type="text" name="city" id="cust-company-city" class="form-control" autocomplete="off" value="{{ old('city', $customer->company->city ?? '') }}">
+                                <input type="text" name="city" id="cust-company-city" class="form-control" value="{{ old('city', $customer->company->city ?? '') }}">
                             </div>
-                            <div class="form-group" style="flex:1">
+                            <div class="form-group">
                                 <label class="form-label">Province</label>
-                                <select name="province" id="cust-company-province" class="form-control">
-                                    <option value="">Select</option>
-                                    @foreach(['Eastern Cape','Free State','Gauteng','KwaZulu-Natal','Limpopo','Mpumalanga','North West','Northern Cape','Western Cape'] as $prov)
-                                        <option value="{{ $prov }}" {{ old('province', $customer->company->province ?? '') == $prov ? 'selected' : '' }}>{{ $prov }}</option>
-                                    @endforeach
-                                </select>
+                                <input type="text" name="province" id="cust-company-province" class="form-control" value="{{ old('province', $customer->company->province ?? '') }}">
                             </div>
-                            <div class="form-group" style="flex:0.5">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
                                 <label class="form-label">Postal Code</label>
-                                <input type="text" name="postal_code" id="cust-company-postal" class="form-control" autocomplete="off" value="{{ old('postal_code', $customer->company->postal_code ?? '') }}">
+                                <input type="text" name="postal_code" id="cust-company-postal" class="form-control" value="{{ old('postal_code', $customer->company->postal_code ?? '') }}">
                             </div>
                         </div>
                         <button type="submit" class="btn btn-primary mt-1">Save Company Details</button>
@@ -281,29 +278,34 @@
                         </div>
                         <div class="form-group">
                             <label class="form-label">Address Line 1 *</label>
-                            <input type="text" name="line1" id="cust-delivery-line1" class="form-control" autocomplete="off" required>
+                            <input type="text" name="line1" id="cust-delivery-line1" class="form-control" required>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Address Line 2</label>
-                            <input type="text" name="line2" id="cust-delivery-line2" class="form-control" autocomplete="off">
+                            <input type="text" name="line2" id="cust-delivery-line2" class="form-control">
                         </div>
                         <div class="form-row">
-                            <div class="form-group" style="flex:1">
+                            <div class="form-group">
                                 <label class="form-label">City *</label>
-                                <input type="text" name="city" id="cust-delivery-city" class="form-control" autocomplete="off" required>
+                                <input type="text" name="city" id="cust-delivery-city" class="form-control" required>
                             </div>
-                            <div class="form-group" style="flex:1">
+                            <div class="form-group">
                                 <label class="form-label">Province *</label>
-                                <input type="text" name="province" id="cust-delivery-province" class="form-control" autocomplete="off" required>
+                                <input type="text" name="province" id="cust-delivery-province" class="form-control" required>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">Postal Code *</label>
-                            <input type="text" name="postal_code" id="cust-delivery-postal" class="form-control" autocomplete="off" style="max-width:150px;" required>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Postal Code *</label>
+                                <input type="text" name="postal_code" id="cust-delivery-postal" class="form-control" required>
+                            </div>
                         </div>
                         <input type="hidden" name="gps_lat" id="cust-delivery-lat">
                         <input type="hidden" name="gps_lng" id="cust-delivery-lng">
-                        <button type="submit" class="btn btn-primary btn-sm">Add Address</button>
+                        <div id="cust-delivery-gps-display" class="form-hint" style="margin-top:0.5rem;">
+                            GPS coordinates will be set automatically from the address search.
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm mt-1">Add Address</button>
                     </form>
                 </div>
             </div>
@@ -389,7 +391,6 @@
             @endif
         </div>
     </div>
-@endsection
 
 @include('partials.address-autocomplete')
 @push('scripts')
@@ -409,8 +410,10 @@ document.addEventListener('DOMContentLoaded', function() {
         province: 'cust-delivery-province',
         postal: 'cust-delivery-postal',
         lat: 'cust-delivery-lat',
-        lng: 'cust-delivery-lng'
+        lng: 'cust-delivery-lng',
+        gpsDisplay: 'cust-delivery-gps-display'
     });
 });
 </script>
 @endpush
+@endsection
