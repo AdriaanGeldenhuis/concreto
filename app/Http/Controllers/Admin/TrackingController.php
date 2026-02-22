@@ -66,7 +66,7 @@ class TrackingController extends Controller
             ->get()
             ->filter(fn($a) => $a->gps_lat && $a->gps_lng)
             ->map(function ($a) {
-                $name = $a->customer->user->name ?? 'Customer #' . $a->customer_id;
+                $name = $a->customer?->user?->name ?? 'Customer #' . $a->customer_id;
                 return [
                     'name'    => $name,
                     'label'   => $a->label,
@@ -187,15 +187,13 @@ class TrackingController extends Controller
         $totalAddresses = Address::count();
         $log[] = "Total delivery addresses in DB: {$totalAddresses}";
 
-        // Geocode customer delivery addresses missing GPS
-        $addresses = Address::where(function ($q) {
-            $q->whereNull('gps_lat')->orWhere('gps_lat', 0);
-        })->get();
+        // Geocode ALL customer delivery addresses (re-geocode for accuracy)
+        $addresses = Address::all();
 
-        $log[] = "Addresses missing GPS: {$addresses->count()}";
+        $log[] = "Re-geocoding all {$addresses->count()} delivery addresses";
 
         foreach ($addresses as $address) {
-            $query = collect([$address->line1, $address->city, $address->province, $address->postal_code])
+            $query = collect([$address->line1, $address->city, $address->province, $address->postal_code, 'South Africa'])
                 ->filter()
                 ->implode(', ');
 
@@ -209,7 +207,7 @@ class TrackingController extends Controller
             if ($result) {
                 $address->update(['gps_lat' => $result['lat'], 'gps_lng' => $result['lng']]);
                 $updated++;
-                $log[] = "OK Addr#{$address->id}: {$result['lat']},{$result['lng']}";
+                $log[] = "OK Addr#{$address->id} '{$query}' => {$result['lat']},{$result['lng']}";
             } else {
                 $failed++;
                 $log[] = "FAIL Addr#{$address->id}: '{$query}'";
@@ -218,18 +216,15 @@ class TrackingController extends Controller
             usleep(100000);
         }
 
-        // Geocode company addresses missing GPS
-        $companies = Company::where(function ($q) {
-                $q->whereNull('gps_lat')->orWhere('gps_lat', 0);
-            })
-            ->whereNotNull('address_line1')
+        // Geocode ALL company addresses (re-geocode for accuracy)
+        $companies = Company::whereNotNull('address_line1')
             ->where('address_line1', '!=', '')
             ->get();
 
-        $log[] = "Companies missing GPS: {$companies->count()}";
+        $log[] = "Re-geocoding all {$companies->count()} company addresses";
 
         foreach ($companies as $company) {
-            $query = collect([$company->address_line1, $company->city, $company->province, $company->postal_code])
+            $query = collect([$company->address_line1, $company->city, $company->province, $company->postal_code, 'South Africa'])
                 ->filter()
                 ->implode(', ');
 
@@ -251,18 +246,15 @@ class TrackingController extends Controller
             usleep(100000);
         }
 
-        // Geocode vendor addresses missing GPS
-        $vendors = Vendor::where(function ($q) {
-                $q->whereNull('gps_lat')->orWhere('gps_lat', 0);
-            })
-            ->whereNotNull('address_line1')
+        // Geocode ALL vendor addresses (re-geocode for accuracy)
+        $vendors = Vendor::whereNotNull('address_line1')
             ->where('address_line1', '!=', '')
             ->get();
 
-        $log[] = "Vendors missing GPS: {$vendors->count()}";
+        $log[] = "Re-geocoding all {$vendors->count()} vendor addresses";
 
         foreach ($vendors as $vendor) {
-            $query = collect([$vendor->address_line1, $vendor->city, $vendor->province, $vendor->postal_code])
+            $query = collect([$vendor->address_line1, $vendor->city, $vendor->province, $vendor->postal_code, 'South Africa'])
                 ->filter()
                 ->implode(', ');
 
