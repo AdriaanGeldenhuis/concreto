@@ -16,24 +16,30 @@
             <div class="form-group">
                 <label class="form-label">Vendor (Origin)</label>
                 <select id="calc-vendor" class="form-control" onchange="onRouteChange()">
-                    <option value="">-- Select vendor --</option>
+                    <option value="" data-lat="" data-lng="" data-address="">-- Select vendor --</option>
                     @foreach($vendors as $v)
-                        <option value="{{ $v->id }}" data-lat="{{ $v->gps_lat }}" data-lng="{{ $v->gps_lng }}">{{ $v->name }}@if($v->city) — {{ $v->city }}@endif</option>
+                        <option value="{{ $v->id }}" data-lat="{{ $v->gps_lat }}" data-lng="{{ $v->gps_lng }}" data-address="{{ $v->full_address }}">{{ $v->name }}@if($v->city) — {{ $v->city }}@endif</option>
                     @endforeach
                 </select>
                 @if($vendors->where('gps_lat', '!=', null)->count() === 0)
                 <small style="color:var(--warning, #f39c12);">No vendors have GPS coordinates set. <a href="{{ route('admin.vendors.index') }}">Edit vendors</a> to add coordinates.</small>
                 @endif
+                <div id="vendor-address-display" style="display:none; margin-top:0.5rem; padding:0.5rem 0.75rem; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.2); border-radius:var(--radius-sm, 4px); font-size:0.8rem; color:var(--text-muted);">
+                    <span style="color:#ef4444; font-weight:600;">Origin:</span> <span id="vendor-address-text"></span>
+                </div>
             </div>
 
             <div class="form-group">
                 <label class="form-label">Delivery Address (Destination)</label>
                 <select id="calc-address" class="form-control" onchange="onRouteChange()">
-                    <option value="">-- Select delivery address --</option>
+                    <option value="" data-lat="" data-lng="" data-address="">-- Select delivery address --</option>
                     @foreach($addresses as $a)
-                        <option value="{{ $a->id }}" data-lat="{{ $a->gps_lat }}" data-lng="{{ $a->gps_lng }}">{{ $a->customer->user->name ?? 'Customer #'.$a->customer_id }} — {{ $a->label ? $a->label.': ' : '' }}{{ $a->line1 }}, {{ $a->city }}</option>
+                        <option value="{{ $a->id }}" data-lat="{{ $a->gps_lat }}" data-lng="{{ $a->gps_lng }}" data-address="{{ $a->full_address }}">{{ $a->customer->user->name ?? 'Customer #'.$a->customer_id }} — {{ $a->label ? $a->label.': ' : '' }}{{ $a->line1 }}, {{ $a->city }}</option>
                     @endforeach
                 </select>
+                <div id="address-display" style="display:none; margin-top:0.5rem; padding:0.5rem 0.75rem; background:rgba(74,222,128,0.08); border:1px solid rgba(74,222,128,0.2); border-radius:var(--radius-sm, 4px); font-size:0.8rem; color:var(--text-muted);">
+                    <span style="color:#4ade80; font-weight:600;">Destination:</span> <span id="address-text"></span>
+                </div>
             </div>
 
             <div class="form-group">
@@ -254,7 +260,29 @@ function onRouteChange() {
     var vOpt = vendorSel.options[vendorSel.selectedIndex];
     var aOpt = addressSel.options[addressSel.selectedIndex];
 
-    if (!vOpt || !aOpt) return;
+    // Show vendor address
+    var vendorBox = document.getElementById('vendor-address-display');
+    var vendorText = document.getElementById('vendor-address-text');
+    var vAddr = vOpt ? vOpt.getAttribute('data-address') : '';
+    if (vAddr) {
+        vendorText.textContent = vAddr;
+        vendorBox.style.display = 'block';
+    } else {
+        vendorBox.style.display = 'none';
+    }
+
+    // Show delivery address
+    var addrBox = document.getElementById('address-display');
+    var addrText = document.getElementById('address-text');
+    var aAddr = aOpt ? aOpt.getAttribute('data-address') : '';
+    if (aAddr) {
+        addrText.textContent = aAddr;
+        addrBox.style.display = 'block';
+    } else {
+        addrBox.style.display = 'none';
+    }
+
+    if (!vOpt || !aOpt) { calculate(); return; }
 
     var vLat = parseFloat(vOpt.getAttribute('data-lat'));
     var vLng = parseFloat(vOpt.getAttribute('data-lng'));

@@ -30,15 +30,13 @@ class ProfitabilityCalculatorController extends Controller
             ->orderBy('name')
             ->get(['id', 'name', 'price', 'cost_price', 'unit']);
 
-        // Get vendors with GPS coordinates for origin selection
+        // Get vendors with full address for origin selection
         $vendors = Vendor::where('is_active', true)
             ->orderBy('name')
-            ->get(['id', 'name', 'city', 'gps_lat', 'gps_lng']);
+            ->get();
 
-        // Get all customer addresses with GPS coordinates for destination selection
+        // Get all customer addresses for destination selection
         $addresses = Address::with('customer.user')
-            ->whereNotNull('gps_lat')
-            ->whereNotNull('gps_lng')
             ->orderBy('city')
             ->get();
 
