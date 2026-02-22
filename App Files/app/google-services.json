@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "65915914455",
+    "project_id": "concreto-6b7f1",
+    "storage_bucket": "concreto-6b7f1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:65915914455:android:d7504c894cc04fd4538892",
+        "android_client_info": {
+          "package_name": "za.co.concreto.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBEXEs7ao_nQF0uR-u2E5AwqHiHw6-sBF4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
