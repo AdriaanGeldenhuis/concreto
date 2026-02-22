@@ -61,9 +61,9 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label">Truck Fuel Consumption</label>
-                <input type="text" class="form-control" value="2 km/l (fixed)" disabled style="opacity:0.7;">
-                <small class="text-muted">Fixed at 2 km per litre</small>
+                <label class="form-label">Truck Fuel Consumption (km/l)</label>
+                <input type="number" id="calc-fuel-consumption" class="form-control" step="0.1" min="0.1" value="2" oninput="calculate()">
+                <small class="text-muted">Kilometres per litre (default: 2)</small>
             </div>
 
             <div class="form-group">
@@ -214,12 +214,13 @@ function calculate() {
     var costPerTon = parseFloat(document.getElementById('calc-cost-per-ton').value) || 0;
     var dieselPrice = parseFloat(document.getElementById('calc-diesel-price').value) || 0;
     var deliveryFee = parseFloat(document.getElementById('calc-delivery-fee').value) || 0;
+    var fuelConsumption = parseFloat(document.getElementById('calc-fuel-consumption').value) || 2;
     var driverCost = parseFloat(document.getElementById('calc-driver-cost').value) || 0;
     var otherCost = parseFloat(document.getElementById('calc-other-cost').value) || 0;
 
-    // Fuel: 2 km/l, round trip
+    // Fuel: variable km/l, round trip
     var roundTrip = distance * 2;
-    var litresNeeded = roundTrip / 2; // 2 km per litre
+    var litresNeeded = fuelConsumption > 0 ? roundTrip / fuelConsumption : 0;
     var fuelCost = litresNeeded * dieselPrice;
 
     // Revenue
