@@ -75,8 +75,8 @@
             </div>
             <div id="drivers-map"></div>
             <div class="map-legend" id="map-legend">
-                <div class="map-legend-item"><span class="map-legend-dot map-legend-dot--customer"></span> Customer</div>
-                <div class="map-legend-item"><span class="map-legend-dot map-legend-dot--vendor"></span> Vendor</div>
+                <div class="map-legend-item"><span class="map-legend-avatar" style="background:#4ade80; font-size:9px;">C</span> Customer</div>
+                <div class="map-legend-item"><span class="map-legend-avatar" style="background:#ef4444; font-size:9px;">V</span> Vendor</div>
             </div>
         </div>
     </div>
@@ -201,28 +201,39 @@ document.addEventListener('DOMContentLoaded', function() {
     var legendEl = document.getElementById('map-legend');
     var bounds = new mapboxgl.LngLatBounds();
 
-    // Customer markers - green pins
+    // Helper to get initials from a name (up to 2 chars)
+    function getInitials(name) {
+        var parts = (name || '?').trim().split(/\s+/);
+        if (parts.length >= 2) return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+        return parts[0].charAt(0).toUpperCase();
+    }
+
+    // Customer markers - green avatar pins
     customers.forEach(function(c) {
         bounds.extend([c.lng, c.lat]);
+        var initials = getInitials(c.name);
         var el = document.createElement('div');
-        el.style.cssText = 'width:10px;height:10px;border-radius:50%;background:#4ade80;border:2px solid rgba(255,255,255,0.7);box-shadow:0 0 8px #4ade80;cursor:pointer;';
-        var popup = new mapboxgl.Popup({ offset: 10, closeButton: true })
+        el.innerHTML = '<div class="driver-avatar-marker" style="background:#4ade80; --marker-color:#4ade80; width:32px; height:32px; font-size:' + (initials.length > 1 ? '11' : '14') + 'px;">' + initials + '</div>';
+        el.style.cursor = 'pointer';
+        var popup = new mapboxgl.Popup({ offset: 20, closeButton: true })
             .setHTML('<div class="driver-popup-name" style="color:#4ade80;">&#9786; ' + c.name + '</div>' +
                 (c.label ? '<div class="driver-popup-meta" style="margin-bottom:4px;"><strong>' + c.label + '</strong></div>' : '') +
                 '<div class="driver-popup-meta">' + c.address + '</div>');
-        var marker = new mapboxgl.Marker({ element: el }).setLngLat([c.lng, c.lat]).setPopup(popup).addTo(map);
+        var marker = new mapboxgl.Marker({ element: el, anchor: 'center' }).setLngLat([c.lng, c.lat]).setPopup(popup).addTo(map);
         customerMarkers.push(marker);
     });
 
-    // Vendor markers - red pins
+    // Vendor markers - red avatar pins
     vendors.forEach(function(v) {
         bounds.extend([v.lng, v.lat]);
+        var initials = getInitials(v.name);
         var el = document.createElement('div');
-        el.style.cssText = 'width:12px;height:12px;border-radius:50%;background:#ef4444;border:2px solid rgba(255,255,255,0.7);box-shadow:0 0 8px #ef4444;cursor:pointer;';
-        var popup = new mapboxgl.Popup({ offset: 10, closeButton: true })
+        el.innerHTML = '<div class="driver-avatar-marker" style="background:#ef4444; --marker-color:#ef4444; width:32px; height:32px; font-size:' + (initials.length > 1 ? '11' : '14') + 'px;">' + initials + '</div>';
+        el.style.cursor = 'pointer';
+        var popup = new mapboxgl.Popup({ offset: 20, closeButton: true })
             .setHTML('<div class="driver-popup-name" style="color:#ef4444;">&#128666; ' + v.name + '</div>' +
                 '<div class="driver-popup-meta">' + v.address + '</div>');
-        var marker = new mapboxgl.Marker({ element: el }).setLngLat([v.lng, v.lat]).setPopup(popup).addTo(map);
+        var marker = new mapboxgl.Marker({ element: el, anchor: 'center' }).setLngLat([v.lng, v.lat]).setPopup(popup).addTo(map);
         vendorMarkers.push(marker);
     });
 
