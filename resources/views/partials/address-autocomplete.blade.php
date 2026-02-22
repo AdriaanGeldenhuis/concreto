@@ -171,13 +171,56 @@
                 if (c.short_code) ctx[type + '_short'] = c.short_code;
             });
 
-            var street = [(feature.address || ''), (feature.text || '')].filter(Boolean).join(' ');
+            // Parse place_name parts: "82 Mooiwater Rd, Vaalfontein, Gauteng 1917, South Africa"
+            var nameParts = (feature.place_name || '').split(',').map(function(s) { return s.trim(); });
+            // Remove country from end
+            if (nameParts.length > 1 && nameParts[nameParts.length - 1].match(/south africa/i)) {
+                nameParts.pop();
+            }
 
-            if (fields.line1) setValue(fields.line1, street);
-            if (fields.line2) setValue(fields.line2, ctx.neighborhood || ctx.locality || '');
-            if (fields.city) setValue(fields.city, ctx.place || ctx.locality || '');
-            if (fields.province) setProvince(fields.province, ctx.region || '');
-            if (fields.postal) setValue(fields.postal, ctx.postcode || '');
+            // Line 1: use address+text for address types, otherwise first part of place_name
+            var line1 = '';
+            if (feature.address && feature.text) {
+                line1 = feature.address + ' ' + feature.text;
+            } else {
+                line1 = nameParts[0] || feature.text || '';
+            }
+
+            // Province & postal from context (most reliable)
+            var province = ctx.region || '';
+            var postal = ctx.postcode || '';
+            // Fallback: extract 4-digit postal code from place_name
+            if (!postal) {
+                for (var i = 0; i < nameParts.length; i++) {
+                    var m = nameParts[i].match(/\b(\d{4})\b/);
+                    if (m) { postal = m[1]; break; }
+                }
+            }
+
+            // City: In SA, neighborhood is often the actual town name (e.g. "Vaalfontein")
+            // while place is the municipality (e.g. "Emfuleni NU") — prefer neighborhood
+            var city = '';
+            var line2 = '';
+            if (ctx.neighborhood) {
+                city = ctx.neighborhood;
+                if (ctx.locality && ctx.locality !== city) line2 = ctx.locality;
+            } else if (ctx.locality) {
+                city = ctx.locality;
+            } else if (ctx.place) {
+                city = ctx.place;
+            }
+            // Fallback to second part of place_name
+            if (!city && nameParts.length >= 2) {
+                city = nameParts[1];
+            }
+            // Clean SA municipality suffixes ("Emfuleni NU", "eThekwini Metropolitan Municipality")
+            city = city.replace(/\s+(NU|Metropolitan Municipality|Local Municipality|District Municipality|Metro)$/i, '').trim();
+
+            if (fields.line1) setValue(fields.line1, line1);
+            if (fields.line2) setValue(fields.line2, line2);
+            if (fields.city) setValue(fields.city, city);
+            if (fields.province) setProvince(fields.province, province);
+            if (fields.postal) setValue(fields.postal, postal);
         }
 
         function fillFields(feature) {
