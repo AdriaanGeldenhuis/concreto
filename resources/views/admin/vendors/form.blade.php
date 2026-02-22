@@ -51,6 +51,54 @@
             </div>
         </div>
 
+        <div class="card">
+            <div class="card-header">Address</div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label class="form-label">Address Line 1</label>
+                    <input type="text" name="address_line1" class="form-control" value="{{ old('address_line1', $vendor->address_line1 ?? '') }}">
+                    @error('address_line1')<div class="form-error">{{ $message }}</div>@enderror
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Address Line 2</label>
+                    <input type="text" name="address_line2" class="form-control" value="{{ old('address_line2', $vendor->address_line2 ?? '') }}">
+                    @error('address_line2')<div class="form-error">{{ $message }}</div>@enderror
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">City</label>
+                        <input type="text" name="city" class="form-control" value="{{ old('city', $vendor->city ?? '') }}">
+                        @error('city')<div class="form-error">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Province</label>
+                        <input type="text" name="province" class="form-control" value="{{ old('province', $vendor->province ?? '') }}">
+                        @error('province')<div class="form-error">{{ $message }}</div>@enderror
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Postal Code</label>
+                        <input type="text" name="postal_code" class="form-control" value="{{ old('postal_code', $vendor->postal_code ?? '') }}">
+                        @error('postal_code')<div class="form-error">{{ $message }}</div>@enderror
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">GPS Latitude</label>
+                        <input type="number" name="gps_lat" class="form-control" step="0.0000001" value="{{ old('gps_lat', $vendor->gps_lat ?? '') }}">
+                        @error('gps_lat')<div class="form-error">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">GPS Longitude</label>
+                        <input type="number" name="gps_lng" class="form-control" step="0.0000001" value="{{ old('gps_lng', $vendor->gps_lng ?? '') }}">
+                        @error('gps_lng')<div class="form-error">{{ $message }}</div>@enderror
+                    </div>
+                </div>
+                <div class="form-hint">GPS coordinates are used to auto-calculate delivery distances in the profitability calculator.</div>
+            </div>
+        </div>
+
         @if(!isset($vendor))
         <div class="card">
             <div class="card-header">User Account (Optional)</div>

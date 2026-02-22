@@ -11,13 +11,39 @@
     {{-- Input Card --}}
     <div class="card">
         <div class="card-body">
-            <h3 style="margin-bottom:1rem; font-size:1rem;">Job Details</h3>
+            <h3 style="margin-bottom:1rem; font-size:1rem;">Route</h3>
+
+            <div class="form-group">
+                <label class="form-label">Vendor (Origin)</label>
+                <select id="calc-vendor" class="form-control" onchange="onRouteChange()">
+                    <option value="">-- Select vendor --</option>
+                    @foreach($vendors as $v)
+                        <option value="{{ $v->id }}" data-lat="{{ $v->gps_lat }}" data-lng="{{ $v->gps_lng }}">{{ $v->name }}@if($v->city) — {{ $v->city }}@endif</option>
+                    @endforeach
+                </select>
+                @if($vendors->where('gps_lat', '!=', null)->count() === 0)
+                <small style="color:var(--warning, #f39c12);">No vendors have GPS coordinates set. <a href="{{ route('admin.vendors.index') }}">Edit vendors</a> to add coordinates.</small>
+                @endif
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Delivery Address (Destination)</label>
+                <select id="calc-address" class="form-control" onchange="onRouteChange()">
+                    <option value="">-- Select delivery address --</option>
+                    @foreach($addresses as $a)
+                        <option value="{{ $a->id }}" data-lat="{{ $a->gps_lat }}" data-lng="{{ $a->gps_lng }}">{{ $a->customer->user->name ?? 'Customer #'.$a->customer_id }} — {{ $a->label ? $a->label.': ' : '' }}{{ $a->line1 }}, {{ $a->city }}</option>
+                    @endforeach
+                </select>
+            </div>
 
             <div class="form-group">
                 <label class="form-label">Distance to Site (km, one-way)</label>
                 <input type="number" id="calc-distance" class="form-control" step="0.1" min="0" placeholder="e.g. 45" oninput="calculate()">
-                <small class="text-muted">Round trip calculated automatically</small>
+                <small class="text-muted" id="calc-distance-hint">Auto-calculated from GPS when vendor & address are selected, or enter manually</small>
             </div>
+
+            <hr style="border-color:rgba(255,255,255,0.08); margin:1rem 0;">
+            <h3 style="margin-bottom:1rem; font-size:1rem;">Job Details</h3>
 
             <div class="form-group">
                 <label class="form-label">Load Size (tons)</label>
@@ -207,6 +233,47 @@
 
 @push('scripts')
 <script>
+// Haversine formula: straight-line distance between two GPS points in km
+function haversineKm(lat1, lng1, lat2, lng2) {
+    var R = 6371; // Earth radius in km
+    var dLat = (lat2 - lat1) * Math.PI / 180;
+    var dLng = (lng2 - lng1) * Math.PI / 180;
+    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
+
+function onRouteChange() {
+    var vendorSel = document.getElementById('calc-vendor');
+    var addressSel = document.getElementById('calc-address');
+    var hint = document.getElementById('calc-distance-hint');
+    var distInput = document.getElementById('calc-distance');
+
+    var vOpt = vendorSel.options[vendorSel.selectedIndex];
+    var aOpt = addressSel.options[addressSel.selectedIndex];
+
+    if (!vOpt || !aOpt) return;
+
+    var vLat = parseFloat(vOpt.getAttribute('data-lat'));
+    var vLng = parseFloat(vOpt.getAttribute('data-lng'));
+    var aLat = parseFloat(aOpt.getAttribute('data-lat'));
+    var aLng = parseFloat(aOpt.getAttribute('data-lng'));
+
+    if (vLat && vLng && aLat && aLng) {
+        var straight = haversineKm(vLat, vLng, aLat, aLng);
+        // Multiply by 1.3 to approximate road distance
+        var road = Math.round(straight * 1.3 * 10) / 10;
+        distInput.value = road;
+        hint.textContent = 'Estimated ' + road + ' km (straight line ' + straight.toFixed(1) + ' km × 1.3 road factor). You can adjust.';
+    } else {
+        hint.textContent = 'GPS coordinates missing for selection. Enter distance manually.';
+    }
+
+    calculate();
+}
+
 function calculate() {
     var distance = parseFloat(document.getElementById('calc-distance').value) || 0;
     var load = parseFloat(document.getElementById('calc-load').value) || 0;

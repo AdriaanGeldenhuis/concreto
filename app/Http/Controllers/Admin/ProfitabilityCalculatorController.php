@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Address;
 use App\Models\DieselLog;
 use App\Models\Product;
+use App\Models\Vendor;
 use Illuminate\Http\Request;
 
 class ProfitabilityCalculatorController extends Controller
@@ -28,6 +30,18 @@ class ProfitabilityCalculatorController extends Controller
             ->orderBy('name')
             ->get(['id', 'name', 'price', 'cost_price', 'unit']);
 
-        return view('admin.profitability-calculator', compact('defaultDieselPrice', 'products'));
+        // Get vendors with GPS coordinates for origin selection
+        $vendors = Vendor::where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'city', 'gps_lat', 'gps_lng']);
+
+        // Get all customer addresses with GPS coordinates for destination selection
+        $addresses = Address::with('customer.user')
+            ->whereNotNull('gps_lat')
+            ->whereNotNull('gps_lng')
+            ->orderBy('city')
+            ->get();
+
+        return view('admin.profitability-calculator', compact('defaultDieselPrice', 'products', 'vendors', 'addresses'));
     }
 }

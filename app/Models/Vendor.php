@@ -17,6 +17,13 @@ class Vendor extends Model
         'email',
         'phone',
         'contact_person',
+        'address_line1',
+        'address_line2',
+        'city',
+        'province',
+        'postal_code',
+        'gps_lat',
+        'gps_lng',
         'user_id',
         'is_active',
     ];
@@ -25,7 +32,16 @@ class Vendor extends Model
     {
         return [
             'is_active' => 'boolean',
+            'gps_lat' => 'decimal:7',
+            'gps_lng' => 'decimal:7',
         ];
+    }
+
+    public function getFullAddressAttribute(): string
+    {
+        return collect([$this->address_line1, $this->address_line2, $this->city, $this->province, $this->postal_code])
+            ->filter()
+            ->implode(', ');
     }
 
     public function user(): BelongsTo
