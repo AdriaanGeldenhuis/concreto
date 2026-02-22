@@ -187,10 +187,12 @@ class TrackingController extends Controller
         $totalAddresses = Address::count();
         $log[] = "Total delivery addresses in DB: {$totalAddresses}";
 
-        // Geocode ALL customer delivery addresses (re-geocode for accuracy)
-        $addresses = Address::all();
+        // Only geocode delivery addresses MISSING GPS (don't overwrite manual pins)
+        $addresses = Address::where(function ($q) {
+            $q->whereNull('gps_lat')->orWhere('gps_lat', 0);
+        })->get();
 
-        $log[] = "Re-geocoding all {$addresses->count()} delivery addresses";
+        $log[] = "Addresses missing GPS: {$addresses->count()} (skipping " . (Address::count() - $addresses->count()) . " with manual pins)";
 
         foreach ($addresses as $address) {
             $query = collect([$address->line1, $address->city, $address->province, $address->postal_code, 'South Africa'])
@@ -217,11 +219,14 @@ class TrackingController extends Controller
         }
 
         // Geocode ALL company addresses (re-geocode for accuracy)
-        $companies = Company::whereNotNull('address_line1')
+        $companies = Company::where(function ($q) {
+                $q->whereNull('gps_lat')->orWhere('gps_lat', 0);
+            })
+            ->whereNotNull('address_line1')
             ->where('address_line1', '!=', '')
             ->get();
 
-        $log[] = "Re-geocoding all {$companies->count()} company addresses";
+        $log[] = "Companies missing GPS: {$companies->count()}";
 
         foreach ($companies as $company) {
             $query = collect([$company->address_line1, $company->city, $company->province, $company->postal_code, 'South Africa'])
@@ -246,12 +251,15 @@ class TrackingController extends Controller
             usleep(100000);
         }
 
-        // Geocode ALL vendor addresses (re-geocode for accuracy)
-        $vendors = Vendor::whereNotNull('address_line1')
+        // Only geocode vendor addresses MISSING GPS
+        $vendors = Vendor::where(function ($q) {
+                $q->whereNull('gps_lat')->orWhere('gps_lat', 0);
+            })
+            ->whereNotNull('address_line1')
             ->where('address_line1', '!=', '')
             ->get();
 
-        $log[] = "Re-geocoding all {$vendors->count()} vendor addresses";
+        $log[] = "Vendors missing GPS: {$vendors->count()}";
 
         foreach ($vendors as $vendor) {
             $query = collect([$vendor->address_line1, $vendor->city, $vendor->province, $vendor->postal_code, 'South Africa'])
