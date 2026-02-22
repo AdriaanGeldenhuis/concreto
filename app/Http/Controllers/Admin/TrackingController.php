@@ -88,6 +88,47 @@ class TrackingController extends Controller
         return view('admin.tracking.drivers', compact('activeDrivers', 'idleDrivers', 'mapDrivers', 'mapCustomers', 'mapVendors'));
     }
 
+    public function driversJson()
+    {
+        $drivers = User::where('role', 'driver')
+            ->where('is_active', true)
+            ->get()
+            ->map(function ($driver) {
+                $lastLocation = $driver->driverLocations()
+                    ->orderBy('recorded_at', 'desc')
+                    ->first();
+
+                $activeOrder = $driver->driverOrders()
+                    ->whereIn('status', ['ASSIGNED', 'ACCEPTED', 'LOADED', 'IN_TRANSIT', 'ARRIVED'])
+                    ->with('customer.user', 'deliveryAddress')
+                    ->first();
+
+                if (!$lastLocation) return null;
+
+                return [
+                    'id'        => $driver->id,
+                    'name'      => $driver->name,
+                    'phone'     => $driver->phone,
+                    'lat'       => (float) $lastLocation->lat,
+                    'lng'       => (float) $lastLocation->lng,
+                    'speed'     => $lastLocation->speed ? round($lastLocation->speed) : 0,
+                    'heading'   => $lastLocation->heading ? round($lastLocation->heading) : 0,
+                    'accuracy'  => $lastLocation->accuracy ? round($lastLocation->accuracy) : null,
+                    'updated'   => $lastLocation->recorded_at->diffForHumans(),
+                    'updated_at' => $lastLocation->recorded_at->toIso8601String(),
+                    'active'    => $activeOrder !== null,
+                    'status'    => $activeOrder ? str_replace('_', ' ', $activeOrder->status) : 'Idle',
+                    'order'     => $activeOrder ? $activeOrder->order_number : null,
+                    'orderUrl'  => $activeOrder ? route('admin.orders.show', $activeOrder) : null,
+                    'detailUrl' => route('admin.tracking.driver-detail', $driver),
+                ];
+            })
+            ->filter()
+            ->values();
+
+        return response()->json($drivers);
+    }
+
     public function driverDetail(User $driver)
     {
         abort_if($driver->role !== 'driver', 404);

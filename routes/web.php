@@ -200,6 +200,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff', 
 
     // Tracking
     Route::get('/tracking/drivers', [Admin\TrackingController::class, 'drivers'])->name('tracking.drivers');
+    Route::get('/tracking/drivers/json', [Admin\TrackingController::class, 'driversJson'])->name('tracking.drivers.json');
     Route::get('/tracking/drivers/{driver}', [Admin\TrackingController::class, 'driverDetail'])->name('tracking.driver-detail');
     Route::get('/tracking/orders/{order}', [Admin\TrackingController::class, 'orderTracking'])->name('tracking.order');
 

@@ -174,6 +174,46 @@
     @endif
 @endsection
 
+@if(in_array($order->status, ['ACCEPTED', 'LOADED', 'IN_TRANSIT', 'ARRIVED']))
+@push('scripts')
+<script>
+(function() {
+    var url = "{{ route('driver.jobs.location', $order) }}";
+    var token = document.querySelector('meta[name="csrf-token"]');
+    token = token ? token.content : null;
+    if (!url || !token || !navigator.geolocation) return;
+
+    var watchId = navigator.geolocation.watchPosition(
+        function(pos) {
+            var speed = pos.coords.speed != null ? pos.coords.speed * 3.6 : 0;
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                    lat: pos.coords.latitude,
+                    lng: pos.coords.longitude,
+                    speed: speed,
+                    heading: pos.coords.heading,
+                    accuracy: pos.coords.accuracy,
+                }),
+            }).catch(function() {});
+        },
+        function() {},
+        { enableHighAccuracy: true, timeout: 20000, maximumAge: 5000 }
+    );
+
+    window.addEventListener('beforeunload', function() {
+        navigator.geolocation.clearWatch(watchId);
+    });
+})();
+</script>
+@endpush
+@endif
+
 @section('bottom-nav')
 <nav class="bottom-nav">
     <a href="{{ route('driver.dashboard') }}"><span class="nav-icon">&#9632;</span>Dashboard</a>

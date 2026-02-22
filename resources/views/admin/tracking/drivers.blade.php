@@ -162,17 +162,60 @@ document.addEventListener('DOMContentLoaded', function() {
         L.marker(ll, { icon: vendIcon }).bindPopup(p).addTo(map);
     });
 
-    // Driver markers (on top)
+    // Driver markers (on top) — stored for live updates
     var ai = ci('#22c55e'), ii = ci('#737373');
-    drivers.forEach(function(d) {
-        var ll = L.latLng(d.lat, d.lng); b.extend(ll);
-        var sc = d.active ? 'active' : 'idle';
-        var p = '<div class="driver-popup-name">' + d.name + '</div><span class="driver-popup-status driver-popup-status--' + sc + '">' + d.status + '</span><br>' + (d.order ? '<div style="margin:4px 0;">Order: <a href="' + d.orderUrl + '">' + d.order + '</a></div>' : '') + (d.speed > 0 ? '<div class="driver-popup-meta">' + d.speed + ' km/h</div>' : '') + '<div class="driver-popup-meta">Updated ' + d.updated + '</div><div style="margin-top:8px;"><a href="' + d.detailUrl + '">View details &rarr;</a></div>';
-        L.marker(ll, { icon: d.active ? ai : ii }).bindPopup(p).addTo(map);
-    });
+    var driverMarkers = {};
 
+    function renderDriverMarkers(driverList) {
+        // Remove old driver markers
+        Object.keys(driverMarkers).forEach(function(id) {
+            map.removeLayer(driverMarkers[id]);
+            delete driverMarkers[id];
+        });
+
+        driverList.forEach(function(d) {
+            var ll = L.latLng(d.lat, d.lng);
+            b.extend(ll);
+            var sc = d.active ? 'active' : 'idle';
+            var p = '<div class="driver-popup-name">' + d.name + '</div>' +
+                '<span class="driver-popup-status driver-popup-status--' + sc + '">' + d.status + '</span><br>' +
+                (d.order ? '<div style="margin:4px 0;">Order: <a href="' + d.orderUrl + '">' + d.order + '</a></div>' : '') +
+                (d.speed > 0 ? '<div class="driver-popup-meta">' + d.speed + ' km/h</div>' : '') +
+                '<div class="driver-popup-meta">Updated ' + d.updated + '</div>' +
+                '<div style="margin-top:8px;"><a href="' + d.detailUrl + '">View details &rarr;</a></div>';
+            var marker = L.marker(ll, { icon: d.active ? ai : ii }).bindPopup(p).addTo(map);
+            driverMarkers[d.id] = marker;
+        });
+    }
+
+    renderDriverMarkers(drivers);
     if (b.isValid()) map.fitBounds(b, { padding:[40,40], maxZoom:14 });
-    setTimeout(function() { window.location.reload(); }, 30000);
+
+    // Live refresh driver positions via AJAX every 15 seconds
+    var refreshUrl = "{{ route('admin.tracking.drivers.json') }}";
+    var refreshStatusEl = document.getElementById('refresh-status');
+    var refreshCount = 15;
+
+    function refreshDrivers() {
+        fetch(refreshUrl, { headers: { 'Accept': 'application/json' } })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                renderDriverMarkers(data);
+                if (refreshStatusEl) refreshStatusEl.textContent = 'Updated just now';
+            })
+            .catch(function() {
+                if (refreshStatusEl) refreshStatusEl.textContent = 'Refresh failed';
+            });
+    }
+
+    setInterval(function() {
+        refreshCount--;
+        if (refreshCount <= 0) {
+            refreshCount = 15;
+            refreshDrivers();
+        }
+        if (refreshStatusEl) refreshStatusEl.textContent = 'Next refresh: ' + refreshCount + 's';
+    }, 1000);
 });
 </script>
 @endpush

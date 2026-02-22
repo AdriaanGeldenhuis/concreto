@@ -33,6 +33,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Driver API
     Route::middleware('role:driver')->prefix('driver')->group(function () {
+        Route::get('/dashboard', [DriverApiController::class, 'dashboard']);
+        Route::post('/clock-in', [DriverApiController::class, 'clockIn']);
+        Route::post('/clock-out', [DriverApiController::class, 'clockOut']);
+        Route::post('/location', [DriverApiController::class, 'updateGeneralLocation'])->middleware('throttle:tracking');
         Route::get('/orders', [DriverApiController::class, 'listOrders']);
         Route::post('/orders/{order}/accept', [DriverApiController::class, 'acceptOrder']);
         Route::post('/orders/{order}/loaded', [DriverApiController::class, 'loadedOrder']);
