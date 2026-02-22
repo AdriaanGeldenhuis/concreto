@@ -2,7 +2,7 @@
 @section('title', 'Track Drivers')
 
 @push('styles')
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet" />
 <style>
     .tracking-tabs { display:flex; gap:0.25rem; margin-bottom:1.5rem; background:rgba(255,255,255,0.04); border-radius:var(--radius); padding:4px; border:1px solid var(--glass-border); width:fit-content; }
     .tracking-tab { padding:0.55rem 1.25rem; border-radius:var(--radius-sm); font-size:0.8125rem; font-weight:600; cursor:pointer; color:var(--text-muted); background:transparent; border:none; transition:all var(--transition-fast); display:flex; align-items:center; gap:0.5rem; }
@@ -23,17 +23,20 @@
     @keyframes driver-pulse { 0% { transform:scale(1); opacity:0.4; } 100% { transform:scale(1.5); opacity:0; } }
     .map-legend-avatar { width:22px; height:22px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-weight:800; font-size:10px; color:#fff; border:2px solid rgba(255,255,255,0.7); flex-shrink:0; }
     .driver-list-avatar { width:30px; height:30px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; color:#fff; border:2px solid rgba(255,255,255,0.6); flex-shrink:0; background:#737373; }
-    .leaflet-popup-content-wrapper { background:var(--card) !important; color:#fff !important; border-radius:var(--radius) !important; border:1px solid var(--glass-border) !important; box-shadow:var(--shadow-md) !important; }
-    .leaflet-popup-tip { background:var(--card) !important; }
-    .leaflet-popup-content { margin:12px 16px !important; font-size:0.8125rem !important; line-height:1.5 !important; }
-    .leaflet-popup-content a { color:var(--primary) !important; text-decoration:none !important; font-weight:600; }
-    .leaflet-popup-content a:hover { text-decoration:underline !important; }
-    .leaflet-popup-close-button { color:var(--text-muted) !important; }
+    .mapboxgl-popup-content { background:var(--card) !important; color:#fff !important; border-radius:var(--radius) !important; border:1px solid var(--glass-border) !important; box-shadow:var(--shadow-md) !important; padding:12px 16px !important; font-size:0.8125rem !important; line-height:1.5 !important; }
+    .mapboxgl-popup-tip { border-top-color:var(--card) !important; }
+    .mapboxgl-popup-close-button { color:var(--text-muted) !important; font-size:1.2rem; padding:4px 8px; }
+    .mapboxgl-popup-content a { color:var(--primary) !important; text-decoration:none !important; font-weight:600; }
+    .mapboxgl-popup-content a:hover { text-decoration:underline !important; }
     .driver-popup-name { font-weight:700; font-size:0.875rem; margin-bottom:4px; }
     .driver-popup-status { display:inline-block; padding:2px 8px; border-radius:100px; font-size:0.6875rem; font-weight:600; margin-bottom:6px; }
     .driver-popup-status--active { background:rgba(34,197,94,0.15); color:#22c55e; }
     .driver-popup-status--idle { background:rgba(255,255,255,0.08); color:#a3a3a3; }
     .driver-popup-meta { color:var(--text-muted); font-size:0.75rem; }
+    .map-style-toggle { position:absolute; top:10px; right:10px; z-index:2; display:flex; gap:4px; background:rgba(0,0,0,0.7); border-radius:var(--radius-sm); padding:4px; backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.1); }
+    .map-style-btn { padding:6px 12px; border:none; border-radius:var(--radius-sm); font-size:0.7rem; font-weight:600; cursor:pointer; color:rgba(255,255,255,0.7); background:transparent; transition:all 0.2s; text-transform:uppercase; letter-spacing:0.5px; }
+    .map-style-btn:hover { color:#fff; background:rgba(255,255,255,0.1); }
+    .map-style-btn.active { color:#fff; background:var(--primary); box-shadow:0 2px 8px rgba(249,115,22,0.3); }
 </style>
 @endpush
 
@@ -64,7 +67,12 @@
 <div class="tab-pane active" id="tab-map">
     <div class="card">
         <div class="card-header"><span>Driver Locations</span><span class="text-muted" style="font-size:0.75rem;">{{ $activeDrivers->count() }} active &middot; {{ $idleDrivers->count() }} idle</span></div>
-        <div class="card-body" style="padding:0.75rem;">
+        <div class="card-body" style="padding:0.75rem; position:relative;">
+            <div class="map-style-toggle">
+                <button class="map-style-btn active" data-style="streets">Streets</button>
+                <button class="map-style-btn" data-style="satellite">Satellite</button>
+                <button class="map-style-btn" data-style="terrain">Terrain</button>
+            </div>
             <div id="drivers-map"></div>
             <div class="map-legend" id="map-legend">
                 <div class="map-legend-item"><span class="map-legend-dot map-legend-dot--customer"></span> Customer</div>
@@ -119,24 +127,54 @@
 @endsection
 
 @push('scripts')
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Tab switching
     document.querySelectorAll('.tracking-tab').forEach(function(btn) {
         btn.addEventListener('click', function() {
             document.querySelectorAll('.tracking-tab').forEach(function(t) { t.classList.remove('active'); });
             document.querySelectorAll('.tab-pane').forEach(function(p) { p.classList.remove('active'); });
             btn.classList.add('active');
             document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
-            if (btn.dataset.tab === 'map' && window._driversMap) window._driversMap.invalidateSize();
+            if (btn.dataset.tab === 'map' && window._driversMap) {
+                setTimeout(function() { window._driversMap.resize(); }, 50);
+            }
         });
     });
+
     var drivers = @json($mapDrivers);
     var customers = @json($mapCustomers);
     var vendors = @json($mapVendors);
-    var map = L.map('drivers-map', { zoomControl:true, attributionControl:false }).setView([-29.0, 25.0], 6);
+
+    var mapboxToken = @json(config('services.mapbox.token'));
+    mapboxgl.accessToken = mapboxToken;
+
+    var mapStyles = {
+        streets: 'mapbox://styles/mapbox/dark-v11',
+        satellite: 'mapbox://styles/mapbox/satellite-streets-v12',
+        terrain: 'mapbox://styles/mapbox/outdoors-v12'
+    };
+
+    var map = new mapboxgl.Map({
+        container: 'drivers-map',
+        style: mapStyles.streets,
+        center: [25.0, -29.0],
+        zoom: 6,
+        attributionControl: false
+    });
     window._driversMap = map;
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom:19, subdomains:'abcd' }).addTo(map);
+
+    map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
+
+    // Style toggle buttons
+    document.querySelectorAll('.map-style-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.map-style-btn').forEach(function(b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            map.setStyle(mapStyles[btn.dataset.style]);
+        });
+    });
 
     // Unique color palette for drivers
     var driverColors = [
@@ -156,99 +194,96 @@ document.addEventListener('DOMContentLoaded', function() {
         return driverColorMap[id];
     }
 
-    function ci(c, size) {
-        size = size || 10;
-        return L.divIcon({ className:'', html:'<div style="width:'+size+'px;height:'+size+'px;border-radius:50%;background:'+c+';border:2px solid rgba(255,255,255,0.7);box-shadow:0 0 8px '+c+';"></div>', iconSize:[size,size], iconAnchor:[size/2,size/2], popupAnchor:[0,-size/2-4] });
-    }
-
-    // Create a driver avatar icon: colored ring with initial letter
-    function driverIcon(name, color, isActive) {
-        var letter = (name || '?').charAt(0).toUpperCase();
-        var size = 38;
-        var idleClass = isActive ? '' : ' idle';
-        var pulseHtml = isActive ? '<div class="driver-avatar-pulse" style="border-color:'+color+';"></div>' : '';
-        var html = '<div class="driver-avatar-marker'+idleClass+'" style="background:'+color+'; --marker-color:'+color+';">' +
-            pulseHtml + letter + '</div>';
-        return L.divIcon({
-            className: '',
-            html: html,
-            iconSize: [size, size],
-            iconAnchor: [size/2, size/2],
-            popupAnchor: [0, -size/2 - 6]
-        });
-    }
-
-    var b = L.latLngBounds();
-
-    // Customer addresses - green pins
-    var custIcon = ci('#4ade80', 10);
-    customers.forEach(function(c) {
-        var ll = L.latLng(c.lat, c.lng); b.extend(ll);
-        var p = '<div class="driver-popup-name" style="color:#4ade80;">&#9786; ' + c.name + '</div>' +
-                (c.label ? '<div class="driver-popup-meta" style="margin-bottom:4px;"><strong>' + c.label + '</strong></div>' : '') +
-                '<div class="driver-popup-meta">' + c.address + '</div>';
-        L.marker(ll, { icon: custIcon }).bindPopup(p).addTo(map);
-    });
-
-    // Vendor locations - red pins
-    var vendIcon = ci('#ef4444', 12);
-    vendors.forEach(function(v) {
-        var ll = L.latLng(v.lat, v.lng); b.extend(ll);
-        var p = '<div class="driver-popup-name" style="color:#ef4444;">&#128666; ' + v.name + '</div>' +
-                '<div class="driver-popup-meta">' + v.address + '</div>';
-        L.marker(ll, { icon: vendIcon }).bindPopup(p).addTo(map);
-    });
-
-    // Driver markers — stored for live updates
+    // Store markers and popups for cleanup
     var driverMarkers = {};
+    var customerMarkers = [];
+    var vendorMarkers = [];
     var legendEl = document.getElementById('map-legend');
+    var bounds = new mapboxgl.LngLatBounds();
+
+    // Customer markers - green pins
+    customers.forEach(function(c) {
+        bounds.extend([c.lng, c.lat]);
+        var el = document.createElement('div');
+        el.style.cssText = 'width:10px;height:10px;border-radius:50%;background:#4ade80;border:2px solid rgba(255,255,255,0.7);box-shadow:0 0 8px #4ade80;cursor:pointer;';
+        var popup = new mapboxgl.Popup({ offset: 10, closeButton: true })
+            .setHTML('<div class="driver-popup-name" style="color:#4ade80;">&#9786; ' + c.name + '</div>' +
+                (c.label ? '<div class="driver-popup-meta" style="margin-bottom:4px;"><strong>' + c.label + '</strong></div>' : '') +
+                '<div class="driver-popup-meta">' + c.address + '</div>');
+        var marker = new mapboxgl.Marker({ element: el }).setLngLat([c.lng, c.lat]).setPopup(popup).addTo(map);
+        customerMarkers.push(marker);
+    });
+
+    // Vendor markers - red pins
+    vendors.forEach(function(v) {
+        bounds.extend([v.lng, v.lat]);
+        var el = document.createElement('div');
+        el.style.cssText = 'width:12px;height:12px;border-radius:50%;background:#ef4444;border:2px solid rgba(255,255,255,0.7);box-shadow:0 0 8px #ef4444;cursor:pointer;';
+        var popup = new mapboxgl.Popup({ offset: 10, closeButton: true })
+            .setHTML('<div class="driver-popup-name" style="color:#ef4444;">&#128666; ' + v.name + '</div>' +
+                '<div class="driver-popup-meta">' + v.address + '</div>');
+        var marker = new mapboxgl.Marker({ element: el }).setLngLat([v.lng, v.lat]).setPopup(popup).addTo(map);
+        vendorMarkers.push(marker);
+    });
 
     function renderDriverMarkers(driverList) {
         // Remove old driver markers
         Object.keys(driverMarkers).forEach(function(id) {
-            map.removeLayer(driverMarkers[id]);
+            driverMarkers[id].remove();
             delete driverMarkers[id];
         });
-
-        // Remove old driver legend items
+        // Remove old legend items
         document.querySelectorAll('.map-legend-driver').forEach(function(el) { el.remove(); });
 
         driverList.forEach(function(d) {
-            var ll = L.latLng(d.lat, d.lng);
-            b.extend(ll);
+            bounds.extend([d.lng, d.lat]);
             var color = getDriverColor(d.id);
             var sc = d.active ? 'active' : 'idle';
-            var icon = driverIcon(d.name, color, d.active);
+            var letter = (d.name || '?').charAt(0).toUpperCase();
+            var idleClass = d.active ? '' : ' idle';
+            var pulseHtml = d.active ? '<div class="driver-avatar-pulse" style="border-color:'+color+';"></div>' : '';
 
-            var p = '<div class="driver-popup-name" style="color:'+color+';">' + d.name + '</div>' +
+            var el = document.createElement('div');
+            el.innerHTML = '<div class="driver-avatar-marker'+idleClass+'" style="background:'+color+'; --marker-color:'+color+';">' +
+                pulseHtml + letter + '</div>';
+            el.style.cursor = 'pointer';
+
+            var popupHtml = '<div class="driver-popup-name" style="color:'+color+';">' + d.name + '</div>' +
                 '<span class="driver-popup-status driver-popup-status--' + sc + '">' + d.status + '</span><br>' +
                 (d.order ? '<div style="margin:4px 0;">Order: <a href="' + d.orderUrl + '">' + d.order + '</a></div>' : '') +
                 (d.speed > 0 ? '<div class="driver-popup-meta">' + d.speed + ' km/h</div>' : '') +
                 '<div class="driver-popup-meta">Updated ' + d.updated + '</div>' +
                 '<div style="margin-top:8px;"><a href="' + d.detailUrl + '">View details &rarr;</a></div>';
 
-            var marker = L.marker(ll, { icon: icon, zIndexOffset: d.active ? 1000 : 0 }).bindPopup(p).addTo(map);
+            var popup = new mapboxgl.Popup({ offset: 25, closeButton: true }).setHTML(popupHtml);
+            var marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
+                .setLngLat([d.lng, d.lat])
+                .setPopup(popup)
+                .addTo(map);
             driverMarkers[d.id] = marker;
 
             // Add driver to legend
             if (legendEl) {
                 var item = document.createElement('div');
                 item.className = 'map-legend-item map-legend-driver';
-                item.innerHTML = '<span class="map-legend-avatar" style="background:'+color+';">' +
-                    (d.name || '?').charAt(0).toUpperCase() + '</span> ' + d.name +
+                item.innerHTML = '<span class="map-legend-avatar" style="background:'+color+';">' + letter + '</span> ' + d.name +
                     (d.active ? '' : ' <small style="opacity:0.5;">(idle)</small>');
                 item.style.cursor = 'pointer';
-                item.addEventListener('click', function() {
-                    map.setView(ll, 15);
-                    marker.openPopup();
-                });
+                (function(m, p) {
+                    item.addEventListener('click', function() {
+                        map.flyTo({ center: m.getLngLat(), zoom: 15 });
+                        m.togglePopup();
+                    });
+                })(marker, popup);
                 legendEl.appendChild(item);
             }
         });
     }
 
     renderDriverMarkers(drivers);
-    if (b.isValid()) map.fitBounds(b, { padding:[40,40], maxZoom:14 });
+    if (drivers.length || customers.length || vendors.length) {
+        map.fitBounds(bounds, { padding: 40, maxZoom: 14 });
+    }
 
     // Color-sync list avatars with map colors
     function colorListAvatars() {
