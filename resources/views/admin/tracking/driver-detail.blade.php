@@ -25,11 +25,37 @@
     </div>
 </div>
 
+@php
+    $lastLoc = $recentLocations->first();
+    $speedDisplay = $lastLoc && $lastLoc->speed > 0 ? number_format($lastLoc->speed, 0) . ' km/h' : ($lastLoc ? 'Stopped' : '-');
+    $lastGpsDisplay = $lastLoc ? $lastLoc->recorded_at->diffForHumans() : 'No Data';
+@endphp
+
 <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem;">
-    <div class="card"><div class="card-body" style="padding:0.75rem; text-align:center;"><h6 class="text-muted mb-0" style="font-size:0.7rem; text-transform:uppercase;">Active Jobs</h6><h3 class="mb-0" style="margin-top:0.25rem; {{ $activeOrders->count() > 0 ? 'color:var(--success);' : '' }}">{{ $activeOrders->count() }}</h3></div></div>
-    <div class="card"><div class="card-body" style="padding:0.75rem; text-align:center;"><h6 class="text-muted mb-0" style="font-size:0.7rem; text-transform:uppercase;">Deliveries Today</h6><h3 class="mb-0" style="margin-top:0.25rem;">{{ $todayDeliveries }}</h3></div></div>
-    <div class="card"><div class="card-body" style="padding:0.75rem; text-align:center;"><h6 class="text-muted mb-0" style="font-size:0.7rem; text-transform:uppercase;">Speed</h6><h3 class="mb-0" style="margin-top:0.25rem;">@if($recentLocations->isNotEmpty())@php $lastLoc=$recentLocations->first(); @endphp{{ $lastLoc->speed > 0 ? number_format($lastLoc->speed, 0).' km/h' : 'Stopped' }}@else - @endif</h3></div></div>
-    <div class="card"><div class="card-body" style="padding:0.75rem; text-align:center;"><h6 class="text-muted mb-0" style="font-size:0.7rem; text-transform:uppercase;">Last GPS</h6><h3 class="mb-0" style="margin-top:0.25rem; font-size:1rem;">@if($recentLocations->isNotEmpty()){{ $recentLocations->first()->recorded_at->diffForHumans() }}@else No Data @endif</h3></div></div>
+    <div class="card">
+        <div class="card-body" style="padding:0.75rem; text-align:center;">
+            <h6 class="text-muted mb-0" style="font-size:0.7rem; text-transform:uppercase;">Active Jobs</h6>
+            <h3 class="mb-0" style="margin-top:0.25rem; {{ $activeOrders->count() > 0 ? 'color:var(--success);' : '' }}">{{ $activeOrders->count() }}</h3>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body" style="padding:0.75rem; text-align:center;">
+            <h6 class="text-muted mb-0" style="font-size:0.7rem; text-transform:uppercase;">Deliveries Today</h6>
+            <h3 class="mb-0" style="margin-top:0.25rem;">{{ $todayDeliveries }}</h3>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body" style="padding:0.75rem; text-align:center;">
+            <h6 class="text-muted mb-0" style="font-size:0.7rem; text-transform:uppercase;">Speed</h6>
+            <h3 class="mb-0" style="margin-top:0.25rem;">{{ $speedDisplay }}</h3>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body" style="padding:0.75rem; text-align:center;">
+            <h6 class="text-muted mb-0" style="font-size:0.7rem; text-transform:uppercase;">Last GPS</h6>
+            <h3 class="mb-0" style="margin-top:0.25rem; font-size:1rem;">{{ $lastGpsDisplay }}</h3>
+        </div>
+    </div>
 </div>
 
 @if($recentLocations->isNotEmpty())
