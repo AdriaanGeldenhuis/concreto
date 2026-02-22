@@ -164,6 +164,8 @@ class CustomerController extends Controller
             'city' => 'nullable|string|max:100',
             'province' => 'nullable|string|max:100',
             'postal_code' => 'nullable|string|max:10',
+            'gps_lat' => 'nullable|numeric',
+            'gps_lng' => 'nullable|numeric',
         ]);
 
         if ($customer->company) {

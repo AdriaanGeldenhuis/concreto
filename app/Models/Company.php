@@ -20,7 +20,17 @@ class Company extends Model
         'city',
         'province',
         'postal_code',
+        'gps_lat',
+        'gps_lng',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'gps_lat' => 'decimal:7',
+            'gps_lng' => 'decimal:7',
+        ];
+    }
 
     public function customers(): HasMany
     {

@@ -194,6 +194,15 @@
                                 <input type="text" name="postal_code" id="cust-company-postal" class="form-control" value="{{ old('postal_code', $customer->company->postal_code ?? '') }}">
                             </div>
                         </div>
+                        <input type="hidden" name="gps_lat" id="cust-company-lat" value="{{ old('gps_lat', $customer->company->gps_lat ?? '') }}">
+                        <input type="hidden" name="gps_lng" id="cust-company-lng" value="{{ old('gps_lng', $customer->company->gps_lng ?? '') }}">
+                        <div id="cust-company-gps-display" class="form-hint" style="margin-top:0.5rem;">
+                            @if(old('gps_lat', $customer->company->gps_lat ?? ''))
+                                GPS: {{ old('gps_lat', $customer->company->gps_lat ?? '') }}, {{ old('gps_lng', $customer->company->gps_lng ?? '') }}
+                            @else
+                                GPS coordinates will be set automatically from the address search.
+                            @endif
+                        </div>
                         <button type="submit" class="btn btn-primary mt-1">Save Company Details</button>
                     </form>
                 </div>
@@ -401,7 +410,10 @@ document.addEventListener('DOMContentLoaded', function() {
         line2: 'cust-company-line2',
         city: 'cust-company-city',
         province: 'cust-company-province',
-        postal: 'cust-company-postal'
+        postal: 'cust-company-postal',
+        lat: 'cust-company-lat',
+        lng: 'cust-company-lng',
+        gpsDisplay: 'cust-company-gps-display'
     });
     initMapboxAutocomplete('cust-delivery-address-search', {
         line1: 'cust-delivery-line1',
