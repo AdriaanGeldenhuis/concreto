@@ -110,6 +110,14 @@
 
     @yield('bottom-nav')
 
+    @auth
+    @if(auth()->user()->role === 'driver')
+        <div id="driver-tracking"
+             data-url="{{ route('driver.location') }}"
+             data-tracking-active="true"></div>
+    @endif
+    @endauth
+
     <script src="/js/app.js"></script>
     @stack('scripts')
 </body>

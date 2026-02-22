@@ -113,7 +113,6 @@ class DriverApiController extends Controller
             'heading' => $request->heading,
             'accuracy' => $request->accuracy,
             'recorded_at' => now(),
-            'created_at' => now(),
         ]);
 
         return response()->json(['status' => 'ok']);

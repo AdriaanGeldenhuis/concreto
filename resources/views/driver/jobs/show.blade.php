@@ -27,13 +27,6 @@
         </span>
     </div>
 
-    {{-- GPS tracking when active --}}
-    @if(in_array($order->status, ['ACCEPTED', 'LOADED', 'IN_TRANSIT', 'ARRIVED']))
-        <div id="driver-tracking"
-             data-url="{{ route('driver.jobs.location', $order) }}"
-             data-tracking-active="true"></div>
-    @endif
-
     {{-- Action buttons - prominent at the top for quick access --}}
     <div class="action-buttons">
         @if($order->status === 'ASSIGNED')

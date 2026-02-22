@@ -144,7 +144,6 @@ class DashboardController extends Controller
                     'heading' => $request->heading,
                     'accuracy' => $request->accuracy,
                     'recorded_at' => now(),
-                    'created_at' => now(),
                 ]);
             }
         } else {
@@ -158,7 +157,6 @@ class DashboardController extends Controller
                 'heading' => $request->heading,
                 'accuracy' => $request->accuracy,
                 'recorded_at' => now(),
-                'created_at' => now(),
             ]);
         }
 

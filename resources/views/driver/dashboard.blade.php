@@ -13,11 +13,6 @@
         <h1>Dashboard</h1>
     </div>
 
-    {{-- GPS tracking - always active for drivers --}}
-    <div id="driver-tracking"
-         data-url="{{ route('driver.location') }}"
-         data-tracking-active="true"></div>
-
     {{-- Clock In/Out Section --}}
     <div class="card mb-2">
         <div class="card-body">
