@@ -391,6 +391,9 @@
                     <div class="form-group"><label class="form-label">Free Delivery Threshold (R)</label><input type="number" name="settings[free_delivery_threshold]" class="form-control" step="0.01" value="{{ $siteSettings['free_delivery_threshold'] ?? '0' }}"><div class="form-hint">Orders above this value get free delivery. 0 = disabled (always charge).</div><input type="hidden" name="groups[free_delivery_threshold]" value="business"></div>
                 </div>
                 <div class="form-group"><label class="form-label">VAT Rate (%)</label><input type="number" name="settings[vat_rate]" class="form-control" step="0.01" value="{{ $siteSettings['vat_rate'] ?? '15' }}" style="max-width:200px;"><div class="form-hint">SA standard rate: 15%. Affects all VAT calculations on invoices and orders.</div><input type="hidden" name="groups[vat_rate]" value="business"></div>
+                <hr>
+                <h6>Integrations</h6>
+                <div class="form-group"><label class="form-label">Google Maps API Key</label><input type="text" name="settings[google_maps_api_key]" class="form-control" value="{{ $siteSettings['google_maps_api_key'] ?? '' }}" placeholder="AIzaSy..."><input type="hidden" name="groups[google_maps_api_key]" value="business"><small class="text-muted">Required for address autocomplete on vendor/customer forms and map markers. Enable <strong>Places API</strong> and <strong>Maps JavaScript API</strong> in your Google Cloud Console.</small></div>
             </div>
         </div>
         </div>

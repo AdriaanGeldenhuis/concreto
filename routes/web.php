@@ -345,6 +345,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff', 
     // Staff Permissions
     Route::get('/staff-permissions', [Admin\StaffPermissionController::class, 'index'])->name('staff-permissions.index');
     Route::put('/staff-permissions/{user}', [Admin\StaffPermissionController::class, 'update'])->name('staff-permissions.update');
+
+    // Profitability Calculator (admin only - enforced in controller)
+    Route::get('/profitability-calculator', [Admin\ProfitabilityCalculatorController::class, 'index'])->name('profitability-calculator.index');
 });
 
 // Health check (no auth)

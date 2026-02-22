@@ -114,6 +114,10 @@
             <a href="{{ route('admin.audit-logs.index') }}" class="{{ request()->routeIs('admin.audit-logs*') ? 'active' : '' }}">&#9201; Audit Log</a>
             <a href="{{ route('admin.notification-logs.index') }}" class="{{ request()->routeIs('admin.notification-logs*') ? 'active' : '' }}">&#128172; Notification Logs</a>
             <a href="{{ route('admin.staff-permissions.index') }}" class="{{ request()->routeIs('admin.staff-permissions*') ? 'active' : '' }}">&#128274; Staff Permissions</a>
+            @if(auth()->user()->isAdmin())
+            <div class="sidebar-section">Admin Tools</div>
+            <a href="{{ route('admin.profitability-calculator.index') }}" class="{{ request()->routeIs('admin.profitability-calculator*') ? 'active' : '' }}">&#128200; Profitability Calc</a>
+            @endif
             <div style="padding: 1rem 1.25rem; margin-top: auto; border-top: 1px solid rgba(255,255,255,0.08);">
                 <a href="https://concreto.co.za" target="_blank" style="margin-bottom: 0.25rem;">&#8592; View Site</a>
                 <form method="POST" action="{{ route('logout') }}">
