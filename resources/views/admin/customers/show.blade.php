@@ -159,14 +159,43 @@
                             <div class="form-group" style="flex:1"><label class="form-label">Email</label><input type="email" name="email" class="form-control" value="{{ old('email', $customer->company->email ?? '') }}"></div>
                             <div class="form-group" style="flex:1"><label class="form-label">Phone</label><input type="text" name="phone" class="form-control" value="{{ old('phone', $customer->company->phone ?? '') }}"></div>
                         </div>
-                        <div class="form-group"><label class="form-label">Contact Person</label><input type="text" name="contact_person" class="form-control" value="{{ old('contact_person', $customer->company->contact_person ?? '') }}"></div>
-                        <div class="form-group"><label class="form-label">Search Address</label><input type="text" id="cust-company-address-search" class="form-control" placeholder="Start typing an address..." autocomplete="off"><small class="text-muted">Type to search. Fields below will auto-fill.</small></div>
-                        <div class="form-group"><label class="form-label">Address Line 1</label><input type="text" name="address_line1" id="cust-company-line1" class="form-control" value="{{ old('address_line1', $customer->company->address_line1 ?? '') }}"></div>
-                        <div class="form-group"><label class="form-label">Address Line 2</label><input type="text" name="address_line2" id="cust-company-line2" class="form-control" value="{{ old('address_line2', $customer->company->address_line2 ?? '') }}"></div>
+                        <div class="form-group">
+                            <label class="form-label">Contact Person</label>
+                            <input type="text" name="contact_person" class="form-control" value="{{ old('contact_person', $customer->company->contact_person ?? '') }}">
+                        </div>
+                        <hr style="border-color:rgba(255,255,255,0.06); margin:1rem 0;">
+                        <h6 style="margin-bottom:0.75rem;">Address</h6>
+                        <div class="form-group">
+                            <label class="form-label">Search Address</label>
+                            <input type="text" id="cust-company-address-search" class="form-control" placeholder="Start typing an address..." autocomplete="off">
+                            <small class="text-muted">Type to search. Fields below will auto-fill.</small>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Address Line 1</label>
+                            <input type="text" name="address_line1" id="cust-company-line1" class="form-control" autocomplete="off" value="{{ old('address_line1', $customer->company->address_line1 ?? '') }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Address Line 2</label>
+                            <input type="text" name="address_line2" id="cust-company-line2" class="form-control" autocomplete="off" value="{{ old('address_line2', $customer->company->address_line2 ?? '') }}">
+                        </div>
                         <div class="form-row">
-                            <div class="form-group" style="flex:1"><label class="form-label">City</label><input type="text" name="city" id="cust-company-city" class="form-control" value="{{ old('city', $customer->company->city ?? '') }}"></div>
-                            <div class="form-group" style="flex:1"><label class="form-label">Province</label><select name="province" id="cust-company-province" class="form-control"><option value="">Select</option>@foreach(['Eastern Cape','Free State','Gauteng','KwaZulu-Natal','Limpopo','Mpumalanga','North West','Northern Cape','Western Cape'] as $prov)<option value="{{ $prov }}" {{ old('province', $customer->company->province ?? '') == $prov ? 'selected' : '' }}>{{ $prov }}</option>@endforeach</select></div>
-                            <div class="form-group" style="flex:0.5"><label class="form-label">Postal Code</label><input type="text" name="postal_code" id="cust-company-postal" class="form-control" value="{{ old('postal_code', $customer->company->postal_code ?? '') }}"></div>
+                            <div class="form-group" style="flex:1">
+                                <label class="form-label">City</label>
+                                <input type="text" name="city" id="cust-company-city" class="form-control" autocomplete="off" value="{{ old('city', $customer->company->city ?? '') }}">
+                            </div>
+                            <div class="form-group" style="flex:1">
+                                <label class="form-label">Province</label>
+                                <select name="province" id="cust-company-province" class="form-control">
+                                    <option value="">Select</option>
+                                    @foreach(['Eastern Cape','Free State','Gauteng','KwaZulu-Natal','Limpopo','Mpumalanga','North West','Northern Cape','Western Cape'] as $prov)
+                                        <option value="{{ $prov }}" {{ old('province', $customer->company->province ?? '') == $prov ? 'selected' : '' }}>{{ $prov }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="form-group" style="flex:0.5">
+                                <label class="form-label">Postal Code</label>
+                                <input type="text" name="postal_code" id="cust-company-postal" class="form-control" autocomplete="off" value="{{ old('postal_code', $customer->company->postal_code ?? '') }}">
+                            </div>
                         </div>
                         <button type="submit" class="btn btn-primary mt-1">Save Company Details</button>
                     </form>
@@ -236,6 +265,46 @@
                     @empty
                         <p class="text-muted mb-0">No addresses on file.</p>
                     @endforelse
+
+                    <hr style="border-color:rgba(255,255,255,0.06); margin:1rem 0;">
+                    <h6 style="margin-bottom:0.75rem;">Add Delivery Address</h6>
+                    <form method="POST" action="{{ route('admin.customers.store-address', $customer) }}">
+                        @csrf
+                        <div class="form-group">
+                            <label class="form-label">Search Address</label>
+                            <input type="text" id="cust-delivery-address-search" class="form-control" placeholder="Start typing an address..." autocomplete="off">
+                            <small class="text-muted">Type to search. Fields below will auto-fill.</small>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Label</label>
+                            <input type="text" name="label" class="form-control" placeholder="e.g. Site, Office, Warehouse">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Address Line 1 *</label>
+                            <input type="text" name="line1" id="cust-delivery-line1" class="form-control" autocomplete="off" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Address Line 2</label>
+                            <input type="text" name="line2" id="cust-delivery-line2" class="form-control" autocomplete="off">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group" style="flex:1">
+                                <label class="form-label">City *</label>
+                                <input type="text" name="city" id="cust-delivery-city" class="form-control" autocomplete="off" required>
+                            </div>
+                            <div class="form-group" style="flex:1">
+                                <label class="form-label">Province *</label>
+                                <input type="text" name="province" id="cust-delivery-province" class="form-control" autocomplete="off" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Postal Code *</label>
+                            <input type="text" name="postal_code" id="cust-delivery-postal" class="form-control" autocomplete="off" style="max-width:150px;" required>
+                        </div>
+                        <input type="hidden" name="gps_lat" id="cust-delivery-lat">
+                        <input type="hidden" name="gps_lng" id="cust-delivery-lng">
+                        <button type="submit" class="btn btn-primary btn-sm">Add Address</button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -332,6 +401,15 @@ document.addEventListener('DOMContentLoaded', function() {
         city: 'cust-company-city',
         province: 'cust-company-province',
         postal: 'cust-company-postal'
+    });
+    initMapboxAutocomplete('cust-delivery-address-search', {
+        line1: 'cust-delivery-line1',
+        line2: 'cust-delivery-line2',
+        city: 'cust-delivery-city',
+        province: 'cust-delivery-province',
+        postal: 'cust-delivery-postal',
+        lat: 'cust-delivery-lat',
+        lng: 'cust-delivery-lng'
     });
 });
 </script>
