@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Address;
 use App\Models\DriverLocation;
 use App\Models\Order;
 use App\Models\User;
+use App\Models\Vendor;
 
 class TrackingController extends Controller
 {
@@ -53,7 +55,37 @@ class TrackingController extends Controller
             ];
         })->values();
 
-        return view('admin.tracking.drivers', compact('activeDrivers', 'idleDrivers', 'mapDrivers'));
+        // Customer addresses with GPS for map markers (green)
+        $mapCustomers = Address::with('customer.user')
+            ->whereNotNull('gps_lat')
+            ->whereNotNull('gps_lng')
+            ->get()
+            ->map(function ($a) {
+                $name = $a->customer->user->name ?? 'Customer #' . $a->customer_id;
+                return [
+                    'name'    => $name,
+                    'label'   => $a->label,
+                    'address' => $a->full_address,
+                    'lat'     => (float) $a->gps_lat,
+                    'lng'     => (float) $a->gps_lng,
+                ];
+            })->values();
+
+        // Vendor locations with GPS for map markers (red)
+        $mapVendors = Vendor::where('is_active', true)
+            ->whereNotNull('gps_lat')
+            ->whereNotNull('gps_lng')
+            ->get()
+            ->map(function ($v) {
+                return [
+                    'name'    => $v->name,
+                    'address' => $v->full_address,
+                    'lat'     => (float) $v->gps_lat,
+                    'lng'     => (float) $v->gps_lng,
+                ];
+            })->values();
+
+        return view('admin.tracking.drivers', compact('activeDrivers', 'idleDrivers', 'mapDrivers', 'mapCustomers', 'mapVendors'));
     }
 
     public function driverDetail(User $driver)

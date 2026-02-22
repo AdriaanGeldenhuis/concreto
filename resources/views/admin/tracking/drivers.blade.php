@@ -17,6 +17,8 @@
     .map-legend-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; border:2px solid rgba(255,255,255,0.3); }
     .map-legend-dot--active { background:#22c55e; }
     .map-legend-dot--idle { background:#737373; }
+    .map-legend-dot--customer { background:#4ade80; }
+    .map-legend-dot--vendor { background:#ef4444; }
     .leaflet-popup-content-wrapper { background:var(--card) !important; color:#fff !important; border-radius:var(--radius) !important; border:1px solid var(--glass-border) !important; box-shadow:var(--shadow-md) !important; }
     .leaflet-popup-tip { background:var(--card) !important; }
     .leaflet-popup-content { margin:12px 16px !important; font-size:0.8125rem !important; line-height:1.5 !important; }
@@ -61,8 +63,10 @@
         <div class="card-body" style="padding:0.75rem;">
             <div id="drivers-map"></div>
             <div class="map-legend">
-                <div class="map-legend-item"><span class="map-legend-dot map-legend-dot--active"></span> Active (on delivery)</div>
-                <div class="map-legend-item"><span class="map-legend-dot map-legend-dot--idle"></span> Idle (available)</div>
+                <div class="map-legend-item"><span class="map-legend-dot map-legend-dot--active"></span> Driver (on delivery)</div>
+                <div class="map-legend-item"><span class="map-legend-dot map-legend-dot--idle"></span> Driver (idle)</div>
+                <div class="map-legend-item"><span class="map-legend-dot map-legend-dot--customer"></span> Customer Address</div>
+                <div class="map-legend-item"><span class="map-legend-dot map-legend-dot--vendor"></span> Vendor / Supplier</div>
             </div>
         </div>
     </div>
@@ -126,18 +130,47 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     var drivers = @json($mapDrivers);
+    var customers = @json($mapCustomers);
+    var vendors = @json($mapVendors);
     var map = L.map('drivers-map', { zoomControl:true, attributionControl:false }).setView([-29.0, 25.0], 6);
     window._driversMap = map;
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom:19, subdomains:'abcd' }).addTo(map);
-    if (drivers.length === 0) return;
-    function ci(c) { return L.divIcon({ className:'', html:'<div style="width:14px;height:14px;border-radius:50%;background:'+c+';border:3px solid rgba(255,255,255,0.8);box-shadow:0 0 12px '+c+',0 2px 6px rgba(0,0,0,0.4);"></div>', iconSize:[14,14], iconAnchor:[7,7], popupAnchor:[0,-12] }); }
-    var ai=ci('#22c55e'), ii=ci('#737373'), b=L.latLngBounds();
-    drivers.forEach(function(d) {
-        var ll=L.latLng(d.lat,d.lng); b.extend(ll);
-        var sc=d.active?'active':'idle';
-        var p='<div class="driver-popup-name">'+d.name+'</div><span class="driver-popup-status driver-popup-status--'+sc+'">'+d.status+'</span><br>'+(d.order?'<div style="margin:4px 0;">Order: <a href="'+d.orderUrl+'">'+d.order+'</a></div>':'')+(d.speed>0?'<div class="driver-popup-meta">'+d.speed+' km/h</div>':'')+'<div class="driver-popup-meta">Updated '+d.updated+'</div><div style="margin-top:8px;"><a href="'+d.detailUrl+'">View details &rarr;</a></div>';
-        L.marker(ll,{icon:d.active?ai:ii}).bindPopup(p).addTo(map);
+
+    function ci(c, size) {
+        size = size || 14;
+        return L.divIcon({ className:'', html:'<div style="width:'+size+'px;height:'+size+'px;border-radius:50%;background:'+c+';border:3px solid rgba(255,255,255,0.8);box-shadow:0 0 12px '+c+',0 2px 6px rgba(0,0,0,0.4);"></div>', iconSize:[size,size], iconAnchor:[size/2,size/2], popupAnchor:[0,-size/2-4] });
+    }
+
+    var b = L.latLngBounds();
+
+    // Customer addresses - green pins
+    var custIcon = ci('#4ade80', 10);
+    customers.forEach(function(c) {
+        var ll = L.latLng(c.lat, c.lng); b.extend(ll);
+        var p = '<div class="driver-popup-name" style="color:#4ade80;">&#9786; ' + c.name + '</div>' +
+                (c.label ? '<div class="driver-popup-meta" style="margin-bottom:4px;"><strong>' + c.label + '</strong></div>' : '') +
+                '<div class="driver-popup-meta">' + c.address + '</div>';
+        L.marker(ll, { icon: custIcon }).bindPopup(p).addTo(map);
     });
+
+    // Vendor locations - red pins
+    var vendIcon = ci('#ef4444', 12);
+    vendors.forEach(function(v) {
+        var ll = L.latLng(v.lat, v.lng); b.extend(ll);
+        var p = '<div class="driver-popup-name" style="color:#ef4444;">&#128666; ' + v.name + '</div>' +
+                '<div class="driver-popup-meta">' + v.address + '</div>';
+        L.marker(ll, { icon: vendIcon }).bindPopup(p).addTo(map);
+    });
+
+    // Driver markers (on top)
+    var ai = ci('#22c55e'), ii = ci('#737373');
+    drivers.forEach(function(d) {
+        var ll = L.latLng(d.lat, d.lng); b.extend(ll);
+        var sc = d.active ? 'active' : 'idle';
+        var p = '<div class="driver-popup-name">' + d.name + '</div><span class="driver-popup-status driver-popup-status--' + sc + '">' + d.status + '</span><br>' + (d.order ? '<div style="margin:4px 0;">Order: <a href="' + d.orderUrl + '">' + d.order + '</a></div>' : '') + (d.speed > 0 ? '<div class="driver-popup-meta">' + d.speed + ' km/h</div>' : '') + '<div class="driver-popup-meta">Updated ' + d.updated + '</div><div style="margin-top:8px;"><a href="' + d.detailUrl + '">View details &rarr;</a></div>';
+        L.marker(ll, { icon: d.active ? ai : ii }).bindPopup(p).addTo(map);
+    });
+
     if (b.isValid()) map.fitBounds(b, { padding:[40,40], maxZoom:14 });
     setTimeout(function() { window.location.reload(); }, 30000);
 });
