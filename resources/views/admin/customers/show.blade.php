@@ -160,12 +160,13 @@
                             <div class="form-group" style="flex:1"><label class="form-label">Phone</label><input type="text" name="phone" class="form-control" value="{{ old('phone', $customer->company->phone ?? '') }}"></div>
                         </div>
                         <div class="form-group"><label class="form-label">Contact Person</label><input type="text" name="contact_person" class="form-control" value="{{ old('contact_person', $customer->company->contact_person ?? '') }}"></div>
-                        <div class="form-group"><label class="form-label">Address Line 1</label><input type="text" name="address_line1" class="form-control" value="{{ old('address_line1', $customer->company->address_line1 ?? '') }}"></div>
-                        <div class="form-group"><label class="form-label">Address Line 2</label><input type="text" name="address_line2" class="form-control" value="{{ old('address_line2', $customer->company->address_line2 ?? '') }}"></div>
+                        <div class="form-group"><label class="form-label">Search Address</label><input type="text" id="cust-company-address-search" class="form-control" placeholder="Start typing an address..." autocomplete="off"><small class="text-muted">Type to search. Fields below will auto-fill.</small></div>
+                        <div class="form-group"><label class="form-label">Address Line 1</label><input type="text" name="address_line1" id="cust-company-line1" class="form-control" value="{{ old('address_line1', $customer->company->address_line1 ?? '') }}"></div>
+                        <div class="form-group"><label class="form-label">Address Line 2</label><input type="text" name="address_line2" id="cust-company-line2" class="form-control" value="{{ old('address_line2', $customer->company->address_line2 ?? '') }}"></div>
                         <div class="form-row">
-                            <div class="form-group" style="flex:1"><label class="form-label">City</label><input type="text" name="city" class="form-control" value="{{ old('city', $customer->company->city ?? '') }}"></div>
-                            <div class="form-group" style="flex:1"><label class="form-label">Province</label><select name="province" class="form-control"><option value="">Select</option>@foreach(['Eastern Cape','Free State','Gauteng','KwaZulu-Natal','Limpopo','Mpumalanga','North West','Northern Cape','Western Cape'] as $prov)<option value="{{ $prov }}" {{ old('province', $customer->company->province ?? '') == $prov ? 'selected' : '' }}>{{ $prov }}</option>@endforeach</select></div>
-                            <div class="form-group" style="flex:0.5"><label class="form-label">Postal Code</label><input type="text" name="postal_code" class="form-control" value="{{ old('postal_code', $customer->company->postal_code ?? '') }}"></div>
+                            <div class="form-group" style="flex:1"><label class="form-label">City</label><input type="text" name="city" id="cust-company-city" class="form-control" value="{{ old('city', $customer->company->city ?? '') }}"></div>
+                            <div class="form-group" style="flex:1"><label class="form-label">Province</label><select name="province" id="cust-company-province" class="form-control"><option value="">Select</option>@foreach(['Eastern Cape','Free State','Gauteng','KwaZulu-Natal','Limpopo','Mpumalanga','North West','Northern Cape','Western Cape'] as $prov)<option value="{{ $prov }}" {{ old('province', $customer->company->province ?? '') == $prov ? 'selected' : '' }}>{{ $prov }}</option>@endforeach</select></div>
+                            <div class="form-group" style="flex:0.5"><label class="form-label">Postal Code</label><input type="text" name="postal_code" id="cust-company-postal" class="form-control" value="{{ old('postal_code', $customer->company->postal_code ?? '') }}"></div>
                         </div>
                         <button type="submit" class="btn btn-primary mt-1">Save Company Details</button>
                     </form>
@@ -320,3 +321,18 @@
         </div>
     </div>
 @endsection
+
+@include('partials.address-autocomplete')
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    initMapboxAutocomplete('cust-company-address-search', {
+        line1: 'cust-company-line1',
+        line2: 'cust-company-line2',
+        city: 'cust-company-city',
+        province: 'cust-company-province',
+        postal: 'cust-company-postal'
+    });
+});
+</script>
+@endpush
