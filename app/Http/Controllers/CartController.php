@@ -200,10 +200,12 @@ class CartController extends Controller
             'city' => 'required|string|max:100',
             'province' => 'required|string|max:100',
             'postal_code' => 'required|string|max:10',
+            'gps_lat' => 'nullable|numeric',
+            'gps_lng' => 'nullable|numeric',
         ]);
 
         $customer = $this->getOrCreateCustomer($request);
-        $address = $customer->addresses()->create($request->only(['label', 'line1', 'line2', 'city', 'province', 'postal_code']));
+        $address = $customer->addresses()->create($request->only(['label', 'line1', 'line2', 'city', 'province', 'postal_code', 'gps_lat', 'gps_lng']));
 
         if (!$customer->default_address_id) {
             $customer->update(['default_address_id' => $address->id]);

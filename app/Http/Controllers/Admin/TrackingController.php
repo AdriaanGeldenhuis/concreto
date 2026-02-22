@@ -59,7 +59,10 @@ class TrackingController extends Controller
         $mapCustomers = Address::with('customer.user')
             ->whereNotNull('gps_lat')
             ->whereNotNull('gps_lng')
+            ->where('gps_lat', '!=', 0)
+            ->where('gps_lng', '!=', 0)
             ->get()
+            ->filter(fn($a) => $a->gps_lat && $a->gps_lng)
             ->map(function ($a) {
                 $name = $a->customer->user->name ?? 'Customer #' . $a->customer_id;
                 return [
@@ -75,7 +78,10 @@ class TrackingController extends Controller
         $mapVendors = Vendor::where('is_active', true)
             ->whereNotNull('gps_lat')
             ->whereNotNull('gps_lng')
+            ->where('gps_lat', '!=', 0)
+            ->where('gps_lng', '!=', 0)
             ->get()
+            ->filter(fn($v) => $v->gps_lat && $v->gps_lng)
             ->map(function ($v) {
                 return [
                     'name'    => $v->name,
