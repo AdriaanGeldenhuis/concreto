@@ -15,10 +15,14 @@
     .map-legend { display:flex; gap:1.25rem; padding:0.75rem 1rem; margin-top:0.75rem; background:rgba(255,255,255,0.03); border-radius:var(--radius-sm); border:1px solid var(--glass-border); font-size:0.75rem; color:var(--text-muted); flex-wrap:wrap; }
     .map-legend-item { display:flex; align-items:center; gap:0.4rem; }
     .map-legend-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; border:2px solid rgba(255,255,255,0.3); }
-    .map-legend-dot--active { background:#22c55e; }
-    .map-legend-dot--idle { background:#737373; }
     .map-legend-dot--customer { background:#4ade80; }
     .map-legend-dot--vendor { background:#ef4444; }
+    .driver-avatar-marker { width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:16px; color:#fff; border:3px solid rgba(255,255,255,0.9); box-shadow:0 0 16px var(--marker-color), 0 2px 8px rgba(0,0,0,0.5); position:relative; text-transform:uppercase; font-family:system-ui,-apple-system,sans-serif; letter-spacing:-0.5px; }
+    .driver-avatar-marker.idle { opacity:0.6; border-color:rgba(255,255,255,0.5); }
+    .driver-avatar-pulse { position:absolute; top:-6px; left:-6px; right:-6px; bottom:-6px; border-radius:50%; border:2px solid; opacity:0.4; animation:driver-pulse 2s ease-out infinite; }
+    @keyframes driver-pulse { 0% { transform:scale(1); opacity:0.4; } 100% { transform:scale(1.5); opacity:0; } }
+    .map-legend-avatar { width:22px; height:22px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-weight:800; font-size:10px; color:#fff; border:2px solid rgba(255,255,255,0.7); flex-shrink:0; }
+    .driver-list-avatar { width:30px; height:30px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; color:#fff; border:2px solid rgba(255,255,255,0.6); flex-shrink:0; background:#737373; }
     .leaflet-popup-content-wrapper { background:var(--card) !important; color:#fff !important; border-radius:var(--radius) !important; border:1px solid var(--glass-border) !important; box-shadow:var(--shadow-md) !important; }
     .leaflet-popup-tip { background:var(--card) !important; }
     .leaflet-popup-content { margin:12px 16px !important; font-size:0.8125rem !important; line-height:1.5 !important; }
@@ -62,11 +66,9 @@
         <div class="card-header"><span>Driver Locations</span><span class="text-muted" style="font-size:0.75rem;">{{ $activeDrivers->count() }} active &middot; {{ $idleDrivers->count() }} idle</span></div>
         <div class="card-body" style="padding:0.75rem;">
             <div id="drivers-map"></div>
-            <div class="map-legend">
-                <div class="map-legend-item"><span class="map-legend-dot map-legend-dot--active"></span> Driver (on delivery)</div>
-                <div class="map-legend-item"><span class="map-legend-dot map-legend-dot--idle"></span> Driver (idle)</div>
-                <div class="map-legend-item"><span class="map-legend-dot map-legend-dot--customer"></span> Customer Address</div>
-                <div class="map-legend-item"><span class="map-legend-dot map-legend-dot--vendor"></span> Vendor / Supplier</div>
+            <div class="map-legend" id="map-legend">
+                <div class="map-legend-item"><span class="map-legend-dot map-legend-dot--customer"></span> Customer</div>
+                <div class="map-legend-item"><span class="map-legend-dot map-legend-dot--vendor"></span> Vendor</div>
             </div>
         </div>
     </div>
@@ -81,7 +83,7 @@
             <div class="table-responsive"><table><thead><tr><th>Driver</th><th>Order</th><th>Status</th><th>Customer</th><th>Delivery To</th><th>Last GPS</th><th>Speed</th><th class="text-right">Actions</th></tr></thead><tbody>
             @foreach($activeDrivers as $driver)
                 <tr>
-                    <td><div class="font-semibold">{{ $driver->name }}</div>@if($driver->phone)<small><a href="tel:{{ $driver->phone }}">{{ $driver->phone }}</a></small>@endif</td>
+                    <td><div style="display:flex; align-items:center; gap:0.5rem;"><span class="driver-list-avatar" data-driver-id="{{ $driver->id }}">{{ strtoupper(substr($driver->name, 0, 1)) }}</span><div><div class="font-semibold">{{ $driver->name }}</div>@if($driver->phone)<small><a href="tel:{{ $driver->phone }}">{{ $driver->phone }}</a></small>@endif</div></div></td>
                     <td><a href="{{ route('admin.orders.show', $driver->active_order) }}" class="font-semibold">{{ $driver->active_order->order_number }}</a></td>
                     <td><span class="badge badge-{{ match($driver->active_order->status) { 'IN_TRANSIT' => 'warning', 'ARRIVED' => 'success', 'LOADED' => 'info', default => 'primary' } }}">{{ str_replace('_', ' ', $driver->active_order->status) }}</span></td>
                     <td>{{ $driver->active_order->customer->user->name ?? '-' }}</td>
@@ -103,7 +105,7 @@
             <div class="table-responsive"><table><thead><tr><th>Driver</th><th>Phone</th><th>Last Known Location</th><th>Last Active</th><th class="text-right">Actions</th></tr></thead><tbody>
             @foreach($idleDrivers as $driver)
                 <tr>
-                    <td class="font-semibold">{{ $driver->name }}</td>
+                    <td><div style="display:flex; align-items:center; gap:0.5rem;"><span class="driver-list-avatar" data-driver-id="{{ $driver->id }}">{{ strtoupper(substr($driver->name, 0, 1)) }}</span><span class="font-semibold">{{ $driver->name }}</span></div></td>
                     <td>@if($driver->phone)<a href="tel:{{ $driver->phone }}">{{ $driver->phone }}</a>@else<span class="text-muted">-</span>@endif</td>
                     <td>@if($driver->last_location)<small>{{ number_format($driver->last_location->lat, 5) }}, {{ number_format($driver->last_location->lng, 5) }}</small>@else<span class="text-muted">Unknown</span>@endif</td>
                     <td>@if($driver->last_location){{ $driver->last_location->recorded_at->diffForHumans() }}@else<span class="text-muted">Never</span>@endif</td>
@@ -136,9 +138,44 @@ document.addEventListener('DOMContentLoaded', function() {
     window._driversMap = map;
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom:19, subdomains:'abcd' }).addTo(map);
 
+    // Unique color palette for drivers
+    var driverColors = [
+        '#f97316', '#3b82f6', '#22c55e', '#ef4444', '#a855f7',
+        '#eab308', '#ec4899', '#06b6d4', '#f43f5e', '#84cc16',
+        '#8b5cf6', '#14b8a6', '#f59e0b', '#6366f1', '#10b981',
+        '#e11d48', '#0ea5e9', '#d946ef', '#65a30d', '#0891b2',
+    ];
+    var driverColorMap = {};
+    var colorIndex = 0;
+
+    function getDriverColor(id) {
+        if (!driverColorMap[id]) {
+            driverColorMap[id] = driverColors[colorIndex % driverColors.length];
+            colorIndex++;
+        }
+        return driverColorMap[id];
+    }
+
     function ci(c, size) {
-        size = size || 14;
-        return L.divIcon({ className:'', html:'<div style="width:'+size+'px;height:'+size+'px;border-radius:50%;background:'+c+';border:3px solid rgba(255,255,255,0.8);box-shadow:0 0 12px '+c+',0 2px 6px rgba(0,0,0,0.4);"></div>', iconSize:[size,size], iconAnchor:[size/2,size/2], popupAnchor:[0,-size/2-4] });
+        size = size || 10;
+        return L.divIcon({ className:'', html:'<div style="width:'+size+'px;height:'+size+'px;border-radius:50%;background:'+c+';border:2px solid rgba(255,255,255,0.7);box-shadow:0 0 8px '+c+';"></div>', iconSize:[size,size], iconAnchor:[size/2,size/2], popupAnchor:[0,-size/2-4] });
+    }
+
+    // Create a driver avatar icon: colored ring with initial letter
+    function driverIcon(name, color, isActive) {
+        var letter = (name || '?').charAt(0).toUpperCase();
+        var size = 38;
+        var idleClass = isActive ? '' : ' idle';
+        var pulseHtml = isActive ? '<div class="driver-avatar-pulse" style="border-color:'+color+';"></div>' : '';
+        var html = '<div class="driver-avatar-marker'+idleClass+'" style="background:'+color+'; --marker-color:'+color+';">' +
+            pulseHtml + letter + '</div>';
+        return L.divIcon({
+            className: '',
+            html: html,
+            iconSize: [size, size],
+            iconAnchor: [size/2, size/2],
+            popupAnchor: [0, -size/2 - 6]
+        });
     }
 
     var b = L.latLngBounds();
@@ -162,9 +199,9 @@ document.addEventListener('DOMContentLoaded', function() {
         L.marker(ll, { icon: vendIcon }).bindPopup(p).addTo(map);
     });
 
-    // Driver markers (on top) — stored for live updates
-    var ai = ci('#22c55e'), ii = ci('#737373');
+    // Driver markers — stored for live updates
     var driverMarkers = {};
+    var legendEl = document.getElementById('map-legend');
 
     function renderDriverMarkers(driverList) {
         // Remove old driver markers
@@ -173,23 +210,58 @@ document.addEventListener('DOMContentLoaded', function() {
             delete driverMarkers[id];
         });
 
+        // Remove old driver legend items
+        document.querySelectorAll('.map-legend-driver').forEach(function(el) { el.remove(); });
+
         driverList.forEach(function(d) {
             var ll = L.latLng(d.lat, d.lng);
             b.extend(ll);
+            var color = getDriverColor(d.id);
             var sc = d.active ? 'active' : 'idle';
-            var p = '<div class="driver-popup-name">' + d.name + '</div>' +
+            var icon = driverIcon(d.name, color, d.active);
+
+            var p = '<div class="driver-popup-name" style="color:'+color+';">' + d.name + '</div>' +
                 '<span class="driver-popup-status driver-popup-status--' + sc + '">' + d.status + '</span><br>' +
                 (d.order ? '<div style="margin:4px 0;">Order: <a href="' + d.orderUrl + '">' + d.order + '</a></div>' : '') +
                 (d.speed > 0 ? '<div class="driver-popup-meta">' + d.speed + ' km/h</div>' : '') +
                 '<div class="driver-popup-meta">Updated ' + d.updated + '</div>' +
                 '<div style="margin-top:8px;"><a href="' + d.detailUrl + '">View details &rarr;</a></div>';
-            var marker = L.marker(ll, { icon: d.active ? ai : ii }).bindPopup(p).addTo(map);
+
+            var marker = L.marker(ll, { icon: icon, zIndexOffset: d.active ? 1000 : 0 }).bindPopup(p).addTo(map);
             driverMarkers[d.id] = marker;
+
+            // Add driver to legend
+            if (legendEl) {
+                var item = document.createElement('div');
+                item.className = 'map-legend-item map-legend-driver';
+                item.innerHTML = '<span class="map-legend-avatar" style="background:'+color+';">' +
+                    (d.name || '?').charAt(0).toUpperCase() + '</span> ' + d.name +
+                    (d.active ? '' : ' <small style="opacity:0.5;">(idle)</small>');
+                item.style.cursor = 'pointer';
+                item.addEventListener('click', function() {
+                    map.setView(ll, 15);
+                    marker.openPopup();
+                });
+                legendEl.appendChild(item);
+            }
         });
     }
 
     renderDriverMarkers(drivers);
     if (b.isValid()) map.fitBounds(b, { padding:[40,40], maxZoom:14 });
+
+    // Color-sync list avatars with map colors
+    function colorListAvatars() {
+        document.querySelectorAll('.driver-list-avatar').forEach(function(el) {
+            var id = el.dataset.driverId;
+            if (id && driverColorMap[id]) {
+                el.style.background = driverColorMap[id];
+                el.style.borderColor = 'rgba(255,255,255,0.8)';
+                el.style.boxShadow = '0 0 8px ' + driverColorMap[id];
+            }
+        });
+    }
+    colorListAvatars();
 
     // Live refresh driver positions via AJAX every 15 seconds
     var refreshUrl = "{{ route('admin.tracking.drivers.json') }}";
