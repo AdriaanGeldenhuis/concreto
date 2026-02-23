@@ -35,11 +35,9 @@ class TrackingController extends Controller
                 return $driver;
             });
 
-        // Separate drivers with active tracking from idle ones
         $activeDrivers = $drivers->filter(fn($d) => $d->active_order !== null);
         $idleDrivers = $drivers->filter(fn($d) => $d->active_order === null);
 
-        // Build map marker data for drivers with GPS
         $mapDrivers = $drivers->filter(fn($d) => $d->last_location !== null)->map(function ($d) {
             return [
                 'id'        => $d->id,
@@ -57,36 +55,28 @@ class TrackingController extends Controller
             ];
         })->values();
 
-        // Vendor locations with GPS for map markers (red) + distance reference
+        // Vendor locations with GPS
         $vendors = Vendor::where('is_active', true)
-            ->whereNotNull('gps_lat')
-            ->whereNotNull('gps_lng')
-            ->where('gps_lat', '!=', 0)
-            ->where('gps_lng', '!=', 0)
+            ->whereNotNull('gps_lat')->whereNotNull('gps_lng')
+            ->where('gps_lat', '!=', 0)->where('gps_lng', '!=', 0)
             ->get();
 
-        $mapVendors = $vendors->map(function ($v) {
-            return [
-                'name'    => $v->name,
-                'address' => $v->full_address,
-                'lat'     => (float) $v->gps_lat,
-                'lng'     => (float) $v->gps_lng,
-            ];
-        })->values();
+        $mapVendors = $vendors->map(fn($v) => [
+            'name'    => $v->name,
+            'address' => $v->full_address,
+            'lat'     => (float) $v->gps_lat,
+            'lng'     => (float) $v->gps_lng,
+        ])->values();
 
-        // Customer addresses with GPS
+        // Customer addresses with GPS + distance from nearest vendor
         $addresses = Address::with('customer.user')
-            ->whereNotNull('gps_lat')
-            ->whereNotNull('gps_lng')
-            ->where('gps_lat', '!=', 0)
-            ->where('gps_lng', '!=', 0)
+            ->whereNotNull('gps_lat')->whereNotNull('gps_lng')
+            ->where('gps_lat', '!=', 0)->where('gps_lng', '!=', 0)
             ->get();
 
-        // Calculate distance from nearest vendor for each address
         $mapCustomers = $addresses->map(function ($a) use ($vendors) {
             $name = $a->customer?->user?->name ?? 'Customer #' . $a->customer_id;
             $minDistance = null;
-
             foreach ($vendors as $v) {
                 $dist = $this->haversineDistance(
                     (float) $v->gps_lat, (float) $v->gps_lng,
@@ -96,7 +86,6 @@ class TrackingController extends Controller
                     $minDistance = $dist;
                 }
             }
-
             return [
                 'name'        => $name,
                 'label'       => $a->label,
@@ -117,7 +106,6 @@ class TrackingController extends Controller
             ['label' => '40 – 50 km', 'min' => 40, 'max' => 50, 'count' => 0],
             ['label' => '50+ km', 'min' => 50, 'max' => PHP_INT_MAX, 'count' => 0],
         ];
-
         foreach ($mapCustomers as $c) {
             if ($c['distance'] === null) continue;
             foreach ($distanceBands as &$band) {

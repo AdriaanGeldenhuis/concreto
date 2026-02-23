@@ -78,7 +78,7 @@
             <a href="{{ route('admin.vendors.index') }}" class="{{ request()->routeIs('admin.vendors*') ? 'active' : '' }}">&#128666; Vendors / Suppliers</a>
             <a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users*') ? 'active' : '' }}">&#9998; Users</a>
             <div class="sidebar-section">Tracking & Ops</div>
-            <a href="{{ route('admin.tracking.drivers') }}" class="{{ request()->routeIs('admin.tracking*') ? 'active' : '' }}">&#9737; Track Drivers</a>
+            <a href="{{ route('admin.tracking.drivers') }}" class="{{ request()->routeIs('admin.tracking*') ? 'active' : '' }}">&#9737; Tracking</a>
             <a href="{{ route('admin.ops.index') }}" class="{{ request()->routeIs('admin.ops*') ? 'active' : '' }}">&#9888; Operations Board</a>
             <a href="{{ route('admin.delivery-areas.index') }}" class="{{ request()->routeIs('admin.delivery-areas*') ? 'active' : '' }}">&#9873; Delivery Areas</a>
             <a href="{{ route('admin.drivers.index') }}" class="{{ request()->routeIs('admin.drivers*') ? 'active' : '' }}">&#128664; Driver Management</a>
