@@ -193,6 +193,9 @@ class CustomerController extends Controller
             'gps_lng' => 'nullable|numeric',
         ]);
 
+        if (!empty($data['gps_lat']) && !empty($data['gps_lng'])) {
+            $data['gps_pinned'] = true;
+        }
         $customer->addresses()->create($data);
 
         return back()->with('success', 'Delivery address added.');

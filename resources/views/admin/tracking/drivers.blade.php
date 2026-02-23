@@ -4,19 +4,10 @@
 @push('styles')
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet" />
 <style>
-    .tracking-tabs { display:flex; gap:0.25rem; margin-bottom:1.5rem; background:rgba(255,255,255,0.04); border-radius:var(--radius); padding:4px; border:1px solid var(--glass-border); width:fit-content; }
-    .tracking-tab { padding:0.55rem 1.25rem; border-radius:var(--radius-sm); font-size:0.8125rem; font-weight:600; cursor:pointer; color:var(--text-muted); background:transparent; border:none; transition:all var(--transition-fast); display:flex; align-items:center; gap:0.5rem; }
-    .tracking-tab:hover { color:var(--text); background:rgba(255,255,255,0.05); }
-    .tracking-tab.active { color:#fff; background:var(--primary); box-shadow:0 2px 8px rgba(249,115,22,0.3); }
-    .tracking-tab svg { width:16px; height:16px; }
-    .tab-pane { display:none; }
-    .tab-pane.active { display:block; }
     #drivers-map { width:100%; height:520px; border-radius:var(--radius); border:1px solid var(--glass-border); background:var(--card); }
     .map-legend { display:flex; gap:1.25rem; padding:0.75rem 1rem; margin-top:0.75rem; background:rgba(255,255,255,0.03); border-radius:var(--radius-sm); border:1px solid var(--glass-border); font-size:0.75rem; color:var(--text-muted); flex-wrap:wrap; }
     .map-legend-item { display:flex; align-items:center; gap:0.4rem; }
     .map-legend-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; border:2px solid rgba(255,255,255,0.3); }
-    .map-legend-dot--customer { background:#4ade80; }
-    .map-legend-dot--vendor { background:#ef4444; }
     .driver-avatar-marker { width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:16px; color:#fff; border:3px solid rgba(255,255,255,0.9); box-shadow:0 0 16px var(--marker-color), 0 2px 8px rgba(0,0,0,0.5); position:relative; text-transform:uppercase; font-family:system-ui,-apple-system,sans-serif; letter-spacing:-0.5px; }
     .driver-avatar-marker.idle { opacity:0.6; border-color:rgba(255,255,255,0.5); }
     .driver-avatar-pulse { position:absolute; top:-6px; left:-6px; right:-6px; bottom:-6px; border-radius:50%; border:2px solid; opacity:0.4; animation:driver-pulse 2s ease-out infinite; }
@@ -37,6 +28,25 @@
     .map-style-btn { padding:6px 12px; border:none; border-radius:var(--radius-sm); font-size:0.7rem; font-weight:600; cursor:pointer; color:rgba(255,255,255,0.7); background:transparent; transition:all 0.2s; text-transform:uppercase; letter-spacing:0.5px; }
     .map-style-btn:hover { color:#fff; background:rgba(255,255,255,0.1); }
     .map-style-btn.active { color:#fff; background:var(--primary); box-shadow:0 2px 8px rgba(249,115,22,0.3); }
+    .zone-toggle { position:absolute; top:10px; left:10px; z-index:2; display:flex; gap:4px; background:rgba(0,0,0,0.7); border-radius:var(--radius-sm); padding:4px; backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.1); }
+    .zone-toggle-btn { padding:6px 12px; border:none; border-radius:var(--radius-sm); font-size:0.7rem; font-weight:600; cursor:pointer; color:rgba(255,255,255,0.7); background:transparent; transition:all 0.2s; }
+    .zone-toggle-btn:hover { color:#fff; background:rgba(255,255,255,0.1); }
+    .zone-toggle-btn.active { color:#fff; background:rgba(255,255,255,0.15); }
+    .client-marker { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:11px; color:#000; border:3px solid rgba(255,255,255,0.9); box-shadow:0 0 12px var(--marker-glow), 0 2px 8px rgba(0,0,0,0.5); position:relative; text-transform:uppercase; font-family:system-ui,-apple-system,sans-serif; letter-spacing:-0.5px; cursor:pointer; transition:transform 0.15s; }
+    .client-marker:hover { transform:scale(1.15); }
+    .client-popup-distance { display:inline-block; padding:2px 8px; border-radius:100px; font-size:0.6875rem; font-weight:700; margin:4px 0; }
+    .tab-pane { display:none; }
+    .tab-pane.active { display:block; }
+    .tracking-tabs { display:flex; gap:0.25rem; margin-bottom:1rem; background:rgba(255,255,255,0.04); border-radius:var(--radius); padding:4px; border:1px solid var(--glass-border); width:fit-content; }
+    .tracking-tab { padding:0.55rem 1.25rem; border-radius:var(--radius-sm); font-size:0.8125rem; font-weight:600; cursor:pointer; color:var(--text-muted); background:transparent; border:none; transition:all var(--transition-fast); display:flex; align-items:center; gap:0.5rem; }
+    .tracking-tab:hover { color:var(--text); background:rgba(255,255,255,0.05); }
+    .tracking-tab.active { color:#fff; background:var(--primary); box-shadow:0 2px 8px rgba(249,115,22,0.3); }
+    .tracking-tab svg { width:16px; height:16px; }
+    .distance-band-bar { display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; }
+    .distance-band-color { width:14px; height:14px; border-radius:3px; flex-shrink:0; }
+    .distance-band-label { font-size:0.75rem; color:var(--text-muted); min-width:70px; }
+    .distance-band-count { font-size:0.8rem; font-weight:700; min-width:28px; text-align:right; }
+    .distance-band-fill { height:18px; border-radius:3px; min-width:2px; transition:width 0.4s ease; }
 </style>
 @endpush
 
@@ -64,31 +74,89 @@
     <div class="card"><div class="card-body" style="padding:0.75rem; text-align:center;"><h6 class="text-muted mb-0" style="font-size:0.7rem; text-transform:uppercase;">On Delivery</h6><h3 class="mb-0" style="margin-top:0.25rem; color:var(--success, #27ae60);">{{ $activeDrivers->count() }}</h3></div></div>
     <div class="card"><div class="card-body" style="padding:0.75rem; text-align:center;"><h6 class="text-muted mb-0" style="font-size:0.7rem; text-transform:uppercase;">Idle</h6><h3 class="mb-0" style="margin-top:0.25rem;">{{ $idleDrivers->count() }}</h3></div></div>
     <div class="card"><div class="card-body" style="padding:0.75rem; text-align:center;"><h6 class="text-muted mb-0" style="font-size:0.7rem; text-transform:uppercase;">With GPS</h6><h3 class="mb-0" style="margin-top:0.25rem;">{{ $mapDrivers->count() }}</h3></div></div>
-    <div class="card"><div class="card-body" style="padding:0.75rem; text-align:center;"><h6 class="text-muted mb-0" style="font-size:0.7rem; text-transform:uppercase;">No GPS</h6>@php $noGps = $activeDrivers->count() + $idleDrivers->count() - $mapDrivers->count(); @endphp<h3 class="mb-0" style="margin-top:0.25rem; {{ $noGps > 0 ? 'color:var(--danger, #e74c3c);' : '' }}">{{ $noGps }}</h3></div></div>
+    <div class="card"><div class="card-body" style="padding:0.75rem; text-align:center;"><h6 class="text-muted mb-0" style="font-size:0.7rem; text-transform:uppercase;">Client Pins</h6><h3 class="mb-0" style="margin-top:0.25rem; color:var(--warning, #f39c12);">{{ $mapCustomers->count() }}</h3></div></div>
 </div>
 
-<div class="tracking-tabs" style="margin-bottom:0.5rem;">
-    <button class="tracking-tab active" style="pointer-events:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg> Drivers</button>
-    <a href="{{ route('admin.tracking.clients') }}" class="tracking-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Clients</a>
-</div>
 <div class="tracking-tabs">
     <button class="tracking-tab active" data-tab="map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg> Map</button>
     <button class="tracking-tab" data-tab="list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg> List</button>
 </div>
 
 <div class="tab-pane active" id="tab-map">
-    <div class="card">
-        <div class="card-header"><span>Driver Locations</span><span class="text-muted" style="font-size:0.75rem;">{{ $activeDrivers->count() }} active &middot; {{ $idleDrivers->count() }} idle</span></div>
-        <div class="card-body" style="padding:0.75rem; position:relative;">
-            <div class="map-style-toggle">
-                <button class="map-style-btn active" data-style="streets">Streets</button>
-                <button class="map-style-btn" data-style="satellite">Satellite</button>
-                <button class="map-style-btn" data-style="terrain">Terrain</button>
+    <div class="form-row" style="align-items:flex-start;">
+        <div style="flex:3;">
+            <div class="card">
+                <div class="card-header"><span>All Locations</span><span class="text-muted" style="font-size:0.75rem;">{{ $activeDrivers->count() }} active &middot; {{ $idleDrivers->count() }} idle &middot; {{ $mapCustomers->count() }} clients</span></div>
+                <div class="card-body" style="padding:0.75rem; position:relative;">
+                    <div class="map-style-toggle">
+                        <button class="map-style-btn active" data-style="streets">Streets</button>
+                        <button class="map-style-btn" data-style="satellite">Satellite</button>
+                        <button class="map-style-btn" data-style="terrain">Terrain</button>
+                    </div>
+                    <div class="zone-toggle">
+                        <button class="zone-toggle-btn" id="toggle-zones">Distance Zones</button>
+                    </div>
+                    <div id="drivers-map"></div>
+                    <div class="map-legend" id="map-legend">
+                        <div class="map-legend-item"><span class="map-legend-avatar" style="background:#ef4444; font-size:9px;">V</span> Vendor</div>
+                        <div class="map-legend-item"><span class="map-legend-dot" style="background:#FFD600;"></span> 0-10 km</div>
+                        <div class="map-legend-item"><span class="map-legend-dot" style="background:#FFC000;"></span> 10-20</div>
+                        <div class="map-legend-item"><span class="map-legend-dot" style="background:#FFA000;"></span> 20-30</div>
+                        <div class="map-legend-item"><span class="map-legend-dot" style="background:#FF7A00;"></span> 30-40</div>
+                        <div class="map-legend-item"><span class="map-legend-dot" style="background:#FF5200;"></span> 40-50</div>
+                        <div class="map-legend-item"><span class="map-legend-dot" style="background:#E63900;"></span> 50+</div>
+                    </div>
+                </div>
             </div>
-            <div id="drivers-map"></div>
-            <div class="map-legend" id="map-legend">
-                <div class="map-legend-item"><span class="map-legend-avatar" style="background:#4ade80; font-size:9px;">C</span> Customer</div>
-                <div class="map-legend-item"><span class="map-legend-avatar" style="background:#ef4444; font-size:9px;">V</span> Vendor</div>
+        </div>
+        <div style="flex:1; min-width:220px;">
+            <div class="card">
+                <div class="card-header">Client Distance</div>
+                <div class="card-body" style="padding:1rem;">
+                    @php
+                        $bandColors = ['#FFD600', '#FFC000', '#FFA000', '#FF7A00', '#FF5200', '#E63900'];
+                        $maxCount = max(array_column($distanceBands, 'count')) ?: 1;
+                    @endphp
+                    @foreach($distanceBands as $i => $band)
+                        <div class="distance-band-bar">
+                            <span class="distance-band-color" style="background:{{ $bandColors[$i] }};"></span>
+                            <span class="distance-band-label">{{ $band['label'] }}</span>
+                            <span class="distance-band-count">{{ $band['count'] }}</span>
+                            <div style="flex:1;">
+                                <div class="distance-band-fill" style="background:{{ $bandColors[$i] }}; width:{{ ($band['count'] / $maxCount) * 100 }}%; opacity:0.7;"></div>
+                            </div>
+                        </div>
+                    @endforeach
+                    <hr style="border-color:rgba(255,255,255,0.06); margin:0.75rem 0;">
+                    <div style="font-size:0.7rem; color:var(--text-muted);">
+                        Distance from nearest depot. Only manually pinned addresses shown.
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">Filter Clients</div>
+                <div class="card-body" style="padding:0.75rem;">
+                    <div style="display:flex; flex-direction:column; gap:0.35rem;">
+                        <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.8rem; cursor:pointer;">
+                            <input type="checkbox" class="distance-filter" value="0-10" checked> <span class="distance-band-color" style="background:#FFD600; display:inline-block;"></span> 0-10 km
+                        </label>
+                        <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.8rem; cursor:pointer;">
+                            <input type="checkbox" class="distance-filter" value="10-20" checked> <span class="distance-band-color" style="background:#FFC000; display:inline-block;"></span> 10-20 km
+                        </label>
+                        <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.8rem; cursor:pointer;">
+                            <input type="checkbox" class="distance-filter" value="20-30" checked> <span class="distance-band-color" style="background:#FFA000; display:inline-block;"></span> 20-30 km
+                        </label>
+                        <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.8rem; cursor:pointer;">
+                            <input type="checkbox" class="distance-filter" value="30-40" checked> <span class="distance-band-color" style="background:#FF7A00; display:inline-block;"></span> 30-40 km
+                        </label>
+                        <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.8rem; cursor:pointer;">
+                            <input type="checkbox" class="distance-filter" value="40-50" checked> <span class="distance-band-color" style="background:#FF5200; display:inline-block;"></span> 40-50 km
+                        </label>
+                        <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.8rem; cursor:pointer;">
+                            <input type="checkbox" class="distance-filter" value="50+" checked> <span class="distance-band-color" style="background:#E63900; display:inline-block;"></span> 50+ km
+                        </label>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -142,7 +210,7 @@
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Tab switching
+    // Tab switching (Map / List)
     document.querySelectorAll('.tracking-tab').forEach(function(btn) {
         btn.addEventListener('click', function() {
             document.querySelectorAll('.tracking-tab').forEach(function(t) { t.classList.remove('active'); });
@@ -185,6 +253,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('.map-style-btn').forEach(function(b) { b.classList.remove('active'); });
             btn.classList.add('active');
             map.setStyle(mapStyles[btn.dataset.style]);
+            map.once('style.load', function() { if (zonesVisible) addZoneLayers(); });
         });
     });
 
@@ -206,47 +275,97 @@ document.addEventListener('DOMContentLoaded', function() {
         return driverColorMap[id];
     }
 
-    // Store markers and popups for cleanup
+    // Distance band colors
+    var distanceBands = [
+        { min: 0,  max: 10, color: '#FFD600' },
+        { min: 10, max: 20, color: '#FFC000' },
+        { min: 20, max: 30, color: '#FFA000' },
+        { min: 30, max: 40, color: '#FF7A00' },
+        { min: 40, max: 50, color: '#FF5200' },
+        { min: 50, max: 99999, color: '#E63900' }
+    ];
+
+    function getDistanceBandColor(distance) {
+        if (distance === null) return '#E63900';
+        for (var i = 0; i < distanceBands.length; i++) {
+            if (distance >= distanceBands[i].min && distance < distanceBands[i].max) {
+                return distanceBands[i].color;
+            }
+        }
+        return '#E63900';
+    }
+
+    function getDistanceBandLabel(distance) {
+        if (distance === null) return 'Unknown';
+        if (distance < 10) return '0-10 km';
+        if (distance < 20) return '10-20 km';
+        if (distance < 30) return '20-30 km';
+        if (distance < 40) return '30-40 km';
+        if (distance < 50) return '40-50 km';
+        return '50+ km';
+    }
+
+    function getFilterKey(distance) {
+        if (distance === null) return '50+';
+        if (distance < 10) return '0-10';
+        if (distance < 20) return '10-20';
+        if (distance < 30) return '20-30';
+        if (distance < 40) return '30-40';
+        if (distance < 50) return '40-50';
+        return '50+';
+    }
+
+    // Store markers for cleanup
     var driverMarkers = {};
     var customerMarkers = [];
     var vendorMarkers = [];
     var legendEl = document.getElementById('map-legend');
     var bounds = new mapboxgl.LngLatBounds();
+    var zonesVisible = false;
 
-    // Helper to get initials from a name (up to 2 chars)
     function getInitials(name) {
         var parts = (name || '?').trim().split(/\s+/);
         if (parts.length >= 2) return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
         return parts[0].charAt(0).toUpperCase();
     }
 
-    // Customer markers - green avatar pins
-    customers.forEach(function(c) {
-        bounds.extend([c.lng, c.lat]);
-        var initials = getInitials(c.name);
-        var el = document.createElement('div');
-        el.innerHTML = '<div class="driver-avatar-marker" style="background:#4ade80; --marker-color:#4ade80; width:32px; height:32px; font-size:' + (initials.length > 1 ? '11' : '14') + 'px;">' + initials + '</div>';
-        el.style.cursor = 'pointer';
-        var popup = new mapboxgl.Popup({ offset: 20, closeButton: true })
-            .setHTML('<div class="driver-popup-name" style="color:#4ade80;">&#9786; ' + c.name + '</div>' +
-                (c.label ? '<div class="driver-popup-meta" style="margin-bottom:4px;"><strong>' + c.label + '</strong></div>' : '') +
-                '<div class="driver-popup-meta">' + c.address + '</div>');
-        var marker = new mapboxgl.Marker({ element: el, anchor: 'center' }).setLngLat([c.lng, c.lat]).setPopup(popup).addTo(map);
-        customerMarkers.push(marker);
-    });
-
     // Vendor markers - red avatar pins
     vendors.forEach(function(v) {
         bounds.extend([v.lng, v.lat]);
         var initials = getInitials(v.name);
         var el = document.createElement('div');
-        el.innerHTML = '<div class="driver-avatar-marker" style="background:#ef4444; --marker-color:#ef4444; width:32px; height:32px; font-size:' + (initials.length > 1 ? '11' : '14') + 'px;">' + initials + '</div>';
+        el.innerHTML = '<div class="driver-avatar-marker" style="background:#ef4444; --marker-color:#ef4444; width:34px; height:34px; font-size:' + (initials.length > 1 ? '11' : '14') + 'px;">' + initials + '</div>';
         el.style.cursor = 'pointer';
         var popup = new mapboxgl.Popup({ offset: 20, closeButton: true })
             .setHTML('<div class="driver-popup-name" style="color:#ef4444;">&#128666; ' + v.name + '</div>' +
-                '<div class="driver-popup-meta">' + v.address + '</div>');
+                '<div class="driver-popup-meta">' + v.address + '</div>' +
+                '<div class="driver-popup-meta" style="margin-top:4px; font-weight:600;">Depot / Vendor</div>');
         var marker = new mapboxgl.Marker({ element: el, anchor: 'center' }).setLngLat([v.lng, v.lat]).setPopup(popup).addTo(map);
         vendorMarkers.push(marker);
+    });
+
+    // Customer markers - distance-colored pins
+    customers.forEach(function(c) {
+        bounds.extend([c.lng, c.lat]);
+        var bandColor = getDistanceBandColor(c.distance);
+        var bandLabel = getDistanceBandLabel(c.distance);
+        var initials = getInitials(c.name);
+        var el = document.createElement('div');
+        el.innerHTML = '<div class="client-marker" style="background:' + bandColor + '; --marker-glow:' + bandColor + ';">' + initials + '</div>';
+
+        var distLabel = c.distance !== null ? c.distance.toFixed(1) + ' km' : 'Unknown';
+        var popup = new mapboxgl.Popup({ offset: 20, closeButton: true })
+            .setHTML(
+                '<div class="driver-popup-name">' + c.name + '</div>' +
+                (c.label ? '<div class="driver-popup-meta" style="margin-bottom:4px;"><strong>' + c.label + '</strong></div>' : '') +
+                '<div class="client-popup-distance" style="background:' + bandColor + '; color:#000;">' + distLabel + ' &middot; ' + bandLabel + '</div>' +
+                '<div class="driver-popup-meta">' + c.address + '</div>' +
+                '<div style="margin-top:8px;"><a href="' + c.customerUrl + '">View customer &rarr;</a></div>'
+            );
+
+        var marker = new mapboxgl.Marker({ element: el, anchor: 'center' }).setLngLat([c.lng, c.lat]).setPopup(popup).addTo(map);
+        marker._distanceFilter = getFilterKey(c.distance);
+        customerMarkers.push(marker);
     });
 
     function renderDriverMarkers(driverList) {
@@ -320,6 +439,68 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     colorListAvatars();
+
+    // Distance zone circles around vendors
+    function createGeoJSONCircle(center, radiusKm, points) {
+        points = points || 64;
+        var coords = { latitude: center[1], longitude: center[0] };
+        var ret = [];
+        var distanceX = radiusKm / (111.32 * Math.cos(coords.latitude * Math.PI / 180));
+        var distanceY = radiusKm / 110.574;
+        for (var i = 0; i < points; i++) {
+            var theta = (i / points) * (2 * Math.PI);
+            ret.push([coords.longitude + distanceX * Math.cos(theta), coords.latitude + distanceY * Math.sin(theta)]);
+        }
+        ret.push(ret[0]);
+        return { type: 'Feature', geometry: { type: 'Polygon', coordinates: [ret] } };
+    }
+
+    function addZoneLayers() {
+        var zoneRadii = [50, 40, 30, 20, 10];
+        var zoneColors = ['#E63900', '#FF5200', '#FF7A00', '#FFA000', '#FFC000'];
+        vendors.forEach(function(v, vi) {
+            zoneRadii.forEach(function(radius, ri) {
+                var circleId = 'zone-' + vi + '-' + radius;
+                var circleData = createGeoJSONCircle([v.lng, v.lat], radius);
+                if (map.getSource(circleId)) {
+                    map.getSource(circleId).setData(circleData);
+                } else {
+                    map.addSource(circleId, { type: 'geojson', data: circleData });
+                    map.addLayer({ id: circleId + '-fill', type: 'fill', source: circleId, paint: { 'fill-color': zoneColors[ri], 'fill-opacity': 0.06 } });
+                    map.addLayer({ id: circleId + '-line', type: 'line', source: circleId, paint: { 'line-color': zoneColors[ri], 'line-width': 1.5, 'line-opacity': 0.35, 'line-dasharray': [3, 2] } });
+                }
+            });
+        });
+    }
+
+    function removeZoneLayers() {
+        vendors.forEach(function(v, vi) {
+            [50, 40, 30, 20, 10].forEach(function(radius) {
+                var circleId = 'zone-' + vi + '-' + radius;
+                if (map.getLayer(circleId + '-fill')) map.removeLayer(circleId + '-fill');
+                if (map.getLayer(circleId + '-line')) map.removeLayer(circleId + '-line');
+                if (map.getSource(circleId)) map.removeSource(circleId);
+            });
+        });
+    }
+
+    // Toggle distance zones
+    document.getElementById('toggle-zones').addEventListener('click', function() {
+        this.classList.toggle('active');
+        zonesVisible = !zonesVisible;
+        if (zonesVisible) { addZoneLayers(); } else { removeZoneLayers(); }
+    });
+
+    // Filter clients by distance band
+    document.querySelectorAll('.distance-filter').forEach(function(cb) {
+        cb.addEventListener('change', function() {
+            var activeFilters = [];
+            document.querySelectorAll('.distance-filter:checked').forEach(function(el) { activeFilters.push(el.value); });
+            customerMarkers.forEach(function(marker) {
+                marker.getElement().style.display = activeFilters.indexOf(marker._distanceFilter) !== -1 ? '' : 'none';
+            });
+        });
+    });
 
     // Live refresh driver positions via AJAX every 15 seconds
     var refreshUrl = "{{ route('admin.tracking.drivers.json') }}";

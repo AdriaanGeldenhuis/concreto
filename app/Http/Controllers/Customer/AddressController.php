@@ -28,7 +28,11 @@ class AddressController extends Controller
         ]);
 
         $customer = $request->user()->customer;
-        $address = $customer->addresses()->create($request->all());
+        $data = $request->all();
+        if (!empty($data['gps_lat']) && !empty($data['gps_lng'])) {
+            $data['gps_pinned'] = true;
+        }
+        $address = $customer->addresses()->create($data);
 
         if (!$customer->default_address_id) {
             $customer->update(['default_address_id' => $address->id]);
