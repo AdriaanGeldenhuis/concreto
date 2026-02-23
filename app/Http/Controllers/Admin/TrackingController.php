@@ -74,9 +74,8 @@ class TrackingController extends Controller
             ];
         })->values();
 
-        // Customer addresses - only show manually pinned addresses
+        // Customer addresses with GPS
         $addresses = Address::with('customer.user')
-            ->where('gps_pinned', true)
             ->whereNotNull('gps_lat')
             ->whereNotNull('gps_lng')
             ->where('gps_lat', '!=', 0)
