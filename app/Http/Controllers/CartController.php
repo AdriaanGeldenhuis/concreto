@@ -205,7 +205,11 @@ class CartController extends Controller
         ]);
 
         $customer = $this->getOrCreateCustomer($request);
-        $address = $customer->addresses()->create($request->only(['label', 'line1', 'line2', 'city', 'province', 'postal_code', 'gps_lat', 'gps_lng']));
+        $data = $request->only(['label', 'line1', 'line2', 'city', 'province', 'postal_code', 'gps_lat', 'gps_lng']);
+        if (!empty($data['gps_lat']) && !empty($data['gps_lng'])) {
+            $data['gps_pinned'] = true;
+        }
+        $address = $customer->addresses()->create($data);
 
         if (!$customer->default_address_id) {
             $customer->update(['default_address_id' => $address->id]);

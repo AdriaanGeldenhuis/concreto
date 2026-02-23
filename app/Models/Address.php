@@ -19,6 +19,7 @@ class Address extends Model
         'postal_code',
         'gps_lat',
         'gps_lng',
+        'gps_pinned',
     ];
 
     protected function casts(): array
@@ -26,6 +27,7 @@ class Address extends Model
         return [
             'gps_lat' => 'decimal:7',
             'gps_lng' => 'decimal:7',
+            'gps_pinned' => 'boolean',
         ];
     }
 
