@@ -68,7 +68,7 @@ class TrackingController extends Controller
             'lng'     => (float) $v->gps_lng,
         ])->values();
 
-        // Customer addresses with GPS + distance from nearest vendor
+        // Customer delivery addresses with GPS + distance from nearest vendor
         $addresses = Address::with('customer.user')
             ->whereNotNull('gps_lat')->whereNotNull('gps_lng')
             ->where('gps_lat', '!=', 0)->where('gps_lng', '!=', 0)
@@ -95,7 +95,41 @@ class TrackingController extends Controller
                 'distance'    => $minDistance !== null ? round($minDistance, 1) : null,
                 'customerUrl' => route('admin.customers.show', $a->customer_id),
             ];
-        })->values();
+        });
+
+        // Also include company addresses with GPS (from Company Details form)
+        $seenCustomerIds = $addresses->pluck('customer_id')->unique()->toArray();
+        $companyCustomers = \App\Models\Customer::with('user', 'company')
+            ->whereHas('company', function ($q) {
+                $q->whereNotNull('gps_lat')->whereNotNull('gps_lng')
+                  ->where('gps_lat', '!=', 0)->where('gps_lng', '!=', 0);
+            })->get();
+
+        $companyMarkers = $companyCustomers->map(function ($cust) use ($vendors) {
+            $co = $cust->company;
+            $name = $cust->user?->name ?? 'Customer #' . $cust->id;
+            $minDistance = null;
+            foreach ($vendors as $v) {
+                $dist = $this->haversineDistance(
+                    (float) $v->gps_lat, (float) $v->gps_lng,
+                    (float) $co->gps_lat, (float) $co->gps_lng
+                );
+                if ($minDistance === null || $dist < $minDistance) {
+                    $minDistance = $dist;
+                }
+            }
+            return [
+                'name'        => $name,
+                'label'       => $co->display_name ?: 'Company',
+                'address'     => $co->full_address,
+                'lat'         => (float) $co->gps_lat,
+                'lng'         => (float) $co->gps_lng,
+                'distance'    => $minDistance !== null ? round($minDistance, 1) : null,
+                'customerUrl' => route('admin.customers.show', $cust->id),
+            ];
+        });
+
+        $mapCustomers = $mapCustomers->concat($companyMarkers)->values();
 
         // Distance band stats
         $distanceBands = [
