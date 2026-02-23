@@ -160,6 +160,109 @@ class TrackingController extends Controller
         return view('admin.tracking.driver-detail', compact('driver', 'activeOrders', 'recentLocations', 'todayDeliveries'));
     }
 
+    public function clients()
+    {
+        // Vendor locations as reference points for distance calculation
+        $vendors = Vendor::where('is_active', true)
+            ->whereNotNull('gps_lat')
+            ->whereNotNull('gps_lng')
+            ->where('gps_lat', '!=', 0)
+            ->where('gps_lng', '!=', 0)
+            ->get();
+
+        $mapVendors = $vendors->map(function ($v) {
+            return [
+                'name'    => $v->name,
+                'address' => $v->full_address,
+                'lat'     => (float) $v->gps_lat,
+                'lng'     => (float) $v->gps_lng,
+            ];
+        })->values();
+
+        // Customer addresses with GPS
+        $addresses = Address::with('customer.user')
+            ->whereNotNull('gps_lat')
+            ->whereNotNull('gps_lng')
+            ->where('gps_lat', '!=', 0)
+            ->where('gps_lng', '!=', 0)
+            ->whereHas('customer.user', fn($q) => $q->where('is_active', true))
+            ->get();
+
+        // Calculate distance from nearest vendor for each address
+        $mapClients = $addresses->map(function ($a) use ($vendors) {
+            $name = $a->customer->user->name ?? 'Customer #' . $a->customer_id;
+            $minDistance = null;
+
+            foreach ($vendors as $v) {
+                $dist = $this->haversineDistance(
+                    (float) $v->gps_lat, (float) $v->gps_lng,
+                    (float) $a->gps_lat, (float) $a->gps_lng
+                );
+                if ($minDistance === null || $dist < $minDistance) {
+                    $minDistance = $dist;
+                }
+            }
+
+            return [
+                'name'       => $name,
+                'label'      => $a->label,
+                'address'    => $a->full_address,
+                'lat'        => (float) $a->gps_lat,
+                'lng'        => (float) $a->gps_lng,
+                'distance'   => $minDistance !== null ? round($minDistance, 1) : null,
+                'customerId' => $a->customer_id,
+                'customerUrl' => route('admin.customers.show', $a->customer_id),
+            ];
+        })->values();
+
+        // Distance band stats
+        $distanceBands = [
+            ['label' => '0 – 10 km', 'min' => 0, 'max' => 10, 'count' => 0],
+            ['label' => '10 – 20 km', 'min' => 10, 'max' => 20, 'count' => 0],
+            ['label' => '20 – 30 km', 'min' => 20, 'max' => 30, 'count' => 0],
+            ['label' => '30 – 40 km', 'min' => 30, 'max' => 40, 'count' => 0],
+            ['label' => '40 – 50 km', 'min' => 40, 'max' => 50, 'count' => 0],
+            ['label' => '50+ km', 'min' => 50, 'max' => PHP_INT_MAX, 'count' => 0],
+        ];
+
+        foreach ($mapClients as $c) {
+            if ($c['distance'] === null) continue;
+            foreach ($distanceBands as &$band) {
+                if ($c['distance'] >= $band['min'] && $c['distance'] < $band['max']) {
+                    $band['count']++;
+                    break;
+                }
+            }
+        }
+
+        $totalWithGps = $mapClients->count();
+        $totalWithoutGps = Address::whereHas('customer.user', fn($q) => $q->where('is_active', true))
+            ->where(function ($q) {
+                $q->whereNull('gps_lat')->orWhereNull('gps_lng')->orWhere('gps_lat', 0)->orWhere('gps_lng', 0);
+            })->count();
+
+        return view('admin.tracking.clients', compact(
+            'mapClients', 'mapVendors', 'distanceBands', 'totalWithGps', 'totalWithoutGps'
+        ));
+    }
+
+    /**
+     * Calculate distance between two GPS points using the Haversine formula.
+     * Returns distance in kilometers.
+     */
+    private function haversineDistance(float $lat1, float $lng1, float $lat2, float $lng2): float
+    {
+        $earthRadius = 6371; // km
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLng = deg2rad($lng2 - $lng1);
+        $a = sin($dLat / 2) * sin($dLat / 2)
+            + cos(deg2rad($lat1)) * cos(deg2rad($lat2))
+            * sin($dLng / 2) * sin($dLng / 2);
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+        return $earthRadius * $c;
+    }
+
     public function orderTracking(Order $order)
     {
         $order->load('customer.user', 'driver', 'deliveryAddress', 'driverLocations');
