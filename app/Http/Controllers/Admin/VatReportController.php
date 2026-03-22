@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Helpers\CsvHelper;
 use Illuminate\Http\Request;
 
 class VatReportController extends Controller
@@ -91,6 +92,7 @@ class VatReportController extends Controller
 
         return response()->stream(function () use ($fromDate, $toDate) {
             $handle = fopen('php://output', 'w');
+            CsvHelper::writeBom($handle);
 
             // Header
             fputcsv($handle, ['VAT Report - Output VAT']);
@@ -136,7 +138,7 @@ class VatReportController extends Controller
                 ->orderBy('updated_at')
                 ->chunk(200, function ($orders) use ($handle) {
                     foreach ($orders as $order) {
-                        fputcsv($handle, [
+                        CsvHelper::safePutCsv($handle, [
                             $order->updated_at->format('Y-m-d'),
                             $order->order_number,
                             $order->invoice?->invoice_no ?? '-',

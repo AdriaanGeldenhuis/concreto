@@ -13,18 +13,22 @@ class VehicleController extends Controller
     public function index()
     {
         $vehicles = Vehicle::withCount('dieselLogs')
+            ->withSum('dieselLogs as total_diesel_cost', 'total_cost')
+            ->withSum('dieselLogs as total_litres', 'litres')
             ->orderBy('is_active', 'desc')
             ->orderBy('registration')
-            ->get()
-            ->map(function ($vehicle) {
-                $vehicle->total_diesel_cost = DieselLog::where('vehicle_id', $vehicle->id)->sum('total_cost');
-                $vehicle->total_litres = DieselLog::where('vehicle_id', $vehicle->id)->sum('litres');
-                $vehicle->month_diesel_cost = DieselLog::where('vehicle_id', $vehicle->id)
-                    ->whereMonth('fill_date', now()->month)
-                    ->whereYear('fill_date', now()->year)
-                    ->sum('total_cost');
-                return $vehicle;
-            });
+            ->get();
+
+        // Calculate month diesel cost with a single query for all vehicles
+        $monthCosts = DieselLog::selectRaw('vehicle_id, SUM(total_cost) as cost')
+            ->whereMonth('fill_date', now()->month)
+            ->whereYear('fill_date', now()->year)
+            ->groupBy('vehicle_id')
+            ->pluck('cost', 'vehicle_id');
+
+        $vehicles->each(function ($vehicle) use ($monthCosts) {
+            $vehicle->month_diesel_cost = $monthCosts[$vehicle->id] ?? 0;
+        });
 
         return view('admin.vehicles.index', compact('vehicles'));
     }
@@ -89,6 +93,11 @@ class VehicleController extends Controller
 
     public function destroy(Vehicle $vehicle)
     {
+        if ($vehicle->dieselLogs()->exists()) {
+            return redirect()->route('admin.vehicles.index')
+                ->with('error', 'Cannot delete vehicle with diesel log records. Deactivate it instead.');
+        }
+
         AuditLog::log('deleted_vehicle', 'Vehicle', $vehicle->id);
         $vehicle->delete();
 

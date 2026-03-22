@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
+use App\Helpers\CsvHelper;
 use Illuminate\Http\Request;
 
 class ExpenseController extends Controller
@@ -159,10 +160,11 @@ class ExpenseController extends Controller
 
         return response()->stream(function () use ($expenses) {
             $handle = fopen('php://output', 'w');
+            CsvHelper::writeBom($handle);
             fputcsv($handle, ['Date', 'Category', 'Description', 'Amount', 'VAT', 'Total', 'Supplier', 'Reference', 'Recurring', 'Notes']);
 
             foreach ($expenses as $exp) {
-                fputcsv($handle, [
+                CsvHelper::safePutCsv($handle, [
                     $exp->expense_date->format('Y-m-d'),
                     $exp->category?->name ?? '-',
                     $exp->description,

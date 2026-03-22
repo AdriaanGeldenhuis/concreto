@@ -11,6 +11,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Models\User;
+use App\Helpers\CsvHelper;
 use Illuminate\Http\Request;
 
 class ProfitLossController extends Controller
@@ -216,6 +217,7 @@ class ProfitLossController extends Controller
 
         return response()->stream(function () use ($from, $to, $fromDate, $toDate) {
             $handle = fopen('php://output', 'w');
+            CsvHelper::writeBom($handle);
 
             fputcsv($handle, ['Profit & Loss Statement']);
             fputcsv($handle, ["Period: {$from} to {$to}"]);
@@ -269,7 +271,7 @@ class ProfitLossController extends Controller
                 };
                 if ($config->bonus_per_delivery) $pay += $dels * (float) $config->bonus_per_delivery;
                 $totalWages += round($pay, 2);
-                fputcsv($handle, ["  Driver: {$driver->name}", round($pay, 2)]);
+                CsvHelper::safePutCsv($handle, ["  Driver: {$driver->name}", round($pay, 2)]);
             }
             fputcsv($handle, ['Total Driver Wages', $totalWages]);
 
@@ -290,7 +292,7 @@ class ProfitLossController extends Controller
 
             $totalExpenses = 0;
             foreach ($expensesByCategory as $ec) {
-                fputcsv($handle, ["  Expense: {$ec->name}", $ec->total]);
+                CsvHelper::safePutCsv($handle, ["  Expense: {$ec->name}", $ec->total]);
                 $totalExpenses += (float) $ec->total;
             }
             fputcsv($handle, ['Total General Expenses', $totalExpenses]);

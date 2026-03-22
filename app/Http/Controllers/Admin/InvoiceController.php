@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Services\InvoiceService;
+use App\Helpers\CsvHelper;
 use Illuminate\Http\Request;
 
 class InvoiceController extends Controller
@@ -119,6 +120,7 @@ class InvoiceController extends Controller
 
         return response()->stream(function () use ($query) {
             $handle = fopen('php://output', 'w');
+            CsvHelper::writeBom($handle);
             fputcsv($handle, [
                 'Invoice No', 'Date', 'Order No', 'Customer', 'Email',
                 'Subtotal', 'VAT', 'Delivery Fee', 'Discount', 'Total',
@@ -138,7 +140,7 @@ class InvoiceController extends Controller
                     elseif ($totalPaid > 0) $status = 'partial';
                     if ($status !== 'paid' && $order?->updated_at?->lt(now()->subDays(30))) $status = 'overdue';
 
-                    fputcsv($handle, [
+                    CsvHelper::safePutCsv($handle, [
                         $invoice->invoice_no,
                         $invoice->created_at->format('Y-m-d'),
                         $order?->order_number ?? '-',

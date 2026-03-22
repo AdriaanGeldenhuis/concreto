@@ -8,6 +8,7 @@ use App\Models\Company;
 use App\Models\Customer;
 use App\Models\Order;
 use Illuminate\Http\Request;
+use App\Helpers\CsvHelper;
 use Illuminate\Support\Facades\DB;
 
 class CustomerController extends Controller
@@ -243,10 +244,11 @@ class CustomerController extends Controller
 
         $callback = function () use ($customers) {
             $file = fopen('php://output', 'w');
+            CsvHelper::writeBom($file);
             fputcsv($file, ['Name', 'Email', 'Phone', 'Company', 'VAT Number', 'Type', 'Credit Limit', 'Payment Terms', 'Outstanding Balance', 'Customer Since']);
 
             foreach ($customers as $c) {
-                fputcsv($file, [
+                CsvHelper::safePutCsv($file, [
                     $c->user->name ?? '',
                     $c->user->email ?? '',
                     $c->user->phone ?? '',

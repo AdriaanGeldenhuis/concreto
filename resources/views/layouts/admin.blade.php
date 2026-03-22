@@ -159,6 +159,26 @@
         });
     })();
     </script>
+    <script>
+    // Prevent double-submit on all forms
+    document.querySelectorAll('form').forEach(function(form) {
+        form.addEventListener('submit', function() {
+            var btn = form.querySelector('button[type="submit"], input[type="submit"]');
+            if (btn && !btn.disabled) {
+                btn.disabled = true;
+                if (btn.tagName === 'BUTTON') {
+                    btn.dataset.originalText = btn.textContent;
+                    btn.textContent = 'Processing\u2026';
+                }
+                // Re-enable after 10s as safety net (e.g. validation errors that don't redirect)
+                setTimeout(function() {
+                    btn.disabled = false;
+                    if (btn.dataset.originalText) btn.textContent = btn.dataset.originalText;
+                }, 10000);
+            }
+        });
+    });
+    </script>
     @stack('scripts')
 </body>
 </html>

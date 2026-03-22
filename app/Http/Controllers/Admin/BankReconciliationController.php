@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\BankAccount;
 use App\Models\BankTransaction;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Services\BankReconciliationService;
+use App\Helpers\CsvHelper;
 use Illuminate\Http\Request;
 
 class BankReconciliationController extends Controller
@@ -95,12 +97,18 @@ class BankReconciliationController extends Controller
             $request->notes,
         );
 
+        AuditLog::log('matched_transaction', 'BankTransaction', $bankTransaction->id, [
+            'payment_id' => $request->payment_id,
+            'invoice_id' => $request->invoice_id,
+        ]);
+
         return back()->with('success', 'Transaction matched successfully.');
     }
 
     public function unmatch(BankTransaction $bankTransaction)
     {
         $this->reconciliationService->unmatch($bankTransaction);
+        AuditLog::log('unmatched_transaction', 'BankTransaction', $bankTransaction->id);
 
         return back()->with('success', 'Match removed. Transaction is now unmatched.');
     }
@@ -118,6 +126,10 @@ class BankReconciliationController extends Controller
             auth()->user()->name,
             $request->notes,
         );
+
+        AuditLog::log('excluded_transaction', 'BankTransaction', $bankTransaction->id, [
+            'category' => $request->category,
+        ]);
 
         return back()->with('success', 'Transaction excluded from reconciliation.');
     }
@@ -161,6 +173,11 @@ class BankReconciliationController extends Controller
             auth()->user()->name,
             'Payment created from bank transaction',
         );
+
+        AuditLog::log('created_payment_from_transaction', 'Payment', $payment->id, [
+            'bank_transaction_id' => $bankTransaction->id,
+            'amount' => abs($bankTransaction->amount),
+        ]);
 
         return back()->with('success', 'Payment created and matched.');
     }
@@ -221,9 +238,10 @@ class BankReconciliationController extends Controller
 
         return response()->stream(function () use ($statement, $from, $to) {
             $handle = fopen('php://output', 'w');
+            CsvHelper::writeBom($handle);
 
             fputcsv($handle, ['Bank Reconciliation Statement']);
-            fputcsv($handle, ['Account: ' . $statement['account']->account_name]);
+            CsvHelper::safePutCsv($handle, ['Account: ' . $statement['account']->account_name]);
             fputcsv($handle, ['Period: ' . $from . ' to ' . $to]);
             fputcsv($handle, []);
 

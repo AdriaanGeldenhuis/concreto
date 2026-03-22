@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\BankAccount;
 use Illuminate\Http\Request;
 
@@ -56,6 +57,8 @@ class BankAccountController extends Controller
             'is_primary' => $validated['is_primary'] ?? false,
         ]);
 
+        AuditLog::log('created', 'BankAccount', $account->id, ['name' => $account->account_name]);
+
         return redirect()->route('admin.bank-accounts.index')
             ->with('success', "Bank account '{$account->account_name}' created.");
     }
@@ -98,13 +101,21 @@ class BankAccountController extends Controller
             'is_active' => $validated['is_active'] ?? true,
         ]);
 
+        AuditLog::log('updated', 'BankAccount', $bankAccount->id, ['name' => $bankAccount->account_name]);
+
         return redirect()->route('admin.bank-accounts.index')
             ->with('success', "Bank account '{$bankAccount->account_name}' updated.");
     }
 
     public function destroy(BankAccount $bankAccount)
     {
+        if ($bankAccount->transactions()->exists()) {
+            return redirect()->route('admin.bank-accounts.index')
+                ->with('error', "Cannot delete bank account with imported transactions. Deactivate it instead.");
+        }
+
         $name = $bankAccount->account_name;
+        AuditLog::log('deleted', 'BankAccount', $bankAccount->id, ['name' => $name]);
         $bankAccount->delete();
 
         return redirect()->route('admin.bank-accounts.index')

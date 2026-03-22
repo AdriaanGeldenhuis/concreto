@@ -10,6 +10,7 @@ use App\Models\Order;
 use App\Models\Payment;
 use App\Services\InvoiceService;
 use Illuminate\Http\Request;
+use App\Helpers\CsvHelper;
 use Illuminate\Support\Facades\Mail;
 
 class AccountsReceivableController extends Controller
@@ -29,16 +30,18 @@ class AccountsReceivableController extends Controller
             });
         }
 
-        $customers = $query->orderBy('created_at', 'desc')->get();
+        $customers = $query->orderBy('created_at', 'desc')
+            ->with(['orders' => function ($q) {
+                $q->where('status', 'DELIVERED')
+                    ->whereDoesntHave('payments', fn($q2) => $q2->where('status', 'completed'))
+                    ->with('invoice')
+                    ->orderBy('updated_at', 'asc');
+            }])
+            ->get();
 
-        // Build AR data for each customer
+        // Build AR data for each customer (orders already eager-loaded)
         $arData = $customers->map(function ($customer) {
-            $unpaidOrders = $customer->orders()
-                ->where('status', 'DELIVERED')
-                ->whereDoesntHave('payments', fn($q) => $q->where('status', 'completed'))
-                ->with('invoice')
-                ->orderBy('updated_at', 'asc')
-                ->get();
+            $unpaidOrders = $customer->orders;
 
             $outstandingBalance = $unpaidOrders->sum('total');
 
@@ -164,7 +167,10 @@ class AccountsReceivableController extends Controller
 
     public function export(Request $request)
     {
-        $customers = Customer::with(['user', 'company'])
+        $customers = Customer::with(['user', 'company', 'orders' => function ($q) {
+                $q->where('status', 'DELIVERED')
+                    ->whereDoesntHave('payments', fn($q2) => $q2->where('status', 'completed'));
+            }])
             ->where('type', 'ACCOUNT')
             ->get();
 
@@ -176,6 +182,7 @@ class AccountsReceivableController extends Controller
 
         return response()->stream(function () use ($customers) {
             $handle = fopen('php://output', 'w');
+            CsvHelper::writeBom($handle);
             fputcsv($handle, [
                 'Customer', 'Email', 'Company', 'Type', 'Credit Limit',
                 'Outstanding Balance', 'Available Credit', 'Unpaid Invoices',
@@ -183,10 +190,7 @@ class AccountsReceivableController extends Controller
             ]);
 
             foreach ($customers as $customer) {
-                $unpaidOrders = $customer->orders()
-                    ->where('status', 'DELIVERED')
-                    ->whereDoesntHave('payments', fn($q) => $q->where('status', 'completed'))
-                    ->get();
+                $unpaidOrders = $customer->orders;
 
                 $outstanding = $unpaidOrders->sum('total');
                 $oldest = $unpaidOrders->sortBy('updated_at')->first();
@@ -201,7 +205,7 @@ class AccountsReceivableController extends Controller
                     else $current += (float) $order->total;
                 }
 
-                fputcsv($handle, [
+                CsvHelper::safePutCsv($handle, [
                     $customer->user->name,
                     $customer->user->email,
                     $customer->company?->name ?? '-',

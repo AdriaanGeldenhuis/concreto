@@ -66,6 +66,10 @@ class CategoryController extends Controller
 
     public function destroy(Category $category)
     {
+        if ($category->products()->exists()) {
+            return back()->with('error', 'Cannot delete category with associated products. Remove or reassign products first.');
+        }
+
         AuditLog::log('deleted', 'Category', $category->id, ['name' => $category->name]);
         $category->delete();
         return back()->with('success', 'Category deleted.');

@@ -12,6 +12,8 @@ use App\Models\Setting;
 use App\Services\OrderService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use App\Helpers\CsvHelper;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
@@ -66,26 +68,31 @@ class QuoteController extends Controller
             'items.*.unit_price' => 'required|numeric|min:0',
         ]);
 
-        $quote = Quote::create([
-            'customer_id' => $request->customer_id,
-            'quote_number' => Quote::generateQuoteNumber(),
-            'status' => 'draft',
-            'expires_at' => $request->expires_at,
-            'notes' => $request->notes,
-        ]);
-
-        foreach ($request->items as $item) {
-            $lineTotal = round($item['qty'] * $item['unit_price'], 2);
-            QuoteItem::create([
-                'quote_id' => $quote->id,
-                'product_id' => $item['product_id'],
-                'qty' => $item['qty'],
-                'unit_price' => $item['unit_price'],
-                'line_total' => $lineTotal,
+        $quote = DB::transaction(function () use ($request) {
+            $quote = Quote::create([
+                'customer_id' => $request->customer_id,
+                'quote_number' => Quote::generateQuoteNumber(),
+                'status' => 'draft',
+                'expires_at' => $request->expires_at,
+                'notes' => $request->notes,
             ]);
-        }
 
-        $quote->calculateTotals();
+            foreach ($request->items as $item) {
+                $lineTotal = round($item['qty'] * $item['unit_price'], 2);
+                QuoteItem::create([
+                    'quote_id' => $quote->id,
+                    'product_id' => $item['product_id'],
+                    'qty' => $item['qty'],
+                    'unit_price' => $item['unit_price'],
+                    'line_total' => $lineTotal,
+                ]);
+            }
+
+            $quote->calculateTotals();
+
+            return $quote;
+        });
+
         AuditLog::log('created', 'Quote', $quote->id);
 
         return redirect()->route('admin.quotes.show', $quote)->with('success', "Quote {$quote->quote_number} created.");
@@ -197,11 +204,12 @@ class QuoteController extends Controller
 
         return response()->stream(function () use ($query) {
             $handle = fopen('php://output', 'w');
+            CsvHelper::writeBom($handle);
             fputcsv($handle, ['Quote #', 'Customer', 'Email', 'Status', 'Subtotal', 'VAT', 'Total', 'Expires', 'Created']);
 
             $query->orderBy('created_at', 'desc')->chunk(200, function ($quotes) use ($handle) {
                 foreach ($quotes as $quote) {
-                    fputcsv($handle, [
+                    CsvHelper::safePutCsv($handle, [
                         $quote->quote_number ?? 'Q-' . $quote->id,
                         $quote->customer?->user?->name ?? '-',
                         $quote->customer?->user?->email ?? '-',
@@ -248,26 +256,29 @@ class QuoteController extends Controller
             'items.*.unit_price' => 'required|numeric|min:0',
         ]);
 
-        $quote->update([
-            'customer_id' => $request->customer_id,
-            'expires_at' => $request->expires_at,
-            'notes' => $request->notes,
-        ]);
-
-        // Replace all items
-        $quote->items()->delete();
-        foreach ($request->items as $item) {
-            $lineTotal = round($item['qty'] * $item['unit_price'], 2);
-            QuoteItem::create([
-                'quote_id' => $quote->id,
-                'product_id' => $item['product_id'],
-                'qty' => $item['qty'],
-                'unit_price' => $item['unit_price'],
-                'line_total' => $lineTotal,
+        DB::transaction(function () use ($request, $quote) {
+            $quote->update([
+                'customer_id' => $request->customer_id,
+                'expires_at' => $request->expires_at,
+                'notes' => $request->notes,
             ]);
-        }
 
-        $quote->calculateTotals();
+            // Replace all items
+            $quote->items()->delete();
+            foreach ($request->items as $item) {
+                $lineTotal = round($item['qty'] * $item['unit_price'], 2);
+                QuoteItem::create([
+                    'quote_id' => $quote->id,
+                    'product_id' => $item['product_id'],
+                    'qty' => $item['qty'],
+                    'unit_price' => $item['unit_price'],
+                    'line_total' => $lineTotal,
+                ]);
+            }
+
+            $quote->calculateTotals();
+        });
+
         AuditLog::log('updated', 'Quote', $quote->id);
 
         return redirect()->route('admin.quotes.show', $quote)->with('success', 'Quote updated.');
