@@ -16,6 +16,12 @@ class ReportController extends Controller
 {
     public function index(Request $request)
     {
+        $request->validate([
+            'from' => 'nullable|date',
+            'to' => 'nullable|date',
+            'period' => 'nullable|integer|min:1|max:365',
+        ]);
+
         $period = $request->input('period', '30');
         $from = now()->subDays((int) $period)->startOfDay();
         $to = now()->endOfDay();
@@ -100,6 +106,12 @@ class ReportController extends Controller
 
     public function export(Request $request)
     {
+        $request->validate([
+            'from' => 'nullable|date',
+            'to' => 'nullable|date',
+            'type' => 'required|in:orders,products,customers',
+        ]);
+
         $from = $request->input('from', now()->subDays(30)->format('Y-m-d'));
         $to = $request->input('to', now()->format('Y-m-d'));
         $type = $request->input('type', 'orders');
@@ -164,19 +176,20 @@ class ReportController extends Controller
                 $handle = fopen('php://output', 'w');
                 fputcsv($handle, ['Name', 'Email', 'Phone', 'Type', 'Credit Limit', 'Total Orders', 'Total Spent']);
 
-                Customer::with('user')->get()->each(function ($c) use ($handle) {
-                    $totalOrders = $c->orders()->count();
-                    $totalSpent = $c->orders()->where('status', 'DELIVERED')->sum('total');
-                    fputcsv($handle, [
-                        $c->user->name, $c->user->email, $c->user->phone,
-                        $c->type, $c->credit_limit, $totalOrders, $totalSpent,
-                    ]);
+                Customer::with('user')->chunk(200, function ($customers) use ($handle) {
+                    foreach ($customers as $c) {
+                        $totalOrders = $c->orders()->count();
+                        $totalSpent = $c->orders()->where('status', 'DELIVERED')->sum('total');
+                        fputcsv($handle, [
+                            $c->user->name, $c->user->email, $c->user->phone,
+                            $c->type, $c->credit_limit, $totalOrders, $totalSpent,
+                        ]);
+                    }
                 });
 
                 fclose($handle);
             }, 200, $headers);
         }
 
-        abort(404);
     }
 }

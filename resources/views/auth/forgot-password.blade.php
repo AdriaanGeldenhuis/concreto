@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - {{ $siteSettings['company_name'] ?? 'Concreto' }}</title>
+    <title>Forgot Password - {{ $siteSettings['company_name'] ?? 'Concreto' }}</title>
     <link rel="stylesheet" href="/css/app.css">
     @if(isset($siteSettings))
     <style>
@@ -19,13 +19,9 @@
         <div class="auth-card">
             <div class="logo">
                 <img src="/assets/logo/concreto.webp" alt="Concreto">
-                <h2>Welcome Back</h2>
-                <p class="text-muted text-small">Sign in to your account</p>
+                <h2>Reset Password</h2>
+                <p class="text-muted text-small">Enter your email and we'll send you a reset link</p>
             </div>
-
-            @if(session('error'))
-                <div class="alert alert-danger">{{ session('error') }}</div>
-            @endif
 
             @if(session('success'))
                 <div class="alert alert-success">{{ session('success') }}</div>
@@ -35,30 +31,19 @@
                 <div class="alert alert-danger">{{ $errors->first() }}</div>
             @endif
 
-            <form method="POST" action="{{ route('login') }}{{ request('redirect') ? '?redirect=' . urlencode(request('redirect')) : '' }}">
+            <form method="POST" action="{{ route('password.email') }}">
                 @csrf
                 <div class="form-group">
                     <label class="form-label">Email Address</label>
                     <input type="email" name="email" class="form-control" value="{{ old('email') }}" required autofocus placeholder="you@example.com">
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Password</label>
-                    <input type="password" name="password" class="form-control" required placeholder="Enter your password">
-                </div>
-                <div class="form-check mb-3" style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <input type="checkbox" name="remember" id="remember">
-                        <label for="remember" class="text-small">Remember me</label>
-                    </div>
-                    <a href="{{ route('password.request') }}" class="text-small">Forgot password?</a>
-                </div>
-                <button type="submit" class="btn btn-primary btn-block btn-lg">Sign In</button>
+                <button type="submit" class="btn btn-primary btn-block btn-lg">Send Reset Link</button>
             </form>
 
             <div class="divider"></div>
 
             <p class="text-center text-small text-muted mb-0">
-                Don't have an account? <a href="{{ route('register') }}">Create one</a>
+                Remember your password? <a href="{{ route('login') }}">Sign in</a>
             </p>
         </div>
     </div>

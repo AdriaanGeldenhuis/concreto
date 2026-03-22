@@ -19,6 +19,13 @@ class DashboardController extends Controller
         $from = null;
         $to = now()->endOfDay();
 
+        if ($range === 'custom') {
+            $request->validate([
+                'from' => 'nullable|date',
+                'to' => 'nullable|date',
+            ]);
+        }
+
         switch ($range) {
             case '7d':
                 $from = now()->subDays(7)->startOfDay();
@@ -91,21 +98,17 @@ class DashboardController extends Controller
             ]);
         }
 
-        // Active drivers with last known location
+        // Active drivers with last known location (eager loaded to avoid N+1)
         $activeDrivers = User::where('role', 'driver')
             ->where('is_active', true)
+            ->with([
+                'driverLocations' => fn($q) => $q->orderBy('recorded_at', 'desc')->limit(1),
+                'driverOrders' => fn($q) => $q->whereIn('status', ['ASSIGNED', 'ACCEPTED', 'LOADED', 'IN_TRANSIT', 'ARRIVED'])->with('customer.user', 'deliveryAddress'),
+            ])
             ->get()
-            ->map(function ($driver) {
-                $lastLocation = $driver->driverLocations()
-                    ->orderBy('recorded_at', 'desc')
-                    ->first();
-                $activeOrder = $driver->driverOrders()
-                    ->whereIn('status', ['ASSIGNED', 'ACCEPTED', 'LOADED', 'IN_TRANSIT', 'ARRIVED'])
-                    ->with('customer.user', 'deliveryAddress')
-                    ->first();
-                $driver->last_location = $lastLocation;
-                $driver->active_order = $activeOrder;
-                return $driver;
+            ->each(function ($driver) {
+                $driver->last_location = $driver->driverLocations->first();
+                $driver->active_order = $driver->driverOrders->first();
             });
 
         // Bank reconciliation stats

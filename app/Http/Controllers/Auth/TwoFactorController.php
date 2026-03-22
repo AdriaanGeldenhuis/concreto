@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 
 class TwoFactorController extends Controller
@@ -47,7 +48,7 @@ class TwoFactorController extends Controller
             return back()->with('error', 'Code has expired. A new code has been sent.');
         }
 
-        if ($request->code !== $sessionCode) {
+        if (!Hash::check($request->code, $sessionCode)) {
             return back()->with('error', 'Invalid verification code.');
         }
 
@@ -77,7 +78,7 @@ class TwoFactorController extends Controller
         $user = $request->user();
         $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
-        $request->session()->put('two_factor_code', $code);
+        $request->session()->put('two_factor_code', Hash::make($code));
         $request->session()->put('two_factor_expires_at', now()->addMinutes(10)->timestamp);
 
         try {

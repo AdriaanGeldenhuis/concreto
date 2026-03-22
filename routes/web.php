@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\Customer;
@@ -64,6 +66,10 @@ Route::middleware(['guest', 'throttle:login'])->group(function () {
     Route::post('/login', [LoginController::class, 'login']);
     Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
     Route::post('/register', [RegisterController::class, 'register']);
+    Route::get('/forgot-password', [ForgotPasswordController::class, 'showForm'])->name('password.request');
+    Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink'])->name('password.email');
+    Route::get('/reset-password/{token}', [ResetPasswordController::class, 'showForm'])->name('password.reset');
+    Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->name('password.update');
 });
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
 
@@ -154,12 +160,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff', 
     Route::post('/orders/{order}/assign-driver', [Admin\OrderController::class, 'assignDriver'])->name('orders.assign-driver');
     Route::post('/orders/{order}/status', [Admin\OrderController::class, 'updateStatus'])->name('orders.update-status');
     Route::post('/orders/{order}/cancel', [Admin\OrderController::class, 'cancel'])->name('orders.cancel');
-    Route::post('/orders/{order}/force-status', [Admin\OrderController::class, 'forceStatus'])->name('orders.force-status');
-    Route::post('/orders/{order}/resend-invoice', [Admin\OrderController::class, 'resendInvoice'])->name('orders.resend-invoice');
-    Route::post('/orders/{order}/record-payment', [Admin\OrderController::class, 'recordPayment'])->name('orders.record-payment');
-    Route::post('/orders/{order}/refund', [Admin\OrderController::class, 'refund'])->name('orders.refund');
-    Route::post('/orders/bulk-assign-driver', [Admin\OrderController::class, 'bulkAssignDriver'])->name('orders.bulk-assign-driver');
-    Route::post('/orders/bulk-update-status', [Admin\OrderController::class, 'bulkUpdateStatus'])->name('orders.bulk-update-status');
+    Route::post('/orders/{order}/force-status', [Admin\OrderController::class, 'forceStatus'])->name('orders.force-status')->middleware('throttle:admin-action');
+    Route::post('/orders/{order}/resend-invoice', [Admin\OrderController::class, 'resendInvoice'])->name('orders.resend-invoice')->middleware('throttle:admin-action');
+    Route::post('/orders/{order}/record-payment', [Admin\OrderController::class, 'recordPayment'])->name('orders.record-payment')->middleware('throttle:admin-action');
+    Route::post('/orders/{order}/refund', [Admin\OrderController::class, 'refund'])->name('orders.refund')->middleware('throttle:admin-action');
+    Route::post('/orders/bulk-assign-driver', [Admin\OrderController::class, 'bulkAssignDriver'])->name('orders.bulk-assign-driver')->middleware('throttle:admin-action');
+    Route::post('/orders/bulk-update-status', [Admin\OrderController::class, 'bulkUpdateStatus'])->name('orders.bulk-update-status')->middleware('throttle:admin-action');
 
     Route::get('/products/export', [Admin\ProductController::class, 'export'])->name('products.export');
     Route::resource('products', Admin\ProductController::class);

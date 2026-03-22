@@ -27,6 +27,9 @@ return Application::configure(basePath: dirname(__DIR__))
             RateLimiter::for('tracking', function (Request $request) {
                 return Limit::perMinute(30)->by($request->user()?->id ?: $request->ip());
             });
+            RateLimiter::for('admin-action', function (Request $request) {
+                return Limit::perMinute(30)->by($request->user()?->id ?: $request->ip());
+            });
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
@@ -35,6 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'staff.permission' => \App\Http\Middleware\StaffPermissionMiddleware::class,
         ]);
         $middleware->web(append: [
+            \App\Http\Middleware\SecurityHeaders::class,
             \App\Http\Middleware\InjectSettings::class,
             \App\Http\Middleware\RequestLogger::class,
             \App\Http\Middleware\TwoFactorMiddleware::class,
@@ -48,5 +52,11 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\HttpException $e, Request $request) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $e->getMessage() ?: 'An error occurred.',
+                ], $e->getStatusCode());
+            }
+        });
     })->create();
