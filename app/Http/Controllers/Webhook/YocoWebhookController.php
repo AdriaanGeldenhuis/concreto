@@ -7,6 +7,7 @@ use App\Models\AuditLog;
 use App\Models\Payment;
 use App\Models\PaymentEvent;
 use App\Services\NotificationService;
+use App\Services\OrderService;
 use App\Services\YocoService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -17,6 +18,7 @@ class YocoWebhookController extends Controller
     public function __construct(
         private YocoService $yocoService,
         private NotificationService $notificationService,
+        private OrderService $orderService,
     ) {}
 
     public function handle(Request $request)
@@ -123,7 +125,7 @@ class YocoWebhookController extends Controller
             ]);
 
             if ($payment->order && $payment->order->status === 'PENDING_PAYMENT') {
-                $payment->order->update(['status' => 'PLACED']);
+                $this->orderService->updateStatus($payment->order, 'PLACED', 'Payment completed via Yoco');
 
                 AuditLog::log('payment_completed', 'Order', $payment->order->id, [
                     'amount' => $payment->amount,

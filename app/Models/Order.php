@@ -14,7 +14,6 @@ class Order extends Model
     public const STATUSES = [
         'DRAFT',
         'PENDING_PAYMENT',
-        'PAID',
         'PLACED',
         'ASSIGNED',
         'ACCEPTED',
@@ -30,15 +29,14 @@ class Order extends Model
     public const ALLOWED_TRANSITIONS = [
         'DRAFT'              => ['PENDING_PAYMENT', 'PLACED', 'CANCELLED'],
         'PENDING_PAYMENT'    => ['PLACED', 'CANCELLED'],
-        'PAID'               => ['PLACED', 'CANCELLED'],
         'PLACED'             => ['ASSIGNED', 'CANCELLED'],
         'ASSIGNED'           => ['ACCEPTED', 'PLACED', 'CANCELLED'],
         'ACCEPTED'           => ['LOADED', 'CANCELLED'],
         'LOADED'             => ['IN_TRANSIT', 'CANCELLED'],
-        'IN_TRANSIT'         => ['ARRIVED', 'CANCELLED'],
-        'ARRIVED'            => ['DELIVERED', 'CANCELLED'],
-        'DELIVERED'          => [],
+        'IN_TRANSIT'         => ['ARRIVED', 'DELIVERED', 'CANCELLED'],
+        'ARRIVED'            => ['DELIVERED', 'DELIVERED_PENDING_SIGNATURE', 'CANCELLED'],
         'DELIVERED_PENDING_SIGNATURE' => ['DELIVERED', 'CANCELLED'],
+        'DELIVERED'          => [],
         'CANCELLED'          => ['REFUNDED'],
         'REFUNDED'           => [],
     ];
@@ -146,6 +144,7 @@ class Order extends Model
         $prefix = 'CON';
         $date = now()->format('Ymd');
         $latest = static::where('order_number', 'like', "{$prefix}-{$date}-%")
+            ->lockForUpdate()
             ->orderBy('order_number', 'desc')
             ->value('order_number');
 
