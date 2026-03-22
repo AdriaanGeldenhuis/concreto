@@ -26,7 +26,10 @@ class OrderService
                 }
             }
 
-            // Check credit limit for ACCOUNT customers
+            // Calculate delivery fee server-side if address is provided
+            $deliveryFee = $this->calculateDeliveryFee($data['delivery_address_id'] ?? null);
+
+            // Check credit limit for ACCOUNT customers (after delivery fee is known)
             if ($customer->isAccount() && $customer->credit_limit > 0) {
                 // Estimate order total before creating
                 $estimatedSubtotal = 0;
@@ -36,7 +39,7 @@ class OrderService
                         $estimatedSubtotal += round($product->price * $item['qty'], 2);
                     }
                 }
-                $estimatedTotal = round($estimatedSubtotal * 1.15, 2); // Rough estimate with VAT
+                $estimatedTotal = round(($estimatedSubtotal * 1.15) + $deliveryFee, 2);
 
                 $availableCredit = $customer->available_credit;
                 if ($availableCredit !== null && $estimatedTotal > $availableCredit) {
@@ -48,9 +51,6 @@ class OrderService
                     );
                 }
             }
-
-            // Calculate delivery fee server-side if address is provided
-            $deliveryFee = $this->calculateDeliveryFee($data['delivery_address_id'] ?? null);
 
             $order = Order::create([
                 'customer_id' => $customer->id,
@@ -122,7 +122,7 @@ class OrderService
 
     public function assignDriver(Order $order, int $driverId): Order
     {
-        return DB::transaction(function () use ($order, $driverId) {
+        $order = DB::transaction(function () use ($order, $driverId) {
             $order = Order::lockForUpdate()->find($order->id);
 
             if (!$order->canTransitionTo('ASSIGNED')) {
@@ -142,6 +142,19 @@ class OrderService
 
             return $order->fresh();
         });
+
+        // Notify driver of assignment (outside transaction)
+        try {
+            $this->notificationService->driverAssigned($order);
+        } catch (\Exception $e) {
+            Log::warning('Failed to send driver assignment notification', [
+                'order_id' => $order->id,
+                'driver_id' => $driverId,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        return $order;
     }
 
     public function updateStatus(Order $order, string $status, ?string $reason = null): Order

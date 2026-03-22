@@ -148,6 +148,10 @@ class JobController extends Controller
                 'signed_at' => now(),
             ]);
 
+            if (!$order->canTransitionTo('DELIVERED')) {
+                return back()->with('error', "Cannot transition from '{$order->status}' to DELIVERED.");
+            }
+
             $order->update(['status' => 'DELIVERED']);
             AuditLog::log('delivered', 'Order', $order->id);
 

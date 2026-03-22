@@ -177,6 +177,10 @@ class DriverApiController extends Controller
                 'signed_at' => now(),
             ]);
 
+            if (!$order->canTransitionTo('DELIVERED')) {
+                return response()->json(['error' => "Cannot transition from '{$order->status}' to DELIVERED."], 422);
+            }
+
             $order->update(['status' => 'DELIVERED']);
             AuditLog::log('delivered', 'Order', $order->id);
 

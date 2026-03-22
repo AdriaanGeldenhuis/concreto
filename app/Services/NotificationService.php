@@ -183,6 +183,44 @@ class NotificationService
         ]);
     }
 
+    public function driverAssigned(Order $order): void
+    {
+        $order->load('customer.user', 'deliveryAddress', 'driver');
+        $driver = $order->driver;
+
+        if (!$driver) {
+            return;
+        }
+
+        // Push notification to driver
+        try {
+            $this->pushService->sendToUser(
+                $driver,
+                'New Delivery Assigned',
+                'Order ' . $order->order_number . ' — ' . ($order->deliveryAddress?->city ?? 'N/A'),
+                ['type' => 'driver_assigned', 'order_id' => $order->id]
+            );
+        } catch (\Exception $e) {
+            Log::warning('Failed to push to driver', [
+                'driver_id' => $driver->id,
+                'order_id' => $order->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        // In-app notification for driver
+        $driver->notifications()->create([
+            'id' => Str::uuid(),
+            'type' => 'driver_assigned',
+            'data' => json_encode([
+                'title' => 'New Delivery Assigned',
+                'body' => "Order {$order->order_number} assigned to you.",
+                'order_id' => $order->id,
+                'order_number' => $order->order_number,
+            ]),
+        ]);
+    }
+
     // ─── Vendor Notifications ─────────────────────────────────────────
 
     private function notifyVendors(Order $order): void

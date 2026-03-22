@@ -249,7 +249,7 @@ class OrderController extends Controller
 
             if ($order->status === 'PENDING_PAYMENT') {
                 $totalPaid = $order->payments()->where('status', 'completed')->sum('amount');
-                if ($totalPaid >= (float) $order->total) {
+                if ($totalPaid >= (float) $order->total && $order->canTransitionTo('PLACED')) {
                     $order->update(['status' => 'PLACED']);
                     AuditLog::log('payment_completed', 'Order', $order->id, [
                         'total_paid' => $totalPaid,
