@@ -54,6 +54,10 @@ class DeliveryAreaController extends Controller
 
     public function destroy(DeliveryArea $deliveryArea)
     {
+        if (\App\Models\Order::where('delivery_area_id', $deliveryArea->id)->exists()) {
+            return back()->with('error', 'Cannot delete delivery area with associated orders. Deactivate it instead.');
+        }
+
         AuditLog::log('deleted', 'DeliveryArea', $deliveryArea->id, $deliveryArea->toArray());
         $deliveryArea->delete();
 

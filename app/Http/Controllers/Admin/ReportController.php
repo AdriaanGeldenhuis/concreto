@@ -10,12 +10,19 @@ use App\Models\Payment;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Helpers\CsvHelper;
 use Illuminate\Support\Facades\DB;
 
 class ReportController extends Controller
 {
     public function index(Request $request)
     {
+        $request->validate([
+            'from' => 'nullable|date',
+            'to' => 'nullable|date',
+            'period' => 'nullable|integer|min:1|max:365',
+        ]);
+
         $period = $request->input('period', '30');
         $from = now()->subDays((int) $period)->startOfDay();
         $to = now()->endOfDay();
@@ -100,6 +107,12 @@ class ReportController extends Controller
 
     public function export(Request $request)
     {
+        $request->validate([
+            'from' => 'nullable|date',
+            'to' => 'nullable|date',
+            'type' => 'required|in:orders,products,customers',
+        ]);
+
         $from = $request->input('from', now()->subDays(30)->format('Y-m-d'));
         $to = $request->input('to', now()->format('Y-m-d'));
         $type = $request->input('type', 'orders');
@@ -113,6 +126,7 @@ class ReportController extends Controller
         if ($type === 'orders') {
             return response()->stream(function () use ($from, $to) {
                 $handle = fopen('php://output', 'w');
+                CsvHelper::writeBom($handle);
                 fputcsv($handle, ['Order #', 'Date', 'Customer', 'Email', 'Status', 'Subtotal', 'VAT', 'Delivery Fee', 'Discount', 'Total', 'Driver', 'Delivery Address']);
 
                 Order::with(['customer.user', 'driver', 'deliveryAddress'])
@@ -120,7 +134,7 @@ class ReportController extends Controller
                     ->orderBy('created_at', 'desc')
                     ->chunk(200, function ($orders) use ($handle) {
                         foreach ($orders as $order) {
-                            fputcsv($handle, [
+                            CsvHelper::safePutCsv($handle, [
                                 $order->order_number,
                                 $order->created_at->format('Y-m-d H:i'),
                                 $order->customer?->user?->name,
@@ -144,11 +158,12 @@ class ReportController extends Controller
         if ($type === 'products') {
             return response()->stream(function () {
                 $handle = fopen('php://output', 'w');
+                CsvHelper::writeBom($handle);
                 fputcsv($handle, ['Name', 'Category', 'Unit', 'Price (excl VAT)', 'Cost Price', 'Margin %', 'Stock Qty', 'Active', 'In Stock']);
 
                 Product::with('category')->orderBy('name')->chunk(200, function ($products) use ($handle) {
                     foreach ($products as $p) {
-                        fputcsv($handle, [
+                        CsvHelper::safePutCsv($handle, [
                             $p->name, $p->category?->name, $p->unit, $p->price, $p->cost_price,
                             $p->profit_margin, $p->stock_qty, $p->is_active ? 'Yes' : 'No', $p->in_stock ? 'Yes' : 'No',
                         ]);
@@ -162,21 +177,23 @@ class ReportController extends Controller
         if ($type === 'customers') {
             return response()->stream(function () {
                 $handle = fopen('php://output', 'w');
+                CsvHelper::writeBom($handle);
                 fputcsv($handle, ['Name', 'Email', 'Phone', 'Type', 'Credit Limit', 'Total Orders', 'Total Spent']);
 
-                Customer::with('user')->get()->each(function ($c) use ($handle) {
-                    $totalOrders = $c->orders()->count();
-                    $totalSpent = $c->orders()->where('status', 'DELIVERED')->sum('total');
-                    fputcsv($handle, [
-                        $c->user->name, $c->user->email, $c->user->phone,
-                        $c->type, $c->credit_limit, $totalOrders, $totalSpent,
-                    ]);
+                Customer::with('user')->chunk(200, function ($customers) use ($handle) {
+                    foreach ($customers as $c) {
+                        $totalOrders = $c->orders()->count();
+                        $totalSpent = $c->orders()->where('status', 'DELIVERED')->sum('total');
+                        CsvHelper::safePutCsv($handle, [
+                            $c->user->name, $c->user->email, $c->user->phone,
+                            $c->type, $c->credit_limit, $totalOrders, $totalSpent,
+                        ]);
+                    }
                 });
 
                 fclose($handle);
             }, 200, $headers);
         }
 
-        abort(404);
     }
 }

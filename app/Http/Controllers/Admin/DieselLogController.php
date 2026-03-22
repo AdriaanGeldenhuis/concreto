@@ -7,6 +7,7 @@ use App\Models\AuditLog;
 use App\Models\DieselLog;
 use App\Models\User;
 use App\Models\Vehicle;
+use App\Helpers\CsvHelper;
 use Illuminate\Http\Request;
 
 class DieselLogController extends Controller
@@ -159,10 +160,11 @@ class DieselLogController extends Controller
 
         return response()->stream(function () use ($logs) {
             $handle = fopen('php://output', 'w');
+            CsvHelper::writeBom($handle);
             fputcsv($handle, ['Date', 'Driver', 'Vehicle', 'Litres', 'Cost/L', 'Total', 'Odometer', 'Station', 'Reference', 'Full Tank', 'Notes']);
 
             foreach ($logs as $log) {
-                fputcsv($handle, [
+                CsvHelper::safePutCsv($handle, [
                     $log->fill_date->format('Y-m-d'),
                     $log->driver?->name ?? '-',
                     $log->vehicle?->registration ?? '-',

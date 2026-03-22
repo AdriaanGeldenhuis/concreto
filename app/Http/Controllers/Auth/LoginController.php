@@ -32,12 +32,25 @@ class LoginController extends Controller
         }
 
         if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
+            // Block inactive users
+            if (!Auth::user()->is_active) {
+                Auth::logout();
+                $request->session()->invalidate();
+                return back()->withErrors([
+                    'email' => 'Your account has been deactivated. Please contact your administrator.',
+                ])->withInput($request->only('email'));
+            }
+
             RateLimiter::clear($key);
             $request->session()->regenerate();
 
             // Redirect to intended URL if set (e.g. from cart checkout)
+            // Only allow local redirects to prevent open redirect attacks
             if ($request->has('redirect')) {
-                return redirect($request->input('redirect'));
+                $redirect = $request->input('redirect');
+                if (str_starts_with($redirect, '/') && !str_starts_with($redirect, '//')) {
+                    return redirect($redirect);
+                }
             }
 
             $user = Auth::user();

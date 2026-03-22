@@ -64,7 +64,8 @@ class BankImportController extends Controller
             'original_name' => 'required|string',
         ]);
 
-        $tempPath = $request->input('temp_path');
+        // Sanitize path to prevent directory traversal
+        $tempPath = 'temp-imports/' . basename($request->input('temp_path'));
         $fullPath = storage_path('app/private/' . $tempPath);
 
         if (!file_exists($fullPath)) {

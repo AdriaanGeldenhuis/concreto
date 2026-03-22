@@ -119,6 +119,10 @@ class PromoCodeController extends Controller
 
     public function destroy(PromoCode $promoCode)
     {
+        if ($promoCode->usage()->exists()) {
+            return back()->with('error', 'Cannot delete a promo code that has been used. Deactivate it instead.');
+        }
+
         AuditLog::log('deleted', 'PromoCode', $promoCode->id, ['code' => $promoCode->code]);
         $promoCode->delete();
         return back()->with('success', 'Promo code deleted.');

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\RecurringOrder;
+use App\Helpers\CsvHelper;
 use Illuminate\Http\Request;
 
 class RecurringOrderController extends Controller
@@ -119,12 +120,13 @@ class RecurringOrderController extends Controller
 
         return response()->stream(function () use ($query) {
             $handle = fopen('php://output', 'w');
+            CsvHelper::writeBom($handle);
             fputcsv($handle, ['Customer', 'Email', 'Template', 'Frequency', 'Next Run', 'Last Run', 'Status', 'Items', 'Delivery Address']);
 
             $query->chunk(200, function ($orders) use ($handle) {
                 foreach ($orders as $order) {
                     $itemCount = is_array($order->items) ? count($order->items) : 0;
-                    fputcsv($handle, [
+                    CsvHelper::safePutCsv($handle, [
                         $order->customer?->user?->name ?? '-',
                         $order->customer?->user?->email ?? '-',
                         $order->template?->name ?? '-',

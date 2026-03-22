@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\EmailLog;
 use App\Models\NotificationLog;
 use App\Models\PaymentEvent;
+use App\Helpers\CsvHelper;
 use Illuminate\Http\Request;
 
 class NotificationLogController extends Controller
@@ -99,12 +100,13 @@ class NotificationLogController extends Controller
 
         return response()->stream(function () use ($type, $request) {
             $handle = fopen('php://output', 'w');
+            CsvHelper::writeBom($handle);
 
             if ($type === 'notifications') {
                 fputcsv($handle, ['Date', 'Channel', 'Recipient', 'Subject', 'Template', 'Related', 'Status', 'Error', 'Attempts']);
                 NotificationLog::orderBy('created_at', 'desc')->chunk(200, function ($logs) use ($handle) {
                     foreach ($logs as $log) {
-                        fputcsv($handle, [
+                        CsvHelper::safePutCsv($handle, [
                             $log->created_at->format('Y-m-d H:i:s'),
                             $log->channel,
                             $log->recipient,
@@ -121,7 +123,7 @@ class NotificationLogController extends Controller
                 fputcsv($handle, ['Date', 'To', 'Subject', 'Template', 'Related', 'Status', 'Error']);
                 EmailLog::orderBy('created_at', 'desc')->chunk(200, function ($logs) use ($handle) {
                     foreach ($logs as $log) {
-                        fputcsv($handle, [
+                        CsvHelper::safePutCsv($handle, [
                             $log->created_at->format('Y-m-d H:i:s'),
                             $log->to_email,
                             $log->subject,
@@ -136,7 +138,7 @@ class NotificationLogController extends Controller
                 fputcsv($handle, ['Date', 'Event ID', 'Type', 'Payment ID', 'Status']);
                 PaymentEvent::orderBy('created_at', 'desc')->chunk(200, function ($events) use ($handle) {
                     foreach ($events as $event) {
-                        fputcsv($handle, [
+                        CsvHelper::safePutCsv($handle, [
                             $event->created_at->format('Y-m-d H:i:s'),
                             $event->event_id,
                             $event->event_type,

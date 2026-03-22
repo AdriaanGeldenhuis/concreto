@@ -129,12 +129,14 @@ class VendorController extends Controller
 
     public function destroy(Vendor $vendor)
     {
-        $name = $vendor->name;
-        $vendor->delete();
+        if ($vendor->products()->exists()) {
+            return redirect()->route('admin.vendors.index')
+                ->with('error', "Cannot delete vendor with associated products. Deactivate it instead.");
+        }
 
-        AuditLog::log('deleted', 'Vendor', $vendor->id, [
-            'name' => $name,
-        ]);
+        $name = $vendor->name;
+        AuditLog::log('deleted', 'Vendor', $vendor->id, ['name' => $name]);
+        $vendor->delete();
 
         return redirect()->route('admin.vendors.index')
             ->with('success', "Vendor '{$name}' deleted.");

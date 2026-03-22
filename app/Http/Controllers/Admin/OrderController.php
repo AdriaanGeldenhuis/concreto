@@ -13,6 +13,8 @@ use App\Services\InvoiceService;
 use App\Services\NotificationService;
 use App\Services\OrderService;
 use Illuminate\Http\Request;
+use App\Helpers\CsvHelper;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 
 class OrderController extends Controller
@@ -227,41 +229,47 @@ class OrderController extends Controller
             'notes' => 'nullable|string|max:1000',
         ]);
 
-        $payment = Payment::create([
-            'order_id' => $order->id,
-            'customer_id' => $order->customer_id,
-            'provider' => $request->provider,
-            'reference' => $request->reference,
-            'amount' => $request->amount,
-            'status' => 'completed',
-            'notes' => $request->notes,
-            'recorded_by' => auth()->user()->name,
-        ]);
+        $payment = DB::transaction(function () use ($request, $order) {
+            $payment = Payment::create([
+                'order_id' => $order->id,
+                'customer_id' => $order->customer_id,
+                'provider' => $request->provider,
+                'reference' => $request->reference,
+                'amount' => $request->amount,
+                'status' => 'completed',
+                'notes' => $request->notes,
+                'recorded_by' => auth()->user()->name,
+            ]);
 
-        AuditLog::log('manual_payment_recorded', 'Payment', $payment->id, [
-            'order_id' => $order->id,
-            'amount' => $request->amount,
-            'provider' => $request->provider,
-        ]);
+            AuditLog::log('manual_payment_recorded', 'Payment', $payment->id, [
+                'order_id' => $order->id,
+                'amount' => $request->amount,
+                'provider' => $request->provider,
+            ]);
 
-        if ($order->status === 'PENDING_PAYMENT') {
-            $totalPaid = $order->payments()->where('status', 'completed')->sum('amount');
-            if ($totalPaid >= (float) $order->total) {
-                $order->update(['status' => 'PLACED']);
-                AuditLog::log('payment_completed', 'Order', $order->id, [
-                    'total_paid' => $totalPaid,
-                    'provider' => $request->provider,
-                ]);
-
-                // Notify vendors + admin that order is ready for processing
-                try {
-                    $this->notificationService->orderPlacedForProcessing($order);
-                } catch (\Exception $e) {
-                    \Illuminate\Support\Facades\Log::warning('Failed to send vendor notification on manual payment', [
-                        'order_id' => $order->id,
-                        'error' => $e->getMessage(),
+            if ($order->status === 'PENDING_PAYMENT') {
+                $totalPaid = $order->payments()->where('status', 'completed')->sum('amount');
+                if ($totalPaid >= (float) $order->total) {
+                    $order->update(['status' => 'PLACED']);
+                    AuditLog::log('payment_completed', 'Order', $order->id, [
+                        'total_paid' => $totalPaid,
+                        'provider' => $request->provider,
                     ]);
                 }
+            }
+
+            return $payment;
+        });
+
+        // Notify vendors outside transaction (non-critical)
+        if ($order->fresh()->status === 'PLACED') {
+            try {
+                $this->notificationService->orderPlacedForProcessing($order);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::warning('Failed to send vendor notification on manual payment', [
+                    'order_id' => $order->id,
+                    'error' => $e->getMessage(),
+                ]);
             }
         }
 
@@ -281,28 +289,30 @@ class OrderController extends Controller
             'amount.max' => "Refund cannot exceed R" . number_format($maxRefundable, 2) . " (total paid minus previous refunds).",
         ]);
 
-        $payment = Payment::create([
-            'order_id' => $order->id,
-            'customer_id' => $order->customer_id,
-            'provider' => 'refund',
-            'reference' => 'REFUND-' . now()->format('YmdHis'),
-            'amount' => -abs($request->amount),
-            'status' => 'completed',
-            'notes' => 'Refund: ' . $request->reason,
-            'recorded_by' => auth()->user()->name,
-        ]);
+        DB::transaction(function () use ($request, $order) {
+            $payment = Payment::create([
+                'order_id' => $order->id,
+                'customer_id' => $order->customer_id,
+                'provider' => 'refund',
+                'reference' => 'REFUND-' . now()->format('YmdHis'),
+                'amount' => -abs($request->amount),
+                'status' => 'completed',
+                'notes' => 'Refund: ' . $request->reason,
+                'recorded_by' => auth()->user()->name,
+            ]);
 
-        AuditLog::log('refund_processed', 'Payment', $payment->id, [
-            'order_id' => $order->id,
-            'amount' => $request->amount,
-            'reason' => $request->reason,
-        ]);
+            AuditLog::log('refund_processed', 'Payment', $payment->id, [
+                'order_id' => $order->id,
+                'amount' => $request->amount,
+                'reason' => $request->reason,
+            ]);
 
-        if ($request->boolean('mark_refunded') && $order->canTransitionTo('REFUNDED')) {
-            $order->update(['status' => 'REFUNDED']);
-        } elseif ($request->boolean('mark_refunded')) {
-            $this->orderService->forceStatus($order, 'REFUNDED', 'Refund processed: ' . $request->reason);
-        }
+            if ($request->boolean('mark_refunded') && $order->canTransitionTo('REFUNDED')) {
+                $order->update(['status' => 'REFUNDED']);
+            } elseif ($request->boolean('mark_refunded')) {
+                $this->orderService->forceStatus($order, 'REFUNDED', 'Refund processed: ' . $request->reason);
+            }
+        });
 
         return back()->with('success', 'Refund of R' . number_format($request->amount, 2) . ' processed.');
     }
@@ -383,11 +393,12 @@ class OrderController extends Controller
 
         return response()->stream(function () use ($query) {
             $handle = fopen('php://output', 'w');
+            CsvHelper::writeBom($handle);
             fputcsv($handle, ['Order #', 'Customer', 'Email', 'Status', 'Subtotal', 'Delivery Fee', 'VAT', 'Discount', 'Total', 'Driver', 'Scheduled Date', 'Created']);
 
             $query->orderBy('created_at', 'desc')->chunk(200, function ($orders) use ($handle) {
                 foreach ($orders as $order) {
-                    fputcsv($handle, [
+                    CsvHelper::safePutCsv($handle, [
                         $order->order_number,
                         $order->customer?->user?->name ?? '-',
                         $order->customer?->user?->email ?? '-',

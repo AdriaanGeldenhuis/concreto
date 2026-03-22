@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\Customer;
@@ -64,6 +66,10 @@ Route::middleware(['guest', 'throttle:login'])->group(function () {
     Route::post('/login', [LoginController::class, 'login']);
     Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
     Route::post('/register', [RegisterController::class, 'register']);
+    Route::get('/forgot-password', [ForgotPasswordController::class, 'showForm'])->name('password.request');
+    Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink'])->name('password.email');
+    Route::get('/reset-password/{token}', [ResetPasswordController::class, 'showForm'])->name('password.reset');
+    Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->name('password.update');
 });
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
 
@@ -154,12 +160,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff', 
     Route::post('/orders/{order}/assign-driver', [Admin\OrderController::class, 'assignDriver'])->name('orders.assign-driver');
     Route::post('/orders/{order}/status', [Admin\OrderController::class, 'updateStatus'])->name('orders.update-status');
     Route::post('/orders/{order}/cancel', [Admin\OrderController::class, 'cancel'])->name('orders.cancel');
-    Route::post('/orders/{order}/force-status', [Admin\OrderController::class, 'forceStatus'])->name('orders.force-status');
-    Route::post('/orders/{order}/resend-invoice', [Admin\OrderController::class, 'resendInvoice'])->name('orders.resend-invoice');
-    Route::post('/orders/{order}/record-payment', [Admin\OrderController::class, 'recordPayment'])->name('orders.record-payment');
-    Route::post('/orders/{order}/refund', [Admin\OrderController::class, 'refund'])->name('orders.refund');
-    Route::post('/orders/bulk-assign-driver', [Admin\OrderController::class, 'bulkAssignDriver'])->name('orders.bulk-assign-driver');
-    Route::post('/orders/bulk-update-status', [Admin\OrderController::class, 'bulkUpdateStatus'])->name('orders.bulk-update-status');
+    Route::post('/orders/{order}/force-status', [Admin\OrderController::class, 'forceStatus'])->name('orders.force-status')->middleware('throttle:admin-action');
+    Route::post('/orders/{order}/resend-invoice', [Admin\OrderController::class, 'resendInvoice'])->name('orders.resend-invoice')->middleware('throttle:admin-action');
+    Route::post('/orders/{order}/record-payment', [Admin\OrderController::class, 'recordPayment'])->name('orders.record-payment')->middleware('throttle:admin-action');
+    Route::post('/orders/{order}/refund', [Admin\OrderController::class, 'refund'])->name('orders.refund')->middleware('throttle:admin-action');
+    Route::post('/orders/bulk-assign-driver', [Admin\OrderController::class, 'bulkAssignDriver'])->name('orders.bulk-assign-driver')->middleware('throttle:admin-action');
+    Route::post('/orders/bulk-update-status', [Admin\OrderController::class, 'bulkUpdateStatus'])->name('orders.bulk-update-status')->middleware('throttle:admin-action');
 
     Route::get('/products/export', [Admin\ProductController::class, 'export'])->name('products.export');
     Route::resource('products', Admin\ProductController::class);
@@ -349,6 +355,29 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff', 
     // Staff Permissions
     Route::get('/staff-permissions', [Admin\StaffPermissionController::class, 'index'])->name('staff-permissions.index');
     Route::put('/staff-permissions/{user}', [Admin\StaffPermissionController::class, 'update'])->name('staff-permissions.update');
+
+    // Accounts Payable / Supplier Invoices
+    Route::get('/supplier-invoices', [Admin\SupplierInvoiceController::class, 'index'])->name('supplier-invoices.index');
+    Route::get('/supplier-invoices/create', [Admin\SupplierInvoiceController::class, 'create'])->name('supplier-invoices.create');
+    Route::post('/supplier-invoices', [Admin\SupplierInvoiceController::class, 'store'])->name('supplier-invoices.store');
+    Route::get('/supplier-invoices/export', [Admin\SupplierInvoiceController::class, 'export'])->name('supplier-invoices.export');
+    Route::get('/supplier-invoices/aging', [Admin\SupplierInvoiceController::class, 'aging'])->name('supplier-invoices.aging');
+    Route::get('/supplier-invoices/{supplierInvoice}', [Admin\SupplierInvoiceController::class, 'show'])->name('supplier-invoices.show');
+    Route::get('/supplier-invoices/{supplierInvoice}/edit', [Admin\SupplierInvoiceController::class, 'edit'])->name('supplier-invoices.edit');
+    Route::put('/supplier-invoices/{supplierInvoice}', [Admin\SupplierInvoiceController::class, 'update'])->name('supplier-invoices.update');
+    Route::post('/supplier-invoices/{supplierInvoice}/record-payment', [Admin\SupplierInvoiceController::class, 'recordPayment'])->name('supplier-invoices.record-payment');
+    Route::delete('/supplier-invoices/{supplierInvoice}', [Admin\SupplierInvoiceController::class, 'destroy'])->name('supplier-invoices.destroy');
+
+    // Balance Sheet
+    Route::get('/balance-sheet', [Admin\BalanceSheetController::class, 'index'])->name('balance-sheet.index');
+
+    // Credit Notes
+    Route::get('/credit-notes', [Admin\CreditNoteController::class, 'index'])->name('credit-notes.index');
+    Route::get('/credit-notes/create', [Admin\CreditNoteController::class, 'create'])->name('credit-notes.create');
+    Route::post('/credit-notes', [Admin\CreditNoteController::class, 'store'])->name('credit-notes.store');
+    Route::get('/credit-notes/export', [Admin\CreditNoteController::class, 'export'])->name('credit-notes.export');
+    Route::get('/credit-notes/{creditNote}', [Admin\CreditNoteController::class, 'show'])->name('credit-notes.show');
+    Route::get('/credit-notes/{creditNote}/download', [Admin\CreditNoteController::class, 'download'])->name('credit-notes.download');
 
     // Profitability Calculator (admin only - enforced in controller)
     Route::get('/profitability-calculator', [Admin\ProfitabilityCalculatorController::class, 'index'])->name('profitability-calculator.index');

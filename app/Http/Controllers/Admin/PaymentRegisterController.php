@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
+use App\Helpers\CsvHelper;
 use Illuminate\Http\Request;
 
 class PaymentRegisterController extends Controller
@@ -101,6 +102,7 @@ class PaymentRegisterController extends Controller
 
         return response()->stream(function () use ($query) {
             $handle = fopen('php://output', 'w');
+            CsvHelper::writeBom($handle);
             fputcsv($handle, [
                 'Date', 'Reference', 'Provider', 'Order #', 'Invoice #',
                 'Customer', 'Amount', 'Type', 'Status', 'Notes',
@@ -108,7 +110,7 @@ class PaymentRegisterController extends Controller
 
             $query->orderBy('created_at', 'desc')->chunk(200, function ($payments) use ($handle) {
                 foreach ($payments as $payment) {
-                    fputcsv($handle, [
+                    CsvHelper::safePutCsv($handle, [
                         $payment->created_at->format('Y-m-d H:i'),
                         $payment->reference ?? '-',
                         $payment->provider,

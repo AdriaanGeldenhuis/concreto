@@ -11,6 +11,11 @@ class ProductAnalyticsController extends Controller
 {
     public function index(Request $request)
     {
+        $request->validate([
+            'from' => 'nullable|date',
+            'to' => 'nullable|date',
+        ]);
+
         $from = $request->input('from', now()->subDays(30)->format('Y-m-d'));
         $to = $request->input('to', now()->format('Y-m-d'));
 

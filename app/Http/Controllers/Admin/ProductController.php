@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Models\Vendor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use App\Helpers\CsvHelper;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ProductController extends Controller
@@ -189,9 +190,10 @@ class ProductController extends Controller
 
         return response()->streamDownload(function () use ($products) {
             $out = fopen('php://output', 'w');
+            CsvHelper::writeBom($out);
             fputcsv($out, ['SKU', 'Name', 'Category', 'Price', 'Cost Price', 'Unit', 'Stock Qty', 'In Stock', 'Active']);
             foreach ($products as $p) {
-                fputcsv($out, [
+                CsvHelper::safePutCsv($out, [
                     $p->sku ?? '',
                     $p->name,
                     $p->category?->name ?? '',
