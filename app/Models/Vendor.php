@@ -54,6 +54,11 @@ class Vendor extends Model
         return $this->hasMany(Product::class);
     }
 
+    public function supplierInvoices(): HasMany
+    {
+        return $this->hasMany(SupplierInvoice::class);
+    }
+
     /**
      * Route notifications for the mail channel.
      */

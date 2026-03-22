@@ -100,10 +100,13 @@
             <a href="{{ route('admin.bank-reconciliation.rules.index') }}" class="{{ request()->routeIs('admin.bank-reconciliation.rules*') ? 'active' : '' }}">&#128295; Recon Rules</a>
             <div class="sidebar-section">Finance</div>
             <a href="{{ route('admin.accounts-receivable.index') }}" class="{{ request()->routeIs('admin.accounts-receivable*') ? 'active' : '' }}">&#128176; Accounts Receivable</a>
+            <a href="{{ route('admin.supplier-invoices.index') }}" class="{{ request()->routeIs('admin.supplier-invoices*') ? 'active' : '' }}">&#128181; Accounts Payable</a>
             <a href="{{ route('admin.invoices.index') }}" class="{{ request()->routeIs('admin.invoices*') ? 'active' : '' }}">&#128196; Invoice Register</a>
+            <a href="{{ route('admin.credit-notes.index') }}" class="{{ request()->routeIs('admin.credit-notes*') ? 'active' : '' }}">&#128195; Credit Notes</a>
             <a href="{{ route('admin.payment-register.index') }}" class="{{ request()->routeIs('admin.payment-register*') ? 'active' : '' }}">&#128179; Payment Register</a>
             <a href="{{ route('admin.vat-report.index') }}" class="{{ request()->routeIs('admin.vat-report*') ? 'active' : '' }}">&#128200; VAT Report</a>
             <a href="{{ route('admin.profit-loss.index') }}" class="{{ request()->routeIs('admin.profit-loss*') ? 'active' : '' }}">&#128178; Profit & Loss</a>
+            <a href="{{ route('admin.balance-sheet.index') }}" class="{{ request()->routeIs('admin.balance-sheet*') ? 'active' : '' }}">&#128203; Balance Sheet</a>
             <a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports*') ? 'active' : '' }}">&#128202; Reports</a>
             <div class="sidebar-section">Automation</div>
             <a href="{{ route('admin.recurring-orders.index') }}" class="{{ request()->routeIs('admin.recurring-orders*') ? 'active' : '' }}">&#128260; Recurring Orders</a>

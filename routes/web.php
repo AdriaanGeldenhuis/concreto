@@ -356,6 +356,29 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff', 
     Route::get('/staff-permissions', [Admin\StaffPermissionController::class, 'index'])->name('staff-permissions.index');
     Route::put('/staff-permissions/{user}', [Admin\StaffPermissionController::class, 'update'])->name('staff-permissions.update');
 
+    // Accounts Payable / Supplier Invoices
+    Route::get('/supplier-invoices', [Admin\SupplierInvoiceController::class, 'index'])->name('supplier-invoices.index');
+    Route::get('/supplier-invoices/create', [Admin\SupplierInvoiceController::class, 'create'])->name('supplier-invoices.create');
+    Route::post('/supplier-invoices', [Admin\SupplierInvoiceController::class, 'store'])->name('supplier-invoices.store');
+    Route::get('/supplier-invoices/export', [Admin\SupplierInvoiceController::class, 'export'])->name('supplier-invoices.export');
+    Route::get('/supplier-invoices/aging', [Admin\SupplierInvoiceController::class, 'aging'])->name('supplier-invoices.aging');
+    Route::get('/supplier-invoices/{supplierInvoice}', [Admin\SupplierInvoiceController::class, 'show'])->name('supplier-invoices.show');
+    Route::get('/supplier-invoices/{supplierInvoice}/edit', [Admin\SupplierInvoiceController::class, 'edit'])->name('supplier-invoices.edit');
+    Route::put('/supplier-invoices/{supplierInvoice}', [Admin\SupplierInvoiceController::class, 'update'])->name('supplier-invoices.update');
+    Route::post('/supplier-invoices/{supplierInvoice}/record-payment', [Admin\SupplierInvoiceController::class, 'recordPayment'])->name('supplier-invoices.record-payment');
+    Route::delete('/supplier-invoices/{supplierInvoice}', [Admin\SupplierInvoiceController::class, 'destroy'])->name('supplier-invoices.destroy');
+
+    // Balance Sheet
+    Route::get('/balance-sheet', [Admin\BalanceSheetController::class, 'index'])->name('balance-sheet.index');
+
+    // Credit Notes
+    Route::get('/credit-notes', [Admin\CreditNoteController::class, 'index'])->name('credit-notes.index');
+    Route::get('/credit-notes/create', [Admin\CreditNoteController::class, 'create'])->name('credit-notes.create');
+    Route::post('/credit-notes', [Admin\CreditNoteController::class, 'store'])->name('credit-notes.store');
+    Route::get('/credit-notes/export', [Admin\CreditNoteController::class, 'export'])->name('credit-notes.export');
+    Route::get('/credit-notes/{creditNote}', [Admin\CreditNoteController::class, 'show'])->name('credit-notes.show');
+    Route::get('/credit-notes/{creditNote}/download', [Admin\CreditNoteController::class, 'download'])->name('credit-notes.download');
+
     // Profitability Calculator (admin only - enforced in controller)
     Route::get('/profitability-calculator', [Admin\ProfitabilityCalculatorController::class, 'index'])->name('profitability-calculator.index');
 });
